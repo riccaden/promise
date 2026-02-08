@@ -1406,6 +1406,12 @@
             sendBtn.disabled = true;
             messageInput.value = '';
 
+            // Reset language modal selections
+            const languageOptions = document.querySelectorAll('.language-option');
+            languageOptions.forEach(opt => opt.classList.remove('selected'));
+            const confirmBtn = document.getElementById('confirmLanguageBtn');
+            confirmBtn.disabled = true;
+
             // Show language modal to start fresh
             showLanguageModal();
         }
