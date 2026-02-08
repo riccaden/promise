@@ -991,9 +991,9 @@
             loadDraftMessage();
 
             try {
-                // Get or create PROMISE agent
+                // Get or create PROMISE agent (force new if in reset flow)
                 console.log('Getting PROMISE agent...');
-                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language);
+                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language, isResetFlow);
                 console.log('Agent ID:', currentAgentId);
 
                 // Only load existing conversation if NOT in reset flow
