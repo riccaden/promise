@@ -1319,7 +1319,10 @@
 
             // Detect demographic questions based on text content
             if (lang === 'de') {
-                if (text.includes('Altersgruppe')) {
+                // Consent question (Ja/Nein)
+                if (text.includes('(Ja/Nein)') || (text.includes('einverstanden') && text.includes('Forschungszwecke'))) {
+                    options = ['Ja', 'Nein'];
+                } else if (text.includes('Altersgruppe')) {
                     options = ['unter 18', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
                 } else if (text.includes('Geschlecht')) {
                     options = ['Männlich', 'Weiblich', 'Nicht-binär', 'Möchte ich nicht angeben'];
@@ -1333,7 +1336,10 @@
                     options = ['Direkt', 'Ausführlich', 'Emotional', 'Sachlich', 'Humorvoll'];
                 }
             } else if (lang === 'en') {
-                if (text.toLowerCase().includes('age group')) {
+                // Consent question (Yes/No)
+                if (text.includes('(Yes/No)') || (text.toLowerCase().includes('consent') && text.toLowerCase().includes('research'))) {
+                    options = ['Yes', 'No'];
+                } else if (text.toLowerCase().includes('age group')) {
                     options = ['under 18', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
                 } else if (text.toLowerCase().includes('gender')) {
                     options = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
