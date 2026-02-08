@@ -844,6 +844,7 @@
         let selectedBiographerLanguage = null;
         let questionCount = 0; // Track progress (0-67)
         const totalQuestions = 67; // 7 demographics + 60 deep questions
+        let isResetFlow = false; // Flag to skip loading old conversation after reset
 
         // ============================================
         // DOM ELEMENTS
@@ -995,19 +996,24 @@
                 currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language);
                 console.log('Agent ID:', currentAgentId);
 
-                // Load existing conversation if any
-                await loadConversation();
+                // Only load existing conversation if NOT in reset flow
+                if (!isResetFlow) {
+                    // Load existing conversation if any
+                    await loadConversation();
+                }
 
-                // If no previous conversation, start new one
-                if (conversationHistory.length === 0) {
+                // If no previous conversation or in reset flow, start new one
+                if (conversationHistory.length === 0 || isResetFlow) {
                     console.log('Starting new conversation...');
                     await startNewConversation();
+                    isResetFlow = false; // Reset flag after starting new conversation
                 }
 
                 console.log('Initialization complete!');
             } catch (error) {
                 console.error('Error initializing:', error);
                 addMessageToUI('biographer', 'Sorry, there was an error starting the conversation. Please refresh the page.', false);
+                isResetFlow = false; // Reset flag on error too
             }
         }
 
@@ -1382,6 +1388,9 @@
             if (!confirmed) {
                 return;
             }
+
+            // Set reset flow flag to prevent loading old conversation
+            isResetFlow = true;
 
             // Clear biographer-specific localStorage
             localStorage.removeItem('oblivio_biographer_language');
