@@ -99,6 +99,24 @@
             color: var(--rust);
         }
 
+        .reset-btn {
+            color: var(--rust);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .reset-btn:hover {
+            color: var(--charcoal);
+        }
+
         /* Language Switcher */
         .lang-select {
             background-color: var(--cream);
@@ -743,6 +761,7 @@
     <nav>
         <a href="index.html" class="logo">Oblivio</a>
         <div class="nav-right">
+            <button class="reset-btn" id="resetBtn" title="Start a new questionnaire">↻ Reset</button>
             <a href="journey.html" class="back-link" data-i18n="nav_back">← Back</a>
             <button class="logout-btn" id="logoutBtn" data-i18n="nav_logout">Logout</button>
             <select class="lang-select" id="languageSelector">
@@ -835,6 +854,7 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const logoutBtn = document.getElementById('logoutBtn');
+        const resetBtn = document.getElementById('resetBtn');
         const progressContainer = document.getElementById('progressContainer');
         const progressText = document.getElementById('progressText');
         const progressFill = document.getElementById('progressFill');
@@ -1353,6 +1373,44 @@
         }
 
         // ============================================
+        // RESET QUESTIONNAIRE
+        // ============================================
+        function handleReset() {
+            // Confirm with user
+            const confirmed = confirm('Möchtest du wirklich einen neuen Fragebogen starten? Der aktuelle Chat-Verlauf wird zurückgesetzt (Deine bereits gespeicherten Antworten bleiben in der Datenbank erhalten).');
+
+            if (!confirmed) {
+                return;
+            }
+
+            // Clear biographer-specific localStorage
+            localStorage.removeItem('oblivio_biographer_language');
+            localStorage.removeItem('oblivio_draft_message');
+
+            // Clear UI
+            messagesArea.innerHTML = '';
+            questionCount = 0;
+            progressContainer.style.display = 'none';
+            progressFill.style.width = '0%';
+            choiceButtons.style.display = 'none';
+            choiceButtons.innerHTML = '';
+
+            // Reset state
+            currentAgentId = null;
+            conversationHistory = [];
+            isConversationActive = true;
+            selectedBiographerLanguage = null;
+
+            // Disable input
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            messageInput.value = '';
+
+            // Show language modal to start fresh
+            showLanguageModal();
+        }
+
+        // ============================================
         // LOGOUT
         // ============================================
         async function handleLogout() {
@@ -1563,6 +1621,7 @@
         }, { once: true });
 
         logoutBtn.addEventListener('click', handleLogout);
+        resetBtn.addEventListener('click', handleReset);
 
         voiceToggle.addEventListener('click', toggleVoice);
         musicToggle.addEventListener('click', toggleMusic);
