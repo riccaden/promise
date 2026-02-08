@@ -1,0 +1,8 @@
+# Ignoriere unnötige Dateien für schnellere Deployments
+target/
+.git/
+.mvn/wrapper/maven-wrapper.jar
+*.log
+*.md
+.readme/
+.DS_Store
