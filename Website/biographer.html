@@ -99,24 +99,6 @@
             color: var(--rust);
         }
 
-        .reset-btn {
-            color: var(--rust);
-            text-decoration: none;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            font-weight: 600;
-            transition: color 0.3s;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-family: 'Crimson Pro', serif;
-        }
-
-        .reset-btn:hover {
-            color: var(--charcoal);
-        }
-
         /* Language Switcher */
         .lang-select {
             background-color: var(--cream);
@@ -178,75 +160,6 @@
             font-size: 17px;
             color: var(--moss);
             font-weight: 300;
-        }
-
-        /* Progress Bar */
-        .progress-container {
-            background: white;
-            border: 1px solid rgba(26, 26, 26, 0.08);
-            border-radius: 8px;
-            padding: 15px 20px;
-            margin: 20px 0;
-            box-shadow: 0 2px 10px var(--shadow);
-        }
-
-        .progress-text {
-            font-size: 14px;
-            color: var(--moss);
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(26, 26, 26, 0.08);
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, var(--rust), var(--gold));
-            border-radius: 4px;
-            transition: width 0.5s ease;
-            width: 0%;
-        }
-
-        /* Multiple Choice Buttons */
-        .choice-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            padding: 10px 0;
-        }
-
-        .choice-btn {
-            padding: 12px 20px;
-            background: white;
-            border: 2px solid rgba(26, 26, 26, 0.1);
-            border-radius: 8px;
-            font-family: 'Crimson Pro', serif;
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--charcoal);
-            cursor: pointer;
-            transition: all 0.3s;
-            flex: 0 1 auto;
-        }
-
-        .choice-btn:hover {
-            border-color: var(--rust);
-            background: var(--rust);
-            color: var(--cream);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px var(--shadow);
-        }
-
-        .choice-btn:active {
-            transform: translateY(0);
         }
 
         /* Messages Area */
@@ -350,12 +263,6 @@
             padding: 20px;
             background: transparent;
             border-top: none;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .input-row {
             display: flex;
             gap: 15px;
         }
@@ -761,7 +668,6 @@
     <nav>
         <a href="index.html" class="logo">Oblivio</a>
         <div class="nav-right">
-            <button class="reset-btn" id="resetBtn" title="Start a new questionnaire">↻ Reset</button>
             <a href="journey.html" class="back-link" data-i18n="nav_back">← Back</a>
             <button class="logout-btn" id="logoutBtn" data-i18n="nav_logout">Logout</button>
             <select class="lang-select" id="languageSelector">
@@ -778,14 +684,6 @@
         <div class="chat-header">
             <h1 data-i18n="bio_title">The Biographer</h1>
             <p data-i18n="bio_subtitle">Let's preserve your story together</p>
-
-            <!-- Progress Bar -->
-            <div class="progress-container" id="progressContainer" style="display: none;">
-                <div class="progress-text" id="progressText">Question 0 of 67</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
         </div>
 
         <!-- Messages Area -->
@@ -795,19 +693,14 @@
 
         <!-- Input Area -->
         <div class="input-area">
-            <!-- Multiple Choice Buttons (will appear dynamically) -->
-            <div class="choice-buttons" id="choiceButtons" style="display: none;"></div>
-
-            <div class="input-row">
-                <input
-                    type="text"
-                    id="messageInput"
-                    data-i18n="bio_input_placeholder"
-                    placeholder="Type your answer here..."
-                    disabled
-                >
-                <button class="send-btn" id="sendBtn" disabled data-i18n="bio_send">Send</button>
-            </div>
+            <input
+                type="text"
+                id="messageInput"
+                data-i18n="bio_input_placeholder"
+                placeholder="Type your answer here..."
+                disabled
+            >
+            <button class="send-btn" id="sendBtn" disabled data-i18n="bio_send">Send</button>
         </div>
     </div>
 
@@ -842,9 +735,6 @@
         let conversationHistory = [];
         let isConversationActive = true;
         let selectedBiographerLanguage = null;
-        let questionCount = 0; // Track progress (0-67)
-        const totalQuestions = 67; // 7 demographics + 60 deep questions
-        let isResetFlow = false; // Flag to skip loading old conversation after reset
 
         // ============================================
         // DOM ELEMENTS
@@ -855,11 +745,6 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn = document.getElementById('sendBtn');
         const logoutBtn = document.getElementById('logoutBtn');
-        const resetBtn = document.getElementById('resetBtn');
-        const progressContainer = document.getElementById('progressContainer');
-        const progressText = document.getElementById('progressText');
-        const progressFill = document.getElementById('progressFill');
-        const choiceButtons = document.getElementById('choiceButtons');
 
         // ============================================
         // AUTHENTICATION CHECK
@@ -991,29 +876,24 @@
             loadDraftMessage();
 
             try {
-                // Get or create PROMISE agent (force new if in reset flow)
+                // Get or create PROMISE agent
                 console.log('Getting PROMISE agent...');
-                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language, isResetFlow);
+                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language);
                 console.log('Agent ID:', currentAgentId);
 
-                // Only load existing conversation if NOT in reset flow
-                if (!isResetFlow) {
-                    // Load existing conversation if any
-                    await loadConversation();
-                }
+                // Load existing conversation if any
+                await loadConversation();
 
-                // If no previous conversation or in reset flow, start new one
-                if (conversationHistory.length === 0 || isResetFlow) {
+                // If no previous conversation, start new one
+                if (conversationHistory.length === 0) {
                     console.log('Starting new conversation...');
                     await startNewConversation();
-                    isResetFlow = false; // Reset flag after starting new conversation
                 }
 
                 console.log('Initialization complete!');
             } catch (error) {
                 console.error('Error initializing:', error);
                 addMessageToUI('biographer', 'Sorry, there was an error starting the conversation. Please refresh the page.', false);
-                isResetFlow = false; // Reset flag on error too
             }
         }
 
@@ -1028,21 +908,10 @@
 
                 if (supabaseMessages && supabaseMessages.length > 0) {
                     console.log(`Found ${supabaseMessages.length} messages in Supabase`);
-
                     supabaseMessages.forEach(msg => {
                         const sender = msg.role === 'assistant' ? 'biographer' : 'user';
-                        addMessageToUI(sender, msg.content, false, false); // false = don't save, don't track progress
+                        addMessageToUI(sender, msg.content, false); // false = don't save again
                     });
-
-                    // Count user messages for progress
-                    questionCount = supabaseMessages.filter(m => m.role === 'user').length;
-                    updateProgressBar();
-
-                    // Check for choice buttons on last biographer message
-                    const lastBiographerMessage = [...supabaseMessages].reverse().find(m => m.role === 'assistant');
-                    if (lastBiographerMessage && isConversationActive) {
-                        detectAndShowChoiceButtons(lastBiographerMessage.content);
-                    }
 
                     // Check if conversation is complete
                     try {
@@ -1071,21 +940,11 @@
                     conversation.utterances.forEach(utterance => {
                         const sender = utterance.speaker === 'ASSISTANT' ? 'biographer' : 'user';
                         const role = utterance.speaker === 'ASSISTANT' ? 'assistant' : 'user';
-                        addMessageToUI(sender, utterance.text, false, false); // false = don't save, don't track progress
+                        addMessageToUI(sender, utterance.text, false);
                         // Save to Supabase for future loads
                         PromiseAPI.saveMessage(currentUser.id, currentAgentId, role, utterance.text);
                     });
                     conversationHistory = conversation.utterances;
-
-                    // Count user messages for progress
-                    questionCount = conversation.utterances.filter(u => u.speaker === 'USER').length;
-                    updateProgressBar();
-
-                    // Check for choice buttons on last biographer message
-                    const lastBiographerUtterance = [...conversation.utterances].reverse().find(u => u.speaker === 'ASSISTANT');
-                    if (lastBiographerUtterance && isConversationActive) {
-                        detectAndShowChoiceButtons(lastBiographerUtterance.text);
-                    }
                 }
 
                 // Check if conversation is complete
@@ -1123,7 +982,7 @@
             }
         }
 
-        function addMessageToUI(sender, text, saveToSupabase = true, trackProgress = true) {
+        function addMessageToUI(sender, text, saveToSupabase = true) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
 
@@ -1144,17 +1003,6 @@
 
             messagesArea.appendChild(messageDiv);
             messagesArea.scrollTop = messagesArea.scrollHeight;
-
-            // Track progress: increment on user messages (only when not loading)
-            if (sender === 'user' && trackProgress) {
-                questionCount++;
-                updateProgressBar();
-            }
-
-            // Detect choice buttons on biographer messages (only when not loading)
-            if (sender === 'biographer' && trackProgress) {
-                detectAndShowChoiceButtons(text);
-            }
 
             // Save to Supabase if requested
             if (saveToSupabase && currentUser && currentAgentId) {
@@ -1293,142 +1141,6 @@
         function getCurrentLanguage() {
             // Get language from localStorage (same key as translations.js)
             return localStorage.getItem('oblivio_language') || 'en'; // Default to English
-        }
-
-        // ============================================
-        // PROGRESS TRACKING
-        // ============================================
-        function updateProgressBar() {
-            progressText.textContent = `Question ${questionCount} of ${totalQuestions}`;
-            const percentage = (questionCount / totalQuestions) * 100;
-            progressFill.style.width = `${percentage}%`;
-
-            // Show progress bar after first message
-            if (questionCount > 0) {
-                progressContainer.style.display = 'block';
-            }
-        }
-
-        function detectAndShowChoiceButtons(text) {
-            // Clear any existing buttons
-            choiceButtons.innerHTML = '';
-            choiceButtons.style.display = 'none';
-
-            const lang = getBiographerLanguage();
-            let options = null;
-
-            // Detect demographic questions based on text content
-            if (lang === 'de') {
-                // Consent question (Ja/Nein)
-                if (text.includes('(Ja/Nein)') || (text.includes('einverstanden') && text.includes('Forschungszwecke'))) {
-                    options = ['Ja', 'Nein'];
-                } else if (text.includes('Altersgruppe')) {
-                    options = ['unter 18', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
-                } else if (text.includes('Geschlecht')) {
-                    options = ['Männlich', 'Weiblich', 'Nicht-binär', 'Möchte ich nicht angeben'];
-                } else if (text.includes('Messenger')) {
-                    options = ['WhatsApp', 'Telegram', 'Signal', 'Andere'];
-                } else if (text.includes('kurze oder eine lange Nachricht')) {
-                    options = ['Viele kurze Nachrichten', 'Eine lange Nachricht', 'Beides'];
-                } else if (text.includes('würdest du dich selbst beschreiben')) {
-                    options = ['Introvertiert', 'Extrovertiert', 'Analytisch', 'Emotional', 'Kreativ'];
-                } else if (text.includes('Kommunikationsstil')) {
-                    options = ['Direkt', 'Ausführlich', 'Emotional', 'Sachlich', 'Humorvoll'];
-                }
-            } else if (lang === 'en') {
-                // Consent question (Yes/No)
-                if (text.includes('(Yes/No)') || (text.toLowerCase().includes('consent') && text.toLowerCase().includes('research'))) {
-                    options = ['Yes', 'No'];
-                } else if (text.toLowerCase().includes('age group')) {
-                    options = ['under 18', '18-24', '25-34', '35-44', '45-54', '55-64', '65+'];
-                } else if (text.toLowerCase().includes('gender')) {
-                    options = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
-                } else if (text.toLowerCase().includes('messenger')) {
-                    options = ['WhatsApp', 'Telegram', 'Signal', 'Other'];
-                } else if (text.toLowerCase().includes('short or one long message')) {
-                    options = ['Many short messages', 'One long message', 'Both'];
-                } else if (text.toLowerCase().includes('describe yourself')) {
-                    options = ['Introverted', 'Extroverted', 'Analytical', 'Emotional', 'Creative'];
-                } else if (text.toLowerCase().includes('communication style')) {
-                    options = ['Direct', 'Detailed', 'Emotional', 'Factual', 'Humorous'];
-                }
-            }
-
-            if (options) {
-                showChoiceButtons(options);
-            }
-        }
-
-        function showChoiceButtons(options) {
-            choiceButtons.innerHTML = '';
-
-            options.forEach(option => {
-                const button = document.createElement('button');
-                button.className = 'choice-btn';
-                button.textContent = option;
-                button.onclick = () => handleChoiceClick(option);
-                choiceButtons.appendChild(button);
-            });
-
-            choiceButtons.style.display = 'flex';
-        }
-
-        function handleChoiceClick(choice) {
-            // Set the input value
-            messageInput.value = choice;
-
-            // Hide choice buttons
-            choiceButtons.style.display = 'none';
-
-            // Send the message
-            handleSendMessage();
-        }
-
-        // ============================================
-        // RESET QUESTIONNAIRE
-        // ============================================
-        function handleReset() {
-            // Confirm with user
-            const confirmed = confirm('Möchtest du wirklich einen neuen Fragebogen starten? Der aktuelle Chat-Verlauf wird zurückgesetzt (Deine bereits gespeicherten Antworten bleiben in der Datenbank erhalten).');
-
-            if (!confirmed) {
-                return;
-            }
-
-            // Set reset flow flag to prevent loading old conversation
-            isResetFlow = true;
-
-            // Clear biographer-specific localStorage
-            localStorage.removeItem('oblivio_biographer_language');
-            localStorage.removeItem('oblivio_draft_message');
-
-            // Clear UI
-            messagesArea.innerHTML = '';
-            questionCount = 0;
-            progressContainer.style.display = 'none';
-            progressFill.style.width = '0%';
-            choiceButtons.style.display = 'none';
-            choiceButtons.innerHTML = '';
-
-            // Reset state
-            currentAgentId = null;
-            conversationHistory = [];
-            isConversationActive = true;
-            selectedBiographerLanguage = null;
-
-            // Disable input
-            messageInput.disabled = true;
-            sendBtn.disabled = true;
-            messageInput.value = '';
-
-            // Reset language modal selections
-            const languageOptions = document.querySelectorAll('.language-option');
-            languageOptions.forEach(opt => opt.classList.remove('selected'));
-            const confirmBtn = document.getElementById('confirmLanguageBtn');
-            confirmBtn.disabled = true;
-
-            // Show language modal to start fresh
-            showLanguageModal();
         }
 
         // ============================================
@@ -1642,7 +1354,6 @@
         }, { once: true });
 
         logoutBtn.addEventListener('click', handleLogout);
-        resetBtn.addEventListener('click', handleReset);
 
         voiceToggle.addEventListener('click', toggleVoice);
         musicToggle.addEventListener('click', toggleMusic);

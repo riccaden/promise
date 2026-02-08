@@ -14,36 +14,28 @@ const PROMISE_CONFIG = {
 
 /**
  * Get or create a PROMISE agent for the current user
- * @param {string} userId - The user ID
- * @param {string} language - The language code (en, de, it, ko)
- * @param {boolean} forceNew - If true, creates a new agent even if one exists
  */
-async function getOrCreatePromiseAgent(userId, language = 'en', forceNew = false) {
-    // If forceNew is true, skip checking for existing agent and create a new one
-    if (!forceNew) {
-        // Check if user already has an agent ID stored in Supabase
-        const { data: existingAgent, error: fetchError } = await supabaseClient
-            .from('user_agents')
-            .select('agent_id, is_active')
-            .eq('user_id', userId)
-            .eq('language', language)
-            .single();
+async function getOrCreatePromiseAgent(userId, language = 'en') {
+    // Check if user already has an agent ID stored in Supabase
+    const { data: existingAgent, error: fetchError } = await supabaseClient
+        .from('user_agents')
+        .select('agent_id, is_active')
+        .eq('user_id', userId)
+        .eq('language', language)
+        .single();
 
-        if (existingAgent && !fetchError) {
-            console.log('Found existing agent:', existingAgent.agent_id);
+    if (existingAgent && !fetchError) {
+        console.log('Found existing agent:', existingAgent.agent_id);
 
-            // Check if agent still exists in PROMISE
-            try {
-                const response = await fetch(`${PROMISE_CONFIG.url}/${existingAgent.agent_id}/info`);
-                if (response.ok) {
-                    return existingAgent.agent_id;
-                }
-            } catch (error) {
-                console.log('Existing agent not found in PROMISE, creating new one...');
+        // Check if agent still exists in PROMISE
+        try {
+            const response = await fetch(`${PROMISE_CONFIG.url}/${existingAgent.agent_id}/info`);
+            if (response.ok) {
+                return existingAgent.agent_id;
             }
+        } catch (error) {
+            console.log('Existing agent not found in PROMISE, creating new one...');
         }
-    } else {
-        console.log('Force creating new agent (reset flow)...');
     }
 
     // Create new agent

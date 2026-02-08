@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Journey - Oblivio</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Your Journey - Oblivio">
+    <meta property="og:description" content="Preserve your legacy or connect with loved ones' memories.">
+    <meta property="og:image" content="https://oblivio.ch/images/logo.png">
+    <meta property="og:url" content="https://oblivio.ch/journey.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Your Journey - Oblivio">
+    <meta name="twitter:description" content="Preserve your legacy or connect with loved ones' memories.">
+    <meta name="twitter:image" content="https://oblivio.ch/images/logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f8f4ed;
+            --charcoal: #1a1a1a;
+            --moss: #4a5942;
+            --rust: #a84832;
+            --gold: #d4af37;
+            --shadow: rgba(26, 26, 26, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background-color: var(--rust);
+            color: var(--cream);
+        }
+
+        /* Decorative grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+            color: var(--charcoal);
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: var(--moss);
+            text-decoration: none;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--rust);
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .login-link {
+            color: var(--moss);
+            text-decoration: none;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .login-link:hover {
+            color: var(--rust);
+        }
+
+        #logoutBtn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .signup-btn {
+            background-color: var(--rust);
+            color: var(--cream);
+            padding: 10px 24px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .signup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            margin-left: 20px;
+        }
+
+        .lang-select {
+            background-color: var(--cream);
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            padding: 8px 30px 8px 12px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--moss);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            background-size: 20px;
+        }
+
+        .lang-select:hover {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        /* Main Content */
+        .journey-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 140px 60px 60px;
+        }
+
+        .journey-header {
+            text-align: center;
+            margin-bottom: 80px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .journey-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 72px;
+            line-height: 1;
+            margin-bottom: 20px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -2px;
+        }
+
+        .journey-header p {
+            font-size: 20px;
+            color: var(--moss);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Journey Options */
+        .journey-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 50px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .journey-card {
+            background: white;
+            border: 2px solid rgba(26, 26, 26, 0.08);
+            padding: 60px 50px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .journey-card {
+            opacity: 0;
+            animation-fill-mode: forwards;
+        }
+
+        .journey-card:first-child {
+            animation-delay: 0.2s;
+        }
+
+        .journey-card:last-child {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .journey-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 50px var(--shadow);
+            border-color: var(--rust);
+        }
+
+        .journey-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--rust), var(--gold));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .journey-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card-icon {
+            font-family: 'DM Serif Display', serif;
+            font-size: 64px;
+            color: var(--gold);
+            margin-bottom: 30px;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 36px;
+            margin-top: 25px;
+            margin-bottom: 6px;
+            font-weight: 400;
+            letter-spacing: -1px;
+            color: var(--charcoal);
+        }
+
+        .card-description {
+            font-size: 18px;
+            line-height: 1.7;
+            color: var(--moss);
+            font-weight: 300;
+            margin-bottom: 30px;
+            flex-grow: 1;
+        }
+
+        .card-label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: rgba(212, 175, 55, 0.1);
+            color: var(--gold);
+            font-size: 13px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            border-radius: 2px;
+            align-self: flex-start;
+        }
+
+        .card-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 30px;
+            font-size: 15px;
+            color: var(--rust);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .card-cta::after {
+            content: '→';
+            transition: transform 0.3s;
+        }
+
+        .journey-card:hover .card-cta::after {
+            transform: translateX(5px);
+        }
+
+        /* Disabled Card */
+        .journey-card.disabled {
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Override animation end state for disabled card */
+        @keyframes fadeInUpDisabled {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 0.6;
+                transform: translateY(0);
+            }
+        }
+
+        .journey-card.disabled {
+            animation-name: fadeInUpDisabled;
+        }
+
+        .journey-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: rgba(26, 26, 26, 0.08);
+        }
+
+        .journey-card.disabled::before {
+            display: none;
+        }
+
+        .coming-soon-badge {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--rust), var(--gold));
+            color: var(--cream);
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(168, 72, 50, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .journey-options {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .journey-header h1 {
+                font-size: 56px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-content,
+            .journey-container {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .journey-header h1 {
+                font-size: 42px;
+            }
+
+            .journey-header p {
+                font-size: 18px;
+            }
+
+            .journey-card {
+                padding: 40px 30px;
+            }
+
+            .card-icon {
+                font-size: 48px;
+            }
+
+            .card-title {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="logo">Oblivio</a>
+            <div class="nav-right">
+                <a href="index.html" class="back-link" data-i18n="nav_back_home">← Back to Home</a>
+                <!-- Auth buttons - hidden by default, shown based on auth state -->
+                <a href="login.html" class="login-link" id="loginLink" data-i18n="nav_login" style="display: none;">Login</a>
+                <a href="signup.html" class="signup-btn" id="signupBtn" data-i18n="nav_signup" style="display: none;">Sign Up</a>
+                <button class="login-link" id="logoutBtn" data-i18n="nav_logout" style="display: none;">Logout</button>
+                <select class="lang-select" id="languageSelector">
+                    <option value="en">EN</option>
+                    <option value="de">DE</option>
+                    <option value="it">IT</option>
+                    <option value="ko">KO</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="journey-container">
+        <div class="journey-header">
+            <h1 data-i18n="journey_welcome">Welcome to Oblivio</h1>
+            <p data-i18n="journey_subtitle">What would you like to do today?</p>
+        </div>
+
+        <div class="journey-options">
+            <!-- Create Legacy Option -->
+            <a href="biographer.html" class="journey-card">
+                <div class="card-icon">✦</div>
+                <span class="card-label" data-i18n="journey_card1_label">For You</span>
+                <h2 class="card-title" data-i18n="journey_card1_title">Create Your Legacy</h2>
+                <p class="card-description" data-i18n="journey_card1_desc">
+                    Answer questions about your life, memories, and wisdom.
+                    The Biographer will guide you through the process of creating
+                    your digital legacy that your loved ones can interact with in the future.
+                </p>
+                <span class="card-cta" data-i18n="journey_card1_cta">Start with Biographer</span>
+            </a>
+
+            <!-- Connect with AI Option -->
+            <div class="journey-card disabled">
+                <span class="coming-soon-badge" data-i18n="journey_coming_soon">Coming Soon</span>
+                <div class="card-icon">✧</div>
+                <span class="card-label" data-i18n="journey_card2_label">For Loved Ones</span>
+                <h2 class="card-title" data-i18n="journey_card2_title">Chat with a Legacy</h2>
+                <p class="card-description" data-i18n="journey_card2_desc">
+                    Talk with the digital legacy of someone special.
+                    Ask questions, share moments, and receive guidance as if they were still here.
+                    Connect with their memories, values, and wisdom anytime you need it.
+                </p>
+                <span class="card-cta" data-i18n="journey_card2_cta">Start Conversation</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'https://gmpgsozqcadbofezzloo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGdzb3pxY2FkYm9mZXp6bG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzA2NjgsImV4cCI6MjA4NTkwNjY2OH0.uzGJNhUtklycGomEdbEraSbfXWCxPXW_shno7nNSdS8';
+
+        // Initialize Supabase client
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // AUTHENTICATION CHECK & NAVIGATION UPDATE
+        // ============================================
+        async function updateNavigation() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+
+            const loginLink = document.getElementById('loginLink');
+            const signupBtn = document.getElementById('signupBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            if (user) {
+                // User is logged in - show logout, hide login/signup
+                loginLink.style.display = 'none';
+                signupBtn.style.display = 'none';
+                logoutBtn.style.display = 'inline-block';
+            } else {
+                // User is not logged in - show login/signup, hide logout
+                loginLink.style.display = 'inline-block';
+                signupBtn.style.display = 'inline-block';
+                logoutBtn.style.display = 'none';
+            }
+        }
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        });
+
+        // Update navigation on page load
+        updateNavigation();
+
+        // Handle card clicks to check authentication before proceeding
+        // Only add event listeners to non-disabled cards
+        document.querySelectorAll('.journey-card:not(.disabled)').forEach(card => {
+            card.addEventListener('click', async (e) => {
+                e.preventDefault();
+
+                // Get the href from the card
+                const href = card.getAttribute('href');
+
+                // Check if user is authenticated
+                const { data: { user } } = await supabaseClient.auth.getUser();
+
+                if (user) {
+                    // User is logged in, proceed to the target page
+                    window.location.href = href;
+                } else {
+                    // User is not logged in, redirect to login page
+                    // Store the intended destination
+                    localStorage.setItem('oblivio_redirect', href);
+                    window.location.href = 'login.html';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

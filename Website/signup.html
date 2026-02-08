@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Oblivio</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Sign Up - Oblivio">
+    <meta property="og:description" content="Create your account and start preserving your digital legacy.">
+    <meta property="og:image" content="images/logo.png">
+    <meta property="og:type" content="website">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f8f4ed;
+            --charcoal: #1a1a1a;
+            --moss: #4a5942;
+            --rust: #a84832;
+            --gold: #d4af37;
+            --shadow: rgba(26, 26, 26, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background-color: var(--rust);
+            color: var(--cream);
+        }
+
+        /* Decorative grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+            color: var(--charcoal);
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .back-link {
+            color: var(--moss);
+            text-decoration: none;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--rust);
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            margin-left: 20px;
+        }
+
+        .lang-select {
+            background-color: var(--cream);
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            padding: 8px 30px 8px 12px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--moss);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            background-size: 20px;
+        }
+
+        .lang-select:hover {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        /* Main Content */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 140px 24px 60px;
+        }
+
+        .auth-card {
+            background: white;
+            border: 2px solid rgba(26, 26, 26, 0.08);
+            padding: 60px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 50px var(--shadow);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .auth-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 48px;
+            margin-bottom: 12px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+
+        .auth-header p {
+            font-size: 18px;
+            color: var(--moss);
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--charcoal);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 16px 20px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 17px;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            background-color: var(--cream);
+            color: var(--charcoal);
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--rust);
+            background-color: white;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 18px;
+            background-color: var(--rust);
+            color: var(--cream);
+            border: none;
+            font-family: 'Crimson Pro', serif;
+            font-size: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 10px;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px var(--shadow);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid rgba(26, 26, 26, 0.08);
+        }
+
+        .auth-footer p {
+            font-size: 16px;
+            color: var(--moss);
+        }
+
+        .auth-footer a {
+            color: var(--rust);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .auth-footer a:hover {
+            color: var(--charcoal);
+        }
+
+        .error-message {
+            background-color: rgba(168, 72, 50, 0.1);
+            border-left: 4px solid var(--rust);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            color: var(--rust);
+            display: none;
+        }
+
+        .success-message {
+            background-color: rgba(74, 89, 66, 0.1);
+            border-left: 4px solid var(--moss);
+            padding: 15px;
+            margin-bottom: 25px;
+            font-size: 15px;
+            color: var(--moss);
+            display: none;
+        }
+
+        .password-requirements {
+            font-size: 14px;
+            color: var(--moss);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-content {
+                padding: 20px 24px;
+            }
+
+            .auth-card {
+                padding: 40px 30px;
+            }
+
+            .auth-header h1 {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-content">
+            <a href="index.html" class="logo">Oblivio</a>
+            <div style="display: flex; gap: 20px; align-items: center;">
+                <a href="index.html" class="back-link" data-i18n="nav_back_home">← Back to Home</a>
+                <select class="lang-select" id="languageSelector">
+                    <option value="en">EN</option>
+                    <option value="de">DE</option>
+                    <option value="it">IT</option>
+                    <option value="ko">KO</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 data-i18n="signup_title">Create Account</h1>
+                <p data-i18n="signup_subtitle">Begin your legacy journey today</p>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="fullName" data-i18n="signup_name">Full Name</label>
+                    <input type="text" id="fullName" name="fullName" required data-i18n="signup_name_placeholder" placeholder="Your full name">
+                </div>
+
+                <div class="form-group">
+                    <label for="email" data-i18n="signup_email">Email</label>
+                    <input type="email" id="email" name="email" required data-i18n="signup_email_placeholder" placeholder="your@email.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="password" data-i18n="signup_password">Password</label>
+                    <input type="password" id="password" name="password" required data-i18n="signup_password_placeholder" placeholder="Create a strong password" minlength="6">
+                    <div class="password-requirements" data-i18n="signup_password_req">
+                        At least 6 characters long
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" data-i18n="signup_confirm">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required data-i18n="signup_confirm_placeholder" placeholder="Confirm your password">
+                </div>
+
+                <button type="submit" class="submit-button" id="submitButton" data-i18n="signup_button">
+                    Create Account
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p><span data-i18n="signup_have_account">Already have an account?</span> <a href="login.html" data-i18n="signup_signin_here">Sign in here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'https://gmpgsozqcadbofezzloo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGdzb3pxY2FkYm9mZXp6bG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzA2NjgsImV4cCI6MjA4NTkwNjY2OH0.uzGJNhUtklycGomEdbEraSbfXWCxPXW_shno7nNSdS8';
+
+        // Initialize Supabase client
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // SIGNUP FUNCTIONALITY
+        // ============================================
+        const signupForm = document.getElementById('signupForm');
+        const submitButton = document.getElementById('submitButton');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        // Check if user is already logged in
+        checkAuth();
+
+        async function checkAuth() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (user) {
+                // User is already logged in, redirect to journey page
+                window.location.href = 'journey.html';
+            }
+        }
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Clear previous messages
+            hideMessages();
+
+            // Get form values
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                showError(t('signup_error_match'));
+                return;
+            }
+
+            // Validate password length
+            if (password.length < 6) {
+                showError(t('signup_error_length'));
+                return;
+            }
+
+            // Disable submit button
+            submitButton.disabled = true;
+            submitButton.textContent = t('signup_creating');
+
+            try {
+                // Sign up with Supabase
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                        }
+                    }
+                });
+
+                if (error) throw error;
+
+                // Success! Show message
+                showSuccess(t('signup_success'));
+
+                // Redirect to login page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+
+            } catch (error) {
+                // Show error message
+                showError(error.message);
+
+                // Re-enable submit button
+                submitButton.disabled = false;
+                submitButton.textContent = t('signup_button');
+            }
+        });
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        function showSuccess(message) {
+            successMessage.textContent = message;
+            successMessage.style.display = 'block';
+        }
+
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oblivio – Beyond Memory</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Oblivio – Beyond Memory">
+    <meta property="og:description" content="A digital legacy that lives across generations. Preserve your essence, share your wisdom, leave more than just memories.">
+    <meta property="og:image" content="https://oblivio.ch/images/logo.png">
+    <meta property="og:url" content="https://oblivio.ch">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Oblivio – Beyond Memory">
+    <meta name="twitter:description" content="A digital legacy that lives across generations.">
+    <meta name="twitter:image" content="https://oblivio.ch/images/logo.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f8f4ed;
+            --charcoal: #1a1a1a;
+            --moss: #4a5942;
+            --rust: #a84832;
+            --gold: #d4af37;
+            --shadow: rgba(26, 26, 26, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background-color: var(--rust);
+            color: var(--cream);
+        }
+
+        /* Decorative grain overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 60px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 30px 60px;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 26px;
+            letter-spacing: -0.5px;
+            color: var(--charcoal);
+            font-weight: 400;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 50px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--charcoal);
+            text-decoration: none;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--rust);
+            transition: width 0.4s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--rust);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-links a.signup-link {
+            background-color: var(--rust);
+            color: var(--cream);
+            padding: 10px 24px;
+            border-radius: 25px;
+            transition: transform 0.3s, box-shadow 0.3s;
+            text-transform: uppercase;
+        }
+
+        .nav-links a.signup-link:hover {
+            color: var(--cream);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .nav-links a.signup-link::after {
+            display: none;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+            color: var(--charcoal);
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .logout-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background-color: var(--rust);
+            transition: width 0.4s ease;
+        }
+
+        .logout-btn:hover {
+            color: var(--rust);
+        }
+
+        .logout-btn:hover::after {
+            width: 100%;
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            margin-left: 20px;
+        }
+
+        .lang-select {
+            background-color: var(--cream);
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            padding: 8px 30px 8px 12px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--moss);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            background-size: 20px;
+        }
+
+        .lang-select:hover {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: center;
+            gap: 80px;
+            padding: 140px 60px 60px;
+            position: relative;
+        }
+
+        .hero-text {
+            animation: fadeInLeft 1.2s ease-out;
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 92px;
+            line-height: 0.95;
+            margin-bottom: 30px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -2px;
+        }
+
+        .hero-subtitle {
+            font-size: 22px;
+            color: var(--moss);
+            margin-bottom: 30px;
+            max-width: 520px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 48px;
+            background-color: var(--rust);
+            color: var(--cream);
+            text-decoration: none;
+            font-size: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: 400;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px var(--shadow);
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        /* Hero Visual */
+        .hero-visual {
+            position: relative;
+            animation: fadeInRight 1.2s ease-out;
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .visual-frame {
+            position: relative;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, var(--moss) 0%, var(--charcoal) 100%);
+            border: 20px solid var(--cream);
+            box-shadow: 0 30px 60px var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 120px 60px;
+            background-color: var(--charcoal);
+            color: var(--cream);
+            position: relative;
+        }
+
+        .features::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 100px;
+        }
+
+        .section-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 64px;
+            margin-bottom: 20px;
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+
+        .section-description {
+            font-size: 20px;
+            color: rgba(248, 244, 237, 0.7);
+            max-width: 600px;
+            margin: 0 auto;
+            font-weight: 300;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 60px;
+            margin-top: 80px;
+        }
+
+        .feature {
+            opacity: 0;
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .feature:nth-child(1) { animation-delay: 0.1s; }
+        .feature:nth-child(2) { animation-delay: 0.2s; }
+        .feature:nth-child(3) { animation-delay: 0.3s; }
+        .feature:nth-child(4) { animation-delay: 0.4s; }
+        .feature:nth-child(5) { animation-delay: 0.5s; }
+        .feature:nth-child(6) { animation-delay: 0.6s; }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feature-number {
+            font-family: 'DM Serif Display', serif;
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .feature h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .feature p {
+            font-size: 17px;
+            line-height: 1.7;
+            color: rgba(248, 244, 237, 0.8);
+            font-weight: 300;
+        }
+
+        /* Philosophy Section */
+        .philosophy {
+            padding: 140px 60px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 100px;
+            align-items: center;
+        }
+
+        .philosophy-image {
+            position: relative;
+            aspect-ratio: 1;
+            background: linear-gradient(45deg, var(--rust) 0%, var(--gold) 100%);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .philosophy-image::after {
+            content: '"';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'DM Serif Display', serif;
+            font-size: 320px;
+            color: rgba(248, 244, 237, 0.2);
+            line-height: 1;
+        }
+
+        .philosophy-text h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 56px;
+            margin-bottom: 30px;
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+
+        .philosophy-text p {
+            font-size: 20px;
+            line-height: 1.8;
+            color: var(--moss);
+            margin-bottom: 25px;
+            font-weight: 300;
+        }
+
+        /* Footer */
+        footer {
+            padding: 80px 60px 60px;
+            background-color: var(--charcoal);
+            color: var(--cream);
+            border-top: 1px solid rgba(248, 244, 237, 0.1);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 60px;
+            margin-bottom: 60px;
+        }
+
+        .footer-brand {
+            font-family: 'DM Serif Display', serif;
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+
+        .footer-tagline {
+            font-size: 17px;
+            color: rgba(248, 244, 237, 0.6);
+            line-height: 1.7;
+        }
+
+        .footer-section h4 {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 12px;
+        }
+
+        .footer-links a {
+            color: rgba(248, 244, 237, 0.7);
+            text-decoration: none;
+            font-size: 16px;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--cream);
+        }
+
+        .footer-bottom {
+            padding-top: 40px;
+            border-top: 1px solid rgba(248, 244, 237, 0.1);
+            text-align: center;
+            font-size: 14px;
+            color: rgba(248, 244, 237, 0.5);
+            letter-spacing: 0.5px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 120px 40px 60px;
+            }
+
+            .hero h1 {
+                font-size: 72px;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 50px;
+            }
+
+            .philosophy {
+                grid-template-columns: 1fr;
+                padding: 100px 40px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr 1fr;
+                gap: 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container,
+            .nav-content,
+            .hero,
+            .features,
+            .philosophy,
+            footer {
+                padding-left: 24px;
+                padding-right: 24px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 56px;
+            }
+
+            .hero-subtitle {
+                font-size: 19px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 48px;
+            }
+
+            .philosophy-text h2 {
+                font-size: 42px;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-content">
+            <div class="logo">Oblivio</div>
+            <ul class="nav-links">
+                <li><a href="#home" data-i18n="nav_home">Home</a></li>
+                <li><a href="#features" data-i18n="nav_features">Features</a></li>
+                <li><a href="#philosophy" data-i18n="nav_philosophy">Philosophy</a></li>
+                <li><a href="journey.html" data-i18n="nav_journey">Journey</a></li>
+                <li id="loginLi" style="display: none;"><a href="login.html" id="loginLink" data-i18n="nav_login">Login</a></li>
+                <li id="signupLi" style="display: none;"><a href="signup.html" class="signup-link" id="signupLink" data-i18n="nav_signup">Sign Up</a></li>
+                <li id="logoutLi" style="display: none;"><button class="logout-btn" id="logoutBtn" data-i18n="nav_logout">Logout</button></li>
+                <li class="lang-switcher">
+                    <select class="lang-select" id="languageSelector">
+                        <option value="en">EN</option>
+                        <option value="de">DE</option>
+                        <option value="it">IT</option>
+                        <option value="ko">KO</option>
+                    </select>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-text">
+            <h1>Oblivio</h1>
+            <p class="hero-subtitle" data-i18n="hero_subtitle">A digital legacy that lives across generations. Preserve your essence, share your wisdom, leave more than just memories.</p>
+            <a href="journey.html" class="cta-button" data-i18n="hero_cta">Start Now</a>
+        </div>
+        <div class="hero-visual">
+            <div class="visual-frame">
+                <img src="images/startpage.jpg" alt="Oblivio" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-header">
+            <h2 class="section-title" data-i18n="features_title">Preserve the Essence</h2>
+            <p class="section-description" data-i18n="features_subtitle">Oblivio combines cutting-edge technology with timeless human connection.</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature">
+                <div class="feature-number">01</div>
+                <h3 data-i18n="feature1_title">Memory Archive</h3>
+                <p data-i18n="feature1_desc">Store life stories, wisdom, and personal philosophies in a secure, encrypted space.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-number">02</div>
+                <h3 data-i18n="feature2_title">Intelligent Dialogues</h3>
+                <p data-i18n="feature2_desc">Your loved ones can have natural conversations, seek advice, and experience your perspective on life's questions.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-number">03</div>
+                <h3 data-i18n="feature3_title">Time Capsule Messages</h3>
+                <p data-i18n="feature3_desc">Write letters for the future – birthdays, weddings, milestones of your loved ones.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-number">04</div>
+                <h3 data-i18n="feature4_title">Multimedia Archive</h3>
+                <p data-i18n="feature4_desc">Integrate photos, videos, voice recordings, and handwritten notes into your digital capsule.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-number">05</div>
+                <h3 data-i18n="feature5_title">Inherited Wisdom</h3>
+                <p data-i18n="feature5_desc">Share life lessons, family values, and personal philosophies with future generations.</p>
+            </div>
+            <div class="feature">
+                <div class="feature-number">06</div>
+                <h3 data-i18n="feature6_title">Eternal Privacy</h3>
+                <p data-i18n="feature6_desc">Highest security standards and complete control over who receives access to your legacy and when.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Philosophy Section -->
+    <section class="philosophy" id="philosophy">
+        <div class="philosophy-image">
+            <img src="images/philosophy.jpg" alt="Philosophy" style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0;">
+        </div>
+        <div class="philosophy-text">
+            <h2 data-i18n="philosophy_title">More Than Memory</h2>
+            <p data-i18n="philosophy_p1">Oblivio is not just a repository for facts and data. It is a living legacy – a place where your personality, your values, and your love remain forever present.</p>
+            <p data-i18n="philosophy_p2">We believe that every person possesses unique wisdom worth preserving. For children, grandchildren, and all those who come after us.</p>
+            <p data-i18n="philosophy_p3">Time passes, but the essential remains.</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div>
+                <div class="footer-brand">Oblivio</div>
+                <p class="footer-tagline">Preserve what is unforgettable.<br>A legacy for eternity.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Product</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">Security</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul class="footer-links">
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Blog</a></li>
+                    <li><a href="#">Careers</a></li>
+                    <li><a href="#">Press</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Legal</h4>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy</a></li>
+                    <li><a href="#">Terms of Service</a></li>
+                    <li><a href="#">Imprint</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            © 2026 Oblivio. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Parallax effect on hero visual
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroVisual = document.querySelector('.visual-frame');
+            if (heroVisual) {
+                heroVisual.style.transform = `translateY(${scrolled * 0.3}px)`;
+            }
+        });
+
+        // ============================================
+        // NAVIGATION UPDATE BASED ON AUTH STATUS
+        // ============================================
+        // Initialize Supabase client
+        const SUPABASE_URL = 'https://gmpgsozqcadbofezzloo.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtcGdzb3pxY2FkYm9mZXp6bG9vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAzMzA2NjgsImV4cCI6MjA4NTkwNjY2OH0.uzGJNhUtklycGomEdbEraSbfXWCxPXW_shno7nNSdS8';
+
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        async function updateNavigation() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+
+            const loginLi = document.getElementById('loginLi');
+            const signupLi = document.getElementById('signupLi');
+            const logoutLi = document.getElementById('logoutLi');
+
+            if (user) {
+                // User is logged in - show logout, hide login/signup
+                loginLi.style.display = 'none';
+                signupLi.style.display = 'none';
+                logoutLi.style.display = 'block';
+            } else {
+                // User is not logged in - show login/signup, hide logout
+                loginLi.style.display = 'block';
+                signupLi.style.display = 'block';
+                logoutLi.style.display = 'none';
+            }
+        }
+
+        // Handle logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await supabaseClient.auth.signOut();
+            window.location.reload(); // Reload to update navigation
+        });
+
+        // Update navigation on page load
+        updateNavigation();
+    </script>
+</body>
+</html>

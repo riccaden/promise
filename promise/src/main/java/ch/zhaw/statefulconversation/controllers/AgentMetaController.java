@@ -99,8 +99,7 @@ public class AgentMetaController {
             return new ResponseEntity<AgentInfoView>(HttpStatus.BAD_REQUEST);
         }
 
-        // Now uses structured multi-state version by default
-        Agent agent = AgentMetaUtility.createStructuredBiographerAgent(data);
+        Agent agent = AgentMetaUtility.createBiographerAgent(data);
 
         if (agent == null) {
             return new ResponseEntity<AgentInfoView>(HttpStatus.BAD_REQUEST);
