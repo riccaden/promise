@@ -45,7 +45,6 @@ public class AgentMetaUtility {
                 String language = data.getLanguage() != null ? data.getLanguage() : "en";
                 String nickname = data.getNickname();
 
-                String triggerPrompt = buildTriggerPrompt(language);
                 String[][] prompts = buildBlockPrompts(language, nickname);
                 String[] blockNames = buildBlockNames(language);
 
@@ -56,11 +55,10 @@ public class AgentMetaUtility {
                         State nextState = current;
                         String storageKey = "block" + (i + 1);
 
-                        Decision trigger = new StaticDecision(triggerPrompt);
                         Decision guard = new StaticDecision(prompts[i][2]);
                         Action extract = new StaticExtractionAction(prompts[i][3], storage, storageKey);
                         Action transfer = new TransferUtterancesAction(nextState);
-                        Transition t = new Transition(List.of(trigger, guard), List.of(extract, transfer), nextState);
+                        Transition t = new Transition(List.of(guard), List.of(extract, transfer), nextState);
 
                         current = new State(prompts[i][0], blockNames[i], prompts[i][1], List.of(t));
                 }
@@ -74,23 +72,6 @@ public class AgentMetaUtility {
                 result.start();
 
                 return result;
-        }
-
-        // ============================================================
-        // TRIGGER PROMPT (universal exit condition per language)
-        // ============================================================
-
-        private static String buildTriggerPrompt(String language) {
-                switch (language) {
-                        case "de":
-                                return "Hat die Person ausdrücklich signalisiert, das Gespräch zu beenden oder zu pausieren (z.B. 'Pause', 'genug', 'aufhören', 'ich bin fertig')? Antworte nur 'yes' oder 'no'.";
-                        case "it":
-                                return "La persona ha esplicitamente segnalato di voler terminare o mettere in pausa la conversazione? Rispondi solo 'yes' o 'no'.";
-                        case "ko":
-                                return "상대방이 대화를 끝내거나 중단하겠다고 명시적으로 표현했습니까? 'yes' 또는 'no'로만 답하세요.";
-                        default:
-                                return "Has the person explicitly signaled they want to end or pause the conversation (e.g. 'stop', 'enough', 'I'm done', 'break')? Answer only 'yes' or 'no'.";
-                }
         }
 
         // ============================================================
