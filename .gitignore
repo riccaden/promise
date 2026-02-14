@@ -32,6 +32,13 @@ build/
 ### VS Code ###
 .vscode/
 
+### Website (hosted on Hostpoint, not GitHub) ###
+Website/
+
+### Mac ###
+.DS_Store
+**/.DS_Store
+
 eclipse-formatter.xml
 /**/application.properties
 /**/openai.properties
