@@ -192,7 +192,7 @@ public class AgentMetaUtility {
                 p[0][0] = "WICHTIG: Kommuniziere ausschließlich auf Deutsch. Du bist ein einfühlsamer Biograf."
                                 + nameNote
                                 + " Erkunde jetzt den Alltag der Person: Morgenroutine, Tagesstruktur (Arbeit/Schule/Hobbys), Lieblingsessen, Abendroutine, Wochenendgestaltung. Stelle jeweils eine Frage, höre aufmerksam zu. Antworten kurz (1-2 Sätze).";
-                p[0][1] = "Schreibe eine herzliche Begrüßung auf Deutsch. Stelle dich als Biograf vor und lade die Person ein, über ihren typischen Alltag zu erzählen.";
+                p[0][1] = "Schreibe eine kurze, herzliche Begrüßung auf Deutsch (max. 2 Sätze). Keine Selbstvorstellung mit eigenem Namen. Frage direkt nach der Morgenroutine oder dem typischen Alltag.";
                 p[0][2] = "Wurden mindestens 4-5 Alltagsthemen besprochen, z.B. Morgenroutine, Arbeit oder Hobbys, Essen, Abend und Wochenende? Antworte nur 'yes' oder 'no'.";
                 p[0][3] = "Fasse den Alltag der Person zusammen: Morgenroutine, Tagesstruktur, Hobbys, Essgewohnheiten, Abend- und Wochenendgestaltung. Persönlich und präzise.";
 
@@ -263,7 +263,7 @@ public class AgentMetaUtility {
                 // Block 1 - Daily Life
                 p[0][0] = "You are an empathetic biographer." + nameNote
                                 + " Explore daily life: morning routine, work/school/hobbies, favorite foods, evening routine, weekends. Ask one question at a time. Keep responses brief (1-2 sentences).";
-                p[0][1] = "Write a warm opening in English to begin the biography and invite the person to describe their typical day.";
+                p[0][1] = "Write a brief, warm opening in English (max. 2 sentences). No self-introduction with a name. Ask directly about their morning routine or typical day.";
                 p[0][2] = "Have at least 4-5 daily life topics been discussed, e.g. morning routine, work, food, evenings, weekends? Answer only 'yes' or 'no'.";
                 p[0][3] = "Summarize the person's daily life: morning routine, work/activities, hobbies, eating habits, evening and weekend routines.";
 
@@ -335,7 +335,7 @@ public class AgentMetaUtility {
                 // Block 1 - Quotidiano
                 p[0][0] = "IMPORTANTE: Comunica esclusivamente in italiano. Sei un biografo empatico." + nameNote
                                 + " Esplora la vita quotidiana: routine mattutina, struttura della giornata (lavoro/scuola/hobby), cibo preferito, routine serale, fine settimana. Una domanda alla volta, risposte brevi (1-2 frasi).";
-                p[0][1] = "Scrivi in italiano un caloroso benvenuto per iniziare la biografia e invita la persona a descrivere la sua giornata tipica.";
+                p[0][1] = "Scrivi un breve benvenuto in italiano (max. 2 frasi). Nessuna autopresentazione con un nome. Chiedi direttamente della routine mattutina o della giornata tipica.";
                 p[0][2] = "Sono stati discussi almeno 4-5 aspetti della vita quotidiana, es. routine mattutina, lavoro, cibo, sera, fine settimana? Rispondi solo 'yes' o 'no'.";
                 p[0][3] = "Riassumi la vita quotidiana della persona: routine mattutina, attività giornaliere, hobby, abitudini alimentari, serate e fine settimana.";
 
@@ -406,7 +406,7 @@ public class AgentMetaUtility {
                 // Block 1 - 일상
                 p[0][0] = "중요: 한국어로만 소통하세요. 당신은 공감적인 전기 작가입니다." + nameNote
                                 + " 일상에 대해 탐구하세요: 아침 루틴, 하루 구조(직장/학교/취미), 좋아하는 음식, 저녁 루틴, 주말 활동. 한 번에 하나의 질문만 하고 짧게 답변하세요(1-2문장).";
-                p[0][1] = "한국어로 따뜻한 인사말을 작성하여 전기 대화를 시작하고 사람이 일상을 이야기하도록 초대하세요.";
+                p[0][1] = "한국어로 짧고 따뜻한 인사말을 작성하세요 (최대 2문장). 이름으로 자기소개 없이 바로 아침 루틴이나 일상에 대해 질문하세요.";
                 p[0][2] = "일상의 4-5가지 주제(아침 루틴, 직장, 음식, 저녁, 주말 등)가 논의되었나요? 'yes' 또는 'no'로만 답하세요.";
                 p[0][3] = "사람의 일상을 요약하세요: 아침 루틴, 일과, 취미, 식습관, 저녁과 주말 활동.";
 
