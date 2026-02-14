@@ -10,6 +10,7 @@ public class BiographerAgentCreateDTO {
     private String agentName;
     private String agentDescription;
     private String language;
+    private String nickname;
 
     public int getType() {
         return this.type;
@@ -49,5 +50,13 @@ public class BiographerAgentCreateDTO {
 
     public void setLanguage(String language) {
         this.language = language;
+    }
+
+    public String getNickname() {
+        return this.nickname;
+    }
+
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 }

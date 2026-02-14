@@ -91,6 +91,27 @@ public class AgentMetaUtility {
                                 break;
                 }
 
+                // Inject nickname into statePrompt if provided
+                String nickname = data.getNickname();
+                if (nickname != null && !nickname.isBlank()) {
+                        String nicknameNote;
+                        switch (language) {
+                                case "de":
+                                        nicknameNote = " Wichtig: Sie wissen, dass diese Person " + nickname + " heißt. Wenn sie fragen, wie sie heißen oder ob Sie ihren Namen kennen, antworten Sie mit " + nickname + ". Sprechen Sie sie im Gespräch gelegentlich mit diesem Namen an.";
+                                        break;
+                                case "it":
+                                        nicknameNote = " Importante: sai che questa persona si chiama " + nickname + ". Se ti chiedono come si chiamano o se conosci il loro nome, rispondi con " + nickname + ". Rivolgiti a loro con questo nome di tanto in tanto durante la conversazione.";
+                                        break;
+                                case "ko":
+                                        nicknameNote = " 중요: 당신은 이 사람의 이름이 " + nickname + "임을 알고 있습니다. 그들이 자신의 이름을 물어보면 " + nickname + "라고 답하세요. 대화 중 가끔 이 이름으로 불러주세요.";
+                                        break;
+                                default:
+                                        nicknameNote = " Important: you know that this person's name is " + nickname + ". If they ask what their name is or whether you know their name, answer with " + nickname + ". Address them by this name occasionally during the conversation.";
+                                        break;
+                        }
+                        statePrompt = statePrompt + nicknameNote;
+                }
+
                 Decision trigger = new StaticDecision(triggerPrompt);
                 Decision guard = new StaticDecision(guardPrompt);
                 Action action = new StaticExtractionAction(actionPrompt, storage, "legacy");
