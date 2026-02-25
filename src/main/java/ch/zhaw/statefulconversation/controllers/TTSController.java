@@ -57,7 +57,8 @@ public class TTSController {
 
         try {
             // Prepare ElevenLabs API request
-            String url = "https://api.elevenlabs.io/v1/text-to-speech/" + voiceId;
+            // output_format is a query parameter, not a body field
+            String url = "https://api.elevenlabs.io/v1/text-to-speech/" + voiceId + "?output_format=mp3_44100_128";
 
             // Set headers
             HttpHeaders headers = new HttpHeaders();
@@ -69,7 +70,6 @@ public class TTSController {
             Map<String, Object> requestBody = Map.of(
                 "text", request.getText(),
                 "model_id", "eleven_multilingual_v2",
-                "output_format", "mp3_44100_128",
                 "voice_settings", Map.of(
                     "stability", 0.5,
                     "similarity_boost", 0.75
@@ -92,8 +92,11 @@ public class TTSController {
 
             return new ResponseEntity<>(response.getBody(), responseHeaders, HttpStatus.OK);
 
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            System.err.println("ElevenLabs API error " + e.getStatusCode() + ": " + e.getResponseBodyAsString());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
-            System.err.println("Error calling ElevenLabs API: " + e.getMessage());
+            System.err.println("Error calling ElevenLabs API: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
