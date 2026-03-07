@@ -143,20 +143,17 @@ public class AgentMetaUtility {
                                 + "\n3. Was ist eine Sache, die die meisten Menschen mögen, die du aber überhaupt nicht ausstehen kannst?"
                                 + "\n4. Wenn du einen ganzen freien Tag hättest ohne jede Verpflichtung - was wäre das Erste, das du tun würdest, und was das Letzte vor dem Einschlafen?";
                 p[0][1] = langInstr
-                                + "Schreibe eine kurze, herzliche Begrüssung (max. 2 Sätze). Keine Selbstvorstellung mit eigenem Namen. Beginne direkt mit der ersten Frage über Lieblingsessen.";
-                p[0][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) Lieblingsessen/-getränk oder Abneigung, (2) kulturelle Präferenzen (Musik, Film, Buch), (3) eine starke Abneigung gegen etwas Populäres, (4) Freizeitverhalten an einem freien Tag? Oberflächliche Ein-Wort-Antworten zählen nicht. Antworte nur mit true oder false.";
+                                + "Schreibe eine kurze, warmherzige Begrüssung (max. 2 Sätze). Knüpfe an das Onboarding an: Die Person hat sich gerade registriert und den Einführungsfragebogen ausgefüllt. Begrüsse sie herzlich und erkläre kurz, dass ihr jetzt gemeinsam ihre Geschichte erkundet. Beginne dann mit der ersten Frage über Lieblingsessen.";
+                p[0][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder von der Person übersprungen: (1) Lieblingsessen und was man niemals essen würde, (2) prägendes Lied/Film/Buch, (3) etwas Populäres das man nicht ausstehen kann, (4) freier Tag ohne Verpflichtung? Jede Frage muss gestellt ODER explizit übersprungen worden sein. Antworte nur mit true oder false.";
                 p[0][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Geschmack, Vorlieben und Abneigungen geführt."
-                                + " Erstelle eine Zusammenfassung des Gesprächs in der dritten Person (z.B. '"
-                                + (nickname != null && !nickname.isBlank() ? nickname : "Die Person")
-                                + " liebt...', '" + (nickname != null && !nickname.isBlank() ? nickname : "Die Person")
-                                + " kann nicht ausstehen...')."
-                                + " Die Zusammenfassung soll sowohl Fakten als auch emotionale Aspekte enthalten."
-                                + " Bewahre direkte Zitate wenn sie markant sind. Maximal 200-300 Wörter."
-                                + " Präsentiere die Zusammenfassung dann der Person und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
-                                + " Wenn die Person Korrekturen oder Ergänzungen hat, passe die Zusammenfassung an und frage erneut.";
+                                + " Fasse zusammen, was du über die Person erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Zum Beispiel: 'Aus unserem Gespräch habe ich mitgenommen, dass du...' oder 'Besonders spannend fand ich, dass du...'"
+                                + " Die Zusammenfassung soll warm und persönlich sein, maximal 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Bei Korrekturen oder Ergänzungen: anpassen und erneut fragen.";
                 p[0][4] = langInstr
-                                + "Fasse das bisherige Gespräch über Geschmack und Vorlieben zusammen. Schreibe in der dritten Person, maximal 200-300 Wörter. Präsentiere die Zusammenfassung und frage ob alles stimmt und ob etwas fehlt.";
+                                + "Fasse zusammen, was du über den Geschmack und die Vorlieben der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
                 p[0][5] = "Hat die Person die Zusammenfassung explizit bestätigt, d.h. zugestimmt dass sie korrekt und vollständig ist? Die Person muss aktiv bestätigt haben (z.B. 'Ja', 'Stimmt', 'Passt', 'Korrekt'). Antworte nur mit true oder false.";
                 p[0][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Geschmack, Vorlieben und Abneigungen. Die Zusammenfassung soll in der dritten Person geschrieben sein, sowohl Fakten als auch emotionale Aspekte enthalten, und als Datenbasis für einen KI-Agenten dienen. Enthalte: Kulinarische Vorlieben und Abneigungen, kulturelle Präferenzen (Musik, Film, Buch) mit Begründung, typisches Freizeitverhalten.";
 
@@ -177,15 +174,15 @@ public class AgentMetaUtility {
                                 + "\n4. Was machst du beruflich - und wie würdest du jemandem auf einer Party erklären, was du den ganzen Tag tust? Liebst du es, oder ist es einfach dein Job?";
                 p[1][1] = langInstr
                                 + "Schreibe eine warme Überleitung vom Thema Geschmack und Vorlieben zum Alltag und der Lebenswelt. Lade die Person ein, über ihren typischen Tag zu sprechen.";
-                p[1][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) Morgenroutine, (2) Heimatort oder Heimatgefühl, (3) Alltagsritual oder Gewohnheit, (4) Beruf oder Beschäftigung? Oberflächliche Ein-Wort-Antworten zählen nicht. Antworte nur mit true oder false.";
+                p[1][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Morgenroutine, (2) Ort der sich wie zuhause anfühlt, (3) Alltagsritual, (4) Beruf und Einstellung dazu? Antworte nur mit true oder false.";
                 p[1][3] = langInstr
-                                + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über den Alltag und die Lebenswelt geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Enthalte Fakten und emotionale Aspekte. Bewahre markante Zitate."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Alltag und Lebenswelt geführt."
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[1][4] = langInstr
-                                + "Fasse das Gespräch über Alltag und Lebenswelt zusammen. Dritte Person, max. 200-300 Wörter. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über den Alltag der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
                 p[1][5] = "Hat die Person die Zusammenfassung explizit bestätigt, d.h. zugestimmt dass sie korrekt und vollständig ist? Antworte nur mit true oder false.";
                 p[1][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Alltag und Lebenswelt. Dritte Person. Enthalte: Tagesablauf, wichtige Orte, Rituale, berufliche Identität und Einstellung dazu.";
 
@@ -208,16 +205,16 @@ public class AgentMetaUtility {
                                 + "\n5. Stell dir vor, du musst jemandem absagen, auf den du keine Lust hast - was schreibst du?";
                 p[2][1] = langInstr
                                 + "Schreibe eine spielerische Überleitung vom Alltag zum Thema Kommunikationsstil. Lade die Person ein, über ihre Art zu kommunizieren zu sprechen.";
-                p[2][2] = "Wurden mindestens 4 der folgenden 5 Themen besprochen: (1) Schreibstil (kurz/lang, Emojis, Dialekt), (2) Humor und was zum Lachen bringt, (3) Reaktion in einer Stresssituation, (4) Beratungsstil (zuhören vs. Lösungen), (5) Absagestil? Oberflächliche Antworten zählen nicht. Antworte nur mit true oder false.";
+                p[2][2] = "Wurden alle 5 Fragen dieses Blocks gestellt oder übersprungen: (1) Schreibstil (kurz/lang, Emojis, Dialekt), (2) was zum Lachen bringt, (3) Reaktion bei gestrichenem Flug, (4) Beratungsstil mit Beispiel, (5) wie man jemandem absagt? Antworte nur mit true oder false.";
                 p[2][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Kommunikationsstil geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " WICHTIG: Achte besonders auf sprachliche Eigenheiten, Humorart, Dialekt, Emoji-Nutzung und typische Reaktionsmuster."
-                                + " Bewahre markante Zitate und sprachliche Besonderheiten."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " WICHTIG: Achte besonders auf sprachliche Eigenheiten, Humorart, Dialekt, Emoji-Nutzung."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[2][4] = langInstr
-                                + "Fasse das Gespräch über Kommunikationsstil zusammen. Dritte Person, max. 200-300 Wörter. Achte besonders auf sprachliche Eigenheiten. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über den Kommunikationsstil der Person erfahren hast. Sprich sie direkt an (du-Form). Achte auf sprachliche Eigenheiten. Frage ob alles stimmt.";
                 p[2][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[2][6] = "Erstelle eine strukturierte Zusammenfassung des Kommunikationsstils. Dritte Person. Enthalte: Kommunikationsstil (kurz/lang, formell/informell), Humorart, typische Reaktionen unter Stress, Beratungsmuster, sprachliche Besonderheiten (Dialekt, Emojis etc.).";
 
@@ -240,16 +237,16 @@ public class AgentMetaUtility {
                                 + "\n4. Welche Kindheitserinnerung kommt dir sofort in den Sinn, wenn du die Augen schliesst?";
                 p[3][1] = langInstr
                                 + "Schreibe eine respektvolle, behutsame Überleitung zum Thema Erinnerungen und Schlüsselerlebnisse. Gib der Person das Gefühl, dass sie sich Zeit nehmen darf.";
-                p[3][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) ein Hochpunkt/schönster Moment, (2) ein Tiefpunkt/schwierigster Moment, (3) ein Wendepunkt, (4) eine Kindheitserinnerung? Wichtig: Es müssen nicht nur Fakten, sondern auch Gefühle und Bedeutung geteilt worden sein. Antworte nur mit true oder false.";
+                p[3][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) schönster Moment des Lebens, (2) schwierigster Moment, (3) Wendepunkt, (4) Kindheitserinnerung? Antworte nur mit true oder false.";
                 p[3][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Erinnerungen und Schlüsselerlebnisse geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Achte besonders auf die subjektive Bedeutung der Erlebnisse, nicht nur die Fakten."
-                                + " Bewahre emotionale Tiefe und markante Zitate."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Achte besonders auf die emotionale Bedeutung, nicht nur Fakten."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[3][4] = langInstr
-                                + "Fasse das Gespräch über Erinnerungen zusammen. Dritte Person, max. 200-300 Wörter. Betone die subjektive Bedeutung. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über die Erinnerungen der Person erfahren hast. Sprich sie direkt an (du-Form). Betone die emotionale Bedeutung. Frage ob alles stimmt.";
                 p[3][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[3][6] = "Erstelle eine strukturierte Zusammenfassung der Erinnerungen und Schlüsselerlebnisse. Dritte Person. Enthalte: Zentrale Lebensereignisse mit emotionaler Bedeutung, Lehren aus schwierigen Erfahrungen, prägende Kindheitserinnerungen. Besonders auf die subjektive Bedeutung achten, nicht nur die Fakten.";
 
@@ -270,14 +267,15 @@ public class AgentMetaUtility {
                                 + "\n4. Worauf reagierst du empfindlich - also was kann dich schnell verletzen oder ärgern?";
                 p[4][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Erinnerungen zu Emotionen und Beziehungsmustern. Lade die Person ein, über ihre emotionale Welt zu sprechen.";
-                p[4][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) Coping-Strategien bei schlechten Tagen, (2) wie die Person Liebe ausdrückt, (3) Konfliktverhalten/Streitlösung, (4) emotionale Trigger/Empfindlichkeiten? Antworte nur mit true oder false.";
+                p[4][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) was man bei schlechtem Tag tut, (2) wie man Liebe zeigt, (3) ein Streit der gut ausgegangen ist, (4) worauf man empfindlich reagiert? Antworte nur mit true oder false.";
                 p[4][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Emotionen und Beziehungsmuster geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[4][4] = langInstr
-                                + "Fasse das Gespräch über Emotionen und Beziehungsmuster zusammen. Dritte Person, max. 200-300 Wörter. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über die Emotionen und Beziehungsmuster der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
                 p[4][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[4][6] = "Erstelle eine strukturierte Zusammenfassung der Emotionen und Beziehungsmuster. Dritte Person. Enthalte: Typische Bewältigungsstrategien, Art Zuneigung zu zeigen, Konfliktstil, emotionale Verletzlichkeiten.";
 
@@ -298,14 +296,15 @@ public class AgentMetaUtility {
                                 + "\n4. Was ist das Beste, das je jemand über dich gesagt hat - und hat es gestimmt?";
                 p[5][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Emotionen zu Beziehungen und dem Bild, das andere von der Person haben.";
-                p[5][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) engste Bezugsperson und deren Fremdbild, (2) eine prägende Freundschaft, (3) Fehleinschätzungen durch andere, (4) positive Fremdzuschreibung/bestes Kompliment? Antworte nur mit true oder false.";
+                p[5][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Person die einen am besten kennt und was sie sagen würde, (2) prägende Freundschaft, (3) was andere falsch einschätzen, (4) bestes Kompliment? Antworte nur mit true oder false.";
                 p[5][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Beziehungen und Fremdbild geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[5][4] = langInstr
-                                + "Fasse das Gespräch über Beziehungen und Fremdbild zusammen. Dritte Person, max. 200-300 Wörter. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über die Beziehungen und das Fremdbild der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
                 p[5][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[5][6] = "Erstelle eine strukturierte Zusammenfassung der Beziehungen und des Fremdbilds. Dritte Person. Enthalte: Wichtigste Bezugspersonen, wie andere die Person sehen vs. Selbstbild, prägende Beziehungen.";
 
@@ -327,14 +326,15 @@ public class AgentMetaUtility {
                                 + "\n5. Worüber kannst du dich so richtig aufregen - und wie merken das die Leute um dich herum?";
                 p[6][1] = langInstr
                                 + "Schreibe eine nachdenkliche Überleitung zum Thema Werte und Überzeugungen. Der Biograf möchte verstehen, was der Person wirklich wichtig ist.";
-                p[6][2] = "Wurden mindestens 4 der folgenden 5 Themen besprochen: (1) Kernwerte (wofür aufstehen), (2) veränderte Überzeugungen, (3) was eine gute Woche definiert, (4) Reaktion auf Ungerechtigkeit, (5) was die Person aufbringt? Antworte nur mit true oder false.";
+                p[6][2] = "Wurden alle 5 Fragen dieses Blocks gestellt oder übersprungen: (1) wofür nachts um drei aufstehen, (2) veränderte Überzeugung, (3) was eine gute Woche ausmacht, (4) Reaktion auf Ungerechtigkeit, (5) worüber man sich aufregt? Antworte nur mit true oder false.";
                 p[6][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Werte und Überzeugungen geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[6][4] = langInstr
-                                + "Fasse das Gespräch über Werte und Überzeugungen zusammen. Dritte Person, max. 200-300 Wörter. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über die Werte und Überzeugungen der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
                 p[6][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[6][6] = "Erstelle eine strukturierte Zusammenfassung der Werte und Überzeugungen. Dritte Person. Enthalte: Zentrale Werte und Überzeugungen, Veränderungen im Weltbild, was eine gute Woche definiert, Reaktion auf Ungerechtigkeit, was die Person aufbringt.";
 
@@ -355,15 +355,15 @@ public class AgentMetaUtility {
                                 + "\n4. Wenn dein bester Freund dich in drei Worten beschreiben müsste, die nicht auf deinen Lebenslauf passen - welche wären das?";
                 p[7][1] = langInstr
                                 + "Schreibe eine humorvolle, einladende Überleitung zum Thema Macken und verborgene Seiten. Mach es der Person leicht, über ihre lustigen Eigenheiten zu sprechen.";
-                p[7][2] = "Wurden mindestens 3 der folgenden 4 Themen besprochen: (1) eine Macke oder Angewohnheit, (2) ein Guilty Pleasure, (3) eine überraschende Eigenschaft, (4) eine informelle Beschreibung durch Freunde? Antworte nur mit true oder false.";
+                p[7][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Macke oder Angewohnheit, (2) Guilty Pleasure, (3) überraschende Eigenschaft, (4) drei Worte vom besten Freund? Antworte nur mit true oder false.";
                 p[7][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Macken und Widersprüche geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Bewahre den humorvollen Ton und markante Zitate."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Bewahre den humorvollen Ton. Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[7][4] = langInstr
-                                + "Fasse das Gespräch über Macken und Widersprüche zusammen. Dritte Person, max. 200-300 Wörter. Humorvoller Ton. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über die Macken und verborgenen Seiten der Person erfahren hast. Sprich sie direkt an (du-Form). Humorvoller Ton. Frage ob alles stimmt.";
                 p[7][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[7][6] = "Erstelle eine strukturierte Zusammenfassung der Macken, Widersprüche und verborgenen Seiten. Dritte Person. Enthalte: Eigenheiten und Macken, verborgene Gewohnheiten, Widersprüche im Selbstbild, informelle Charakterisierung.";
 
@@ -383,15 +383,15 @@ public class AgentMetaUtility {
                                 + "\n3. Wenn dein Leben ein Buch wäre - wie würde der Titel lauten, und was stünde auf der Rückseite?";
                 p[8][1] = langInstr
                                 + "Schreibe eine feierliche, wertschätzende Überleitung zum Thema Vermächtnis und Zukunft. Die Person soll spüren, dass ihre Worte wichtig sind.";
-                p[8][2] = "Wurden mindestens 2 der folgenden 3 Themen besprochen: (1) gewünschtes Vermächtnis (wofür in Erinnerung bleiben), (2) persönliche Botschaft/Brief an wichtige Person, (3) Lebenszusammenfassung (Buchtitel)? Antworte nur mit true oder false.";
+                p[8][2] = "Wurden alle 3 Fragen dieses Blocks gestellt oder übersprungen: (1) wofür in Erinnerung bleiben, (2) ehrlicher Brief an wichtige Person, (3) Buchtitel des Lebens? Antworte nur mit true oder false.";
                 p[8][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Vermächtnis und Zukunft geführt."
-                                + " Erstelle eine Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Bewahre die feierliche Tiefe und markante Zitate."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Bewahre die feierliche Tiefe. Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[8][4] = langInstr
-                                + "Fasse das Gespräch über Vermächtnis und Zukunft zusammen. Dritte Person, max. 200-300 Wörter. Feierlicher Ton. Präsentiere und frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über das Vermächtnis und die Zukunftsgedanken der Person erfahren hast. Sprich sie direkt an (du-Form). Feierlicher Ton. Frage ob alles stimmt.";
                 p[8][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[8][6] = "Erstelle eine strukturierte Zusammenfassung des Vermächtnisses und der Zukunftsgedanken. Dritte Person. Enthalte: Gewünschtes Vermächtnis, wichtigste Botschaften an Angehörige, Selbstbeschreibung des eigenen Lebens.";
 
@@ -414,13 +414,14 @@ public class AgentMetaUtility {
                 p[9][2] = "Wurden alle 3 Abschlussfragen gestellt: (1) ob das Bild vollständig ist, (2) ob etwas fehlt das nicht gefragt wurde, (3) was man in 50 Jahren spüren soll? Wenn die Person bei Frage 1 oder 2 gesagt hat dass etwas fehlt, wurden diese Lücken besprochen? Antworte nur mit true oder false.";
                 p[9][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du schliesst das Gespräch jetzt ab."
-                                + " Erstelle eine abschliessende Zusammenfassung in der dritten Person (max. 200-300 Wörter)."
-                                + " Enthalte Ergänzungen, Korrekturen und den emotionalen Wunsch für das Vermächtnis."
-                                + " Präsentiere die Zusammenfassung und frage: 'Habe ich das richtig erfasst? Fehlt etwas Wichtiges?'"
+                                + " Fasse zusammen, was du in diesem letzten Teil erfahren hast. Sprich die Person direkt an (du-Form)."
+                                + " Enthalte Ergänzungen und den emotionalen Wunsch für das Vermächtnis."
+                                + " Warm und persönlich, max. 200-300 Wörter."
+                                + " Frage: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Schliesse mit warmen Abschiedsworten und Dankbarkeit ab."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[9][4] = langInstr
-                                + "Fasse die Abschlussgedanken zusammen. Dritte Person, max. 200-300 Wörter. Enthalte Ergänzungen und den emotionalen Wunsch. Präsentiere und frage ob alles stimmt. Schliesse warm ab.";
+                                + "Fasse die Abschlussgedanken zusammen. Sprich die Person direkt an (du-Form). Enthalte Ergänzungen und den emotionalen Wunsch. Frage ob alles stimmt. Schliesse warm ab.";
                 p[9][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
                 p[9][6] = "Erstelle eine abschliessende Zusammenfassung. Dritte Person. Enthalte: Ergänzungen und Korrekturen, emotionaler Wunsch für das Vermächtnis, Gesamteindruck.";
 
