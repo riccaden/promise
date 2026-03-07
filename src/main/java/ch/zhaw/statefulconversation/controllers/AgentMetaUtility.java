@@ -144,7 +144,7 @@ public class AgentMetaUtility {
                                 + "\n4. Wenn du einen ganzen freien Tag hättest ohne jede Verpflichtung - was wäre das Erste, das du tun würdest, und was das Letzte vor dem Einschlafen?";
                 p[0][1] = langInstr
                                 + "Schreibe eine kurze, warmherzige Begrüssung (max. 2 Sätze). Knüpfe an das Onboarding an: Die Person hat sich gerade registriert und den Einführungsfragebogen ausgefüllt. Begrüsse sie herzlich und erkläre kurz, dass ihr jetzt gemeinsam ihre Geschichte erkundet. Beginne dann mit der ersten Frage über Lieblingsessen.";
-                p[0][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder von der Person übersprungen: (1) Lieblingsessen und was man niemals essen würde, (2) prägendes Lied/Film/Buch, (3) etwas Populäres das man nicht ausstehen kann, (4) freier Tag ohne Verpflichtung? Jede Frage muss gestellt ODER explizit übersprungen worden sein. Antworte nur mit true oder false.";
+                p[0][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Lieblingsessen und was man niemals essen würde, (2) prägendes Lied/Film/Buch, (3) etwas Populäres das man nicht ausstehen kann, (4) freier Tag ohne Verpflichtung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[0][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Geschmack, Vorlieben und Abneigungen geführt."
                                 + " Fasse zusammen, was du über die Person erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -154,7 +154,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen oder Ergänzungen: anpassen und erneut fragen.";
                 p[0][4] = langInstr
                                 + "Fasse zusammen, was du über den Geschmack und die Vorlieben der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
-                p[0][5] = "Hat die Person die Zusammenfassung explizit bestätigt, d.h. zugestimmt dass sie korrekt und vollständig ist? Die Person muss aktiv bestätigt haben (z.B. 'Ja', 'Stimmt', 'Passt', 'Korrekt'). Antworte nur mit true oder false.";
+                p[0][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt, z.B. 'Ja', 'Stimmt', 'Passt', 'Korrekt', 'Alles gut', 'Sieht gut aus', 'Perfekt', 'Ok', 'Genau', 'Richtig', oder ähnliche zustimmende Aussagen. Auch wenn die Person sagt 'passt so' oder 'das stimmt' oder eine Bestätigung mit kleinen Ergänzungen gibt, zählt das als Bestätigung. Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[0][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Geschmack, Vorlieben und Abneigungen. Die Zusammenfassung soll in der dritten Person geschrieben sein, sowohl Fakten als auch emotionale Aspekte enthalten, und als Datenbasis für einen KI-Agenten dienen. Enthalte: Kulinarische Vorlieben und Abneigungen, kulturelle Präferenzen (Musik, Film, Buch) mit Begründung, typisches Freizeitverhalten.";
 
                 // ==========================================================
@@ -174,7 +174,7 @@ public class AgentMetaUtility {
                                 + "\n4. Was machst du beruflich - und wie würdest du jemandem auf einer Party erklären, was du den ganzen Tag tust? Liebst du es, oder ist es einfach dein Job?";
                 p[1][1] = langInstr
                                 + "Schreibe eine warme Überleitung vom Thema Geschmack und Vorlieben zum Alltag und der Lebenswelt. Lade die Person ein, über ihren typischen Tag zu sprechen.";
-                p[1][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Morgenroutine, (2) Ort der sich wie zuhause anfühlt, (3) Alltagsritual, (4) Beruf und Einstellung dazu? Antworte nur mit true oder false.";
+                p[1][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Morgenroutine, (2) Ort der sich wie zuhause anfühlt, (3) Alltagsritual, (4) Beruf und Einstellung dazu. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[1][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Alltag und Lebenswelt geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -183,7 +183,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[1][4] = langInstr
                                 + "Fasse zusammen, was du über den Alltag der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
-                p[1][5] = "Hat die Person die Zusammenfassung explizit bestätigt, d.h. zugestimmt dass sie korrekt und vollständig ist? Antworte nur mit true oder false.";
+                p[1][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[1][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Alltag und Lebenswelt. Dritte Person. Enthalte: Tagesablauf, wichtige Orte, Rituale, berufliche Identität und Einstellung dazu.";
 
                 // ==========================================================
@@ -205,7 +205,7 @@ public class AgentMetaUtility {
                                 + "\n5. Stell dir vor, du musst jemandem absagen, auf den du keine Lust hast - was schreibst du?";
                 p[2][1] = langInstr
                                 + "Schreibe eine spielerische Überleitung vom Alltag zum Thema Kommunikationsstil. Lade die Person ein, über ihre Art zu kommunizieren zu sprechen.";
-                p[2][2] = "Wurden alle 5 Fragen dieses Blocks gestellt oder übersprungen: (1) Schreibstil (kurz/lang, Emojis, Dialekt), (2) was zum Lachen bringt, (3) Reaktion bei gestrichenem Flug, (4) Beratungsstil mit Beispiel, (5) wie man jemandem absagt? Antworte nur mit true oder false.";
+                p[2][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Schreibstil (kurz/lang, Emojis, Dialekt), (2) was zum Lachen bringt, (3) Reaktion bei gestrichenem Flug, (4) Beratungsstil mit Beispiel, (5) wie man jemandem absagt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[2][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Kommunikationsstil geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -215,7 +215,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[2][4] = langInstr
                                 + "Fasse zusammen, was du über den Kommunikationsstil der Person erfahren hast. Sprich sie direkt an (du-Form). Achte auf sprachliche Eigenheiten. Frage ob alles stimmt.";
-                p[2][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[2][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[2][6] = "Erstelle eine strukturierte Zusammenfassung des Kommunikationsstils. Dritte Person. Enthalte: Kommunikationsstil (kurz/lang, formell/informell), Humorart, typische Reaktionen unter Stress, Beratungsmuster, sprachliche Besonderheiten (Dialekt, Emojis etc.).";
 
                 // ==========================================================
@@ -237,7 +237,7 @@ public class AgentMetaUtility {
                                 + "\n4. Welche Kindheitserinnerung kommt dir sofort in den Sinn, wenn du die Augen schliesst?";
                 p[3][1] = langInstr
                                 + "Schreibe eine respektvolle, behutsame Überleitung zum Thema Erinnerungen und Schlüsselerlebnisse. Gib der Person das Gefühl, dass sie sich Zeit nehmen darf.";
-                p[3][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) schönster Moment des Lebens, (2) schwierigster Moment, (3) Wendepunkt, (4) Kindheitserinnerung? Antworte nur mit true oder false.";
+                p[3][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) schönster Moment des Lebens, (2) schwierigster Moment, (3) Wendepunkt, (4) Kindheitserinnerung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[3][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Erinnerungen und Schlüsselerlebnisse geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -247,7 +247,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[3][4] = langInstr
                                 + "Fasse zusammen, was du über die Erinnerungen der Person erfahren hast. Sprich sie direkt an (du-Form). Betone die emotionale Bedeutung. Frage ob alles stimmt.";
-                p[3][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[3][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[3][6] = "Erstelle eine strukturierte Zusammenfassung der Erinnerungen und Schlüsselerlebnisse. Dritte Person. Enthalte: Zentrale Lebensereignisse mit emotionaler Bedeutung, Lehren aus schwierigen Erfahrungen, prägende Kindheitserinnerungen. Besonders auf die subjektive Bedeutung achten, nicht nur die Fakten.";
 
                 // ==========================================================
@@ -267,7 +267,7 @@ public class AgentMetaUtility {
                                 + "\n4. Worauf reagierst du empfindlich - also was kann dich schnell verletzen oder ärgern?";
                 p[4][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Erinnerungen zu Emotionen und Beziehungsmustern. Lade die Person ein, über ihre emotionale Welt zu sprechen.";
-                p[4][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) was man bei schlechtem Tag tut, (2) wie man Liebe zeigt, (3) ein Streit der gut ausgegangen ist, (4) worauf man empfindlich reagiert? Antworte nur mit true oder false.";
+                p[4][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) was man bei schlechtem Tag tut, (2) wie man Liebe zeigt, (3) ein Streit der gut ausgegangen ist, (4) worauf man empfindlich reagiert. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[4][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Emotionen und Beziehungsmuster geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -276,7 +276,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[4][4] = langInstr
                                 + "Fasse zusammen, was du über die Emotionen und Beziehungsmuster der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
-                p[4][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[4][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[4][6] = "Erstelle eine strukturierte Zusammenfassung der Emotionen und Beziehungsmuster. Dritte Person. Enthalte: Typische Bewältigungsstrategien, Art Zuneigung zu zeigen, Konfliktstil, emotionale Verletzlichkeiten.";
 
                 // ==========================================================
@@ -296,7 +296,7 @@ public class AgentMetaUtility {
                                 + "\n4. Was ist das Beste, das je jemand über dich gesagt hat - und hat es gestimmt?";
                 p[5][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Emotionen zu Beziehungen und dem Bild, das andere von der Person haben.";
-                p[5][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Person die einen am besten kennt und was sie sagen würde, (2) prägende Freundschaft, (3) was andere falsch einschätzen, (4) bestes Kompliment? Antworte nur mit true oder false.";
+                p[5][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Person die einen am besten kennt und was sie sagen würde, (2) prägende Freundschaft, (3) was andere falsch einschätzen, (4) bestes Kompliment. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[5][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Beziehungen und Fremdbild geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -305,7 +305,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[5][4] = langInstr
                                 + "Fasse zusammen, was du über die Beziehungen und das Fremdbild der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
-                p[5][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[5][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[5][6] = "Erstelle eine strukturierte Zusammenfassung der Beziehungen und des Fremdbilds. Dritte Person. Enthalte: Wichtigste Bezugspersonen, wie andere die Person sehen vs. Selbstbild, prägende Beziehungen.";
 
                 // ==========================================================
@@ -326,7 +326,7 @@ public class AgentMetaUtility {
                                 + "\n5. Worüber kannst du dich so richtig aufregen - und wie merken das die Leute um dich herum?";
                 p[6][1] = langInstr
                                 + "Schreibe eine nachdenkliche Überleitung zum Thema Werte und Überzeugungen. Der Biograf möchte verstehen, was der Person wirklich wichtig ist.";
-                p[6][2] = "Wurden alle 5 Fragen dieses Blocks gestellt oder übersprungen: (1) wofür nachts um drei aufstehen, (2) veränderte Überzeugung, (3) was eine gute Woche ausmacht, (4) Reaktion auf Ungerechtigkeit, (5) worüber man sich aufregt? Antworte nur mit true oder false.";
+                p[6][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) wofür nachts um drei aufstehen, (2) veränderte Überzeugung, (3) was eine gute Woche ausmacht, (4) Reaktion auf Ungerechtigkeit, (5) worüber man sich aufregt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[6][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Werte und Überzeugungen geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -335,7 +335,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[6][4] = langInstr
                                 + "Fasse zusammen, was du über die Werte und Überzeugungen der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
-                p[6][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[6][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[6][6] = "Erstelle eine strukturierte Zusammenfassung der Werte und Überzeugungen. Dritte Person. Enthalte: Zentrale Werte und Überzeugungen, Veränderungen im Weltbild, was eine gute Woche definiert, Reaktion auf Ungerechtigkeit, was die Person aufbringt.";
 
                 // ==========================================================
@@ -355,7 +355,7 @@ public class AgentMetaUtility {
                                 + "\n4. Wenn dein bester Freund dich in drei Worten beschreiben müsste, die nicht auf deinen Lebenslauf passen - welche wären das?";
                 p[7][1] = langInstr
                                 + "Schreibe eine humorvolle, einladende Überleitung zum Thema Macken und verborgene Seiten. Mach es der Person leicht, über ihre lustigen Eigenheiten zu sprechen.";
-                p[7][2] = "Wurden alle 4 Fragen dieses Blocks gestellt oder übersprungen: (1) Macke oder Angewohnheit, (2) Guilty Pleasure, (3) überraschende Eigenschaft, (4) drei Worte vom besten Freund? Antworte nur mit true oder false.";
+                p[7][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Macke oder Angewohnheit, (2) Guilty Pleasure, (3) überraschende Eigenschaft, (4) drei Worte vom besten Freund. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[7][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Macken und Widersprüche geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -364,7 +364,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[7][4] = langInstr
                                 + "Fasse zusammen, was du über die Macken und verborgenen Seiten der Person erfahren hast. Sprich sie direkt an (du-Form). Humorvoller Ton. Frage ob alles stimmt.";
-                p[7][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[7][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[7][6] = "Erstelle eine strukturierte Zusammenfassung der Macken, Widersprüche und verborgenen Seiten. Dritte Person. Enthalte: Eigenheiten und Macken, verborgene Gewohnheiten, Widersprüche im Selbstbild, informelle Charakterisierung.";
 
                 // ==========================================================
@@ -383,7 +383,7 @@ public class AgentMetaUtility {
                                 + "\n3. Wenn dein Leben ein Buch wäre - wie würde der Titel lauten, und was stünde auf der Rückseite?";
                 p[8][1] = langInstr
                                 + "Schreibe eine feierliche, wertschätzende Überleitung zum Thema Vermächtnis und Zukunft. Die Person soll spüren, dass ihre Worte wichtig sind.";
-                p[8][2] = "Wurden alle 3 Fragen dieses Blocks gestellt oder übersprungen: (1) wofür in Erinnerung bleiben, (2) ehrlicher Brief an wichtige Person, (3) Buchtitel des Lebens? Antworte nur mit true oder false.";
+                p[8][2] = "Gehe die folgenden 3 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) wofür in Erinnerung bleiben, (2) ehrlicher Brief an wichtige Person, (3) Buchtitel des Lebens. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 3 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[8][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Vermächtnis und Zukunft geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -392,7 +392,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[8][4] = langInstr
                                 + "Fasse zusammen, was du über das Vermächtnis und die Zukunftsgedanken der Person erfahren hast. Sprich sie direkt an (du-Form). Feierlicher Ton. Frage ob alles stimmt.";
-                p[8][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[8][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[8][6] = "Erstelle eine strukturierte Zusammenfassung des Vermächtnisses und der Zukunftsgedanken. Dritte Person. Enthalte: Gewünschtes Vermächtnis, wichtigste Botschaften an Angehörige, Selbstbeschreibung des eigenen Lebens.";
 
                 // ==========================================================
@@ -411,7 +411,7 @@ public class AgentMetaUtility {
                                 + "\n3. Wenn jemand in 50 Jahren mit deinem digitalen Vermächtnis spricht - was soll er oder sie spüren?";
                 p[9][1] = langInstr
                                 + "Schreibe eine dankbare Überleitung zum Abschluss. Zeige Wertschätzung für alles, was die Person geteilt hat, und leite den letzten Teil ein.";
-                p[9][2] = "Wurden alle 3 Abschlussfragen gestellt: (1) ob das Bild vollständig ist, (2) ob etwas fehlt das nicht gefragt wurde, (3) was man in 50 Jahren spüren soll? Wenn die Person bei Frage 1 oder 2 gesagt hat dass etwas fehlt, wurden diese Lücken besprochen? Antworte nur mit true oder false.";
+                p[9][2] = "Gehe die folgenden 3 Abschlussfragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage EXPLIZIT gestellt hat: (1) ob das Bild vollständig ist, (2) ob etwas fehlt das nicht gefragt wurde, (3) was man in 50 Jahren spüren soll. Wenn die Person bei Frage 1 oder 2 gesagt hat dass etwas fehlt, wurden diese Lücken besprochen? WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Antworte mit true NUR wenn alle 3 Fragen gestellt und allfällige Lücken besprochen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[9][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du schliesst das Gespräch jetzt ab."
                                 + " Fasse zusammen, was du in diesem letzten Teil erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -422,7 +422,7 @@ public class AgentMetaUtility {
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[9][4] = langInstr
                                 + "Fasse die Abschlussgedanken zusammen. Sprich die Person direkt an (du-Form). Enthalte Ergänzungen und den emotionalen Wunsch. Frage ob alles stimmt. Schliesse warm ab.";
-                p[9][5] = "Hat die Person die Zusammenfassung explizit bestätigt? Antworte nur mit true oder false.";
+                p[9][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[9][6] = "Erstelle eine abschliessende Zusammenfassung. Dritte Person. Enthalte: Ergänzungen und Korrekturen, emotionaler Wunsch für das Vermächtnis, Gesamteindruck.";
 
                 return p;
