@@ -442,6 +442,12 @@ public class AgentMetaUtility {
                                 return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Italienisch kommunizieren. Übersetze alle Fragen und Antworten in Italienisch. ";
                         case "ko":
                                 return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Koreanisch kommunizieren. Übersetze alle Fragen und Antworten in Koreanisch. ";
+                        case "fr":
+                                return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Französisch kommunizieren. Übersetze alle Fragen und Antworten in Französisch. ";
+                        case "ja":
+                                return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Japanisch kommunizieren. Übersetze alle Fragen und Antworten in Japanisch. ";
+                        case "zh":
+                                return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Chinesisch (vereinfacht, Mandarin) kommunizieren. Übersetze alle Fragen und Antworten in vereinfachtes Chinesisch. ";
                         default:
                                 return "";
                 }
