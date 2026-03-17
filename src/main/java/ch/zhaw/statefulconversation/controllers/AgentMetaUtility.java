@@ -97,7 +97,7 @@ public class AgentMetaUtility {
 
         private static String[] buildBlockNames() {
                 return new String[] {
-                                "Block 1 - Geschmack & Vorlieben",
+                                "Block 1 - Ice-Breaker",
                                 "Block 2 - Alltag & Lebenswelt",
                                 "Block 3 - Kommunikationsstil",
                                 "Block 4 - Erinnerungen",
@@ -201,26 +201,26 @@ public class AgentMetaUtility {
                                 + " Stelle die folgenden Fragen eine nach der anderen. Gehe auf jede Antwort ein."
                                 + " Bei oberflächlichen Antworten nachfragen. Jede Frage ist überspringbar."
                                 + "\n\nFragen für diesen Block:"
-                                + "\n1. Wenn du jemandem eine Nachricht schreibst - tippst du kurz und knapp, oder eher lange Texte mit vielen Details? Benutzt du Emojis, Sprachnachrichten, Dialekt?"
+                                + "\n1. Wenn du jemandem eine Nachricht schreibst - schreibst du eher eine lange Nachricht oder viele kurze hintereinander?"
                                 + "\n2. Was bringt dich zuverlässig zum Lachen - bestimmte Witze, Situationen, Menschen?"
-                                + "\n3. Dein Flug wird kurzfristig gestrichen und du stehst am Flughafen - was tust du als Erstes, und was sagst du zur Person neben dir?"
-                                + "\n4. Wenn dich jemand um Rat fragt - bist du eher der Typ, der zuhört, oder der sofort Lösungen vorschlägt? Gib ein konkretes Beispiel."
+                                + "\n3. Wie reagierst du, wenn etwas nicht nach Plan läuft - eher gelassen, genervt, lösungsorientiert?"
+                                + "\n4. Wenn dich jemand um Rat fragt - bist du eher der Typ, der zuhört, oder der sofort Lösungen vorschlägt?"
                                 + "\n5. Stell dir vor, du musst jemandem absagen, auf den du keine Lust hast - was schreibst du?"
                                 + noWrapUp;
                 p[2][1] = langInstr
                                 + "Schreibe eine spielerische Überleitung vom Alltag zum Thema Kommunikationsstil. Lade die Person ein, über ihre Art zu kommunizieren zu sprechen.";
-                p[2][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Schreibstil (kurz/lang, Emojis, Dialekt), (2) was zum Lachen bringt, (3) Reaktion bei gestrichenem Flug, (4) Beratungsstil mit Beispiel, (5) wie man jemandem absagt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
+                p[2][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Schreibstil (lange Nachricht oder viele kurze), (2) was zum Lachen bringt, (3) Reaktion wenn etwas nicht nach Plan läuft, (4) Beratungsstil (zuhören oder Lösungen), (5) wie man jemandem absagt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[2][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Kommunikationsstil geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
-                                + " WICHTIG: Achte besonders auf sprachliche Eigenheiten, Humorart, Dialekt, Emoji-Nutzung."
+                                + " WICHTIG: Achte besonders auf Schreibstil, Humorart und Reaktionsmuster."
                                 + " Warm und persönlich, max. 200-300 Wörter."
                                 + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[2][4] = langInstr
-                                + "Fasse zusammen, was du über den Kommunikationsstil der Person erfahren hast. Sprich sie direkt an (du-Form). Achte auf sprachliche Eigenheiten. Frage ob alles stimmt.";
+                                + "Fasse zusammen, was du über den Kommunikationsstil der Person erfahren hast. Sprich sie direkt an (du-Form). Achte auf Schreibstil und Reaktionsmuster. Frage ob alles stimmt.";
                 p[2][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
-                p[2][6] = "Erstelle eine strukturierte Zusammenfassung des Kommunikationsstils. Dritte Person. Enthalte: Kommunikationsstil (kurz/lang, formell/informell), Humorart, typische Reaktionen unter Stress, Beratungsmuster, sprachliche Besonderheiten (Dialekt, Emojis etc.).";
+                p[2][6] = "Erstelle eine strukturierte Zusammenfassung des Kommunikationsstils. Dritte Person. Enthalte: Schreibstil (lange Nachrichten vs. kurze), Humorart, Reaktionsmuster bei Planänderungen, Beratungsstil, Art Absagen zu formulieren.";
 
                 // ==========================================================
                 // BLOCK 4: Erinnerungen & Schlüsselerlebnisse
