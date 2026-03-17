@@ -37,7 +37,7 @@ public class Prompt {
 
     }
 
-    @Column(length = 3000)
+    @Column(length = 10000)
     private String prompt;
 
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
