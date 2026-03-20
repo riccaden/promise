@@ -140,7 +140,7 @@ public class AgentMetaUtility {
                                 + nameNote
                                 + " Du führst ein Gespräch über Geschmack, Vorlieben und Abneigungen."
                                 + " Stelle die folgenden Fragen eine nach der anderen. Gehe auf jede Antwort kurz ein (1-2 Sätze), bevor du die nächste Frage stellst."
-                                + " Wenn eine Antwort sehr kurz ist (nur 1-3 Wörter), frage kontextbezogen nach, um mehr Details zu erfahren. Bei ausführlichen Antworten geh direkt zur nächsten Frage weiter."
+                                + " Bei oberflächlichen Antworten sanft nachfragen — besonders wenn jemand nur einen Namen nennt ohne zu erklären warum, oder nur einen Teil der Frage beantwortet (z.B. bei 'Welcher Film hat dich geprägt und warum?' nur den Filmnamen nennt)."
                                 + " Jede Frage kann übersprungen werden - akzeptiere das ohne Nachfragen."
                                 + "\n\nFragen für diesen Block:"
                                 + "\n1. Wenn du morgen irgendwohin reisen könntest – wohin würde es gehen?"
