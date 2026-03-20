@@ -140,14 +140,21 @@ public class AgentMetaUtility {
                                 + " Wenn eine Antwort zu kurz oder oberflächlich ist, frage sanft nach: 'Kannst du mir dazu noch etwas mehr erzählen?' oder 'Was hat das für dich bedeutet?'"
                                 + " Jede Frage kann übersprungen werden - akzeptiere das ohne Nachfragen."
                                 + "\n\nFragen für diesen Block:"
-                                + "\n1. Was ist dein absolutes Lieblingsessen - und was würdest du niemals essen, selbst wenn du am Verhungern wärst?"
-                                + "\n2. Welches Lied, welcher Film oder welches Buch hat dich am meisten geprägt? Was daran berührt dich?"
-                                + "\n3. Was ist eine Sache, die die meisten Menschen mögen, die du aber überhaupt nicht ausstehen kannst?"
-                                + "\n4. Wenn du einen ganzen freien Tag hättest ohne jede Verpflichtung - was wäre das Erste, das du tun würdest, und was das Letzte vor dem Einschlafen?"
+                                + "\n1. Wenn du morgen irgendwohin reisen könntest – wohin würde es gehen?"
+                                + "\n2. Hast du ein Haustier – oder hättest du gerne eins?"
+                                + "\n3. Was ist deine Lieblingsfarbe – und warum gerade die?"
+                                + "\n4. Kaffee oder Tee – und wie trinkst du ihn am liebsten?"
+                                + "\n5. Meer oder Berge – wo zieht es dich eher hin?"
+                                + "\n6. Bist du eher Morgenperson oder Nachtmensch?"
+                                + "\n7. Welche Jahreszeit magst du am liebsten – und was macht sie für dich besonders?"
+                                + "\n8. Was ist dein absolutes Lieblingsessen - und was würdest du niemals essen, selbst wenn du am Verhungern wärst?"
+                                + "\n9. Welches Lied, welcher Film oder welches Buch hat dich am meisten geprägt? Was daran berührt dich?"
+                                + "\n10. Was ist eine Sache, die die meisten Menschen mögen, die du aber überhaupt nicht ausstehen kannst?"
+                                + "\n11. Wenn du einen ganzen freien Tag hättest ohne jede Verpflichtung - was wäre das Erste, das du tun würdest, und was das Letzte vor dem Einschlafen?"
                                 + keepShort + noWrapUp;
                 p[0][1] = langInstr
-                                + "Schreibe eine kurze, warmherzige Begrüssung (max. 2 Sätze). Knüpfe an das Onboarding an: Die Person hat sich gerade registriert und den Einführungsfragebogen ausgefüllt. Begrüsse sie herzlich und erkläre kurz, dass ihr jetzt gemeinsam ihre Geschichte erkundet. Beginne dann mit der ersten Frage über Lieblingsessen.";
-                p[0][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Lieblingsessen und was man niemals essen würde, (2) prägendes Lied/Film/Buch, (3) etwas Populäres das man nicht ausstehen kann, (4) freier Tag ohne Verpflichtung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
+                                + "Schreibe eine kurze, warmherzige Begrüssung (max. 2 Sätze). Knüpfe an das Onboarding an: Die Person hat sich gerade registriert und den Einführungsfragebogen ausgefüllt. Begrüsse sie herzlich und erkläre kurz, dass ihr jetzt gemeinsam ihre Geschichte erkundet. Beginne dann mit der ersten Frage: Wenn du morgen irgendwohin reisen könntest – wohin würde es gehen?";
+                p[0][2] = "Gehe die folgenden 11 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Reiseziel morgen, (2) Haustier, (3) Lieblingsfarbe, (4) Kaffee oder Tee, (5) Meer oder Berge, (6) Morgenperson oder Nachtmensch, (7) Lieblingsjahreszeit, (8) Lieblingsessen und was man niemals essen würde, (9) prägendes Lied/Film/Buch, (10) etwas Populäres das man nicht ausstehen kann, (11) freier Tag ohne Verpflichtung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 11 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[0][3] = langInstr
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Geschmack, Vorlieben und Abneigungen geführt."
                                 + " Fasse zusammen, was du über die Person erfahren hast. Sprich die Person direkt an (du-Form)."
@@ -158,7 +165,7 @@ public class AgentMetaUtility {
                 p[0][4] = langInstr
                                 + "Fasse zusammen, was du über den Geschmack und die Vorlieben der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
                 p[0][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt, z.B. 'Ja', 'Stimmt', 'Passt', 'Korrekt', 'Alles gut', 'Sieht gut aus', 'Perfekt', 'Ok', 'Genau', 'Richtig', oder ähnliche zustimmende Aussagen. Auch wenn die Person sagt 'passt so' oder 'das stimmt' oder eine Bestätigung mit kleinen Ergänzungen gibt, zählt das als Bestätigung. Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
-                p[0][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Geschmack, Vorlieben und Abneigungen. Die Zusammenfassung soll in der dritten Person geschrieben sein, sowohl Fakten als auch emotionale Aspekte enthalten, und als Datenbasis für einen KI-Agenten dienen. Enthalte: Kulinarische Vorlieben und Abneigungen, kulturelle Präferenzen (Musik, Film, Buch) mit Begründung, typisches Freizeitverhalten.";
+                p[0][6] = "Erstelle eine strukturierte Zusammenfassung des Gesprächs über Geschmack, Vorlieben und Abneigungen. Die Zusammenfassung soll in der dritten Person geschrieben sein, sowohl Fakten als auch emotionale Aspekte enthalten, und als Datenbasis für einen KI-Agenten dienen. Enthalte: Reisevorlieben, Haustiere, Lieblingsfarbe, Getränkepräferenz (Kaffee/Tee), Natur-Präferenz (Meer/Berge), Tagesrhythmus (Morgen-/Nachtmensch), Lieblingsjahreszeit, kulinarische Vorlieben und Abneigungen, kulturelle Präferenzen (Musik, Film, Buch) mit Begründung, typisches Freizeitverhalten.";
 
                 // ==========================================================
                 // BLOCK 2: Alltag & Lebenswelt
