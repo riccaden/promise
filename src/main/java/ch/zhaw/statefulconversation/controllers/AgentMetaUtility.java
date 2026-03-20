@@ -60,16 +60,19 @@ public class AgentMetaUtility {
                         String storageKey = "block" + (i + 1);
 
                         // --- Confirm State ---
+                        // Only extract summary to storage. Do NOT transfer utterances
+                        // to the next block — each block starts fresh to avoid unbounded
+                        // context growth across all 10 blocks.
                         Decision confirmGuard = new StaticDecision(prompts[i][5]);
                         Action extract = new StaticExtractionAction(prompts[i][6], storage, storageKey);
-                        Action transferToNext = new TransferUtterancesAction(nextState);
                         Transition confirmTransition = new Transition(
-                                        List.of(confirmGuard), List.of(extract, transferToNext), nextState);
+                                        List.of(confirmGuard), List.of(extract), nextState);
                         State confirmState = new State(
                                         prompts[i][3], blockNames[i] + " - Bestätigung", prompts[i][4],
                                         List.of(confirmTransition));
 
                         // --- Conv State ---
+                        // Transfer utterances to confirm state so it can summarise
                         Decision convGuard = new StaticDecision(prompts[i][2]);
                         Action transferToConfirm = new TransferUtterancesAction(confirmState);
                         Transition convTransition = new Transition(
