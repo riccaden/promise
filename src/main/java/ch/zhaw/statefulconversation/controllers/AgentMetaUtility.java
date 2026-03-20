@@ -125,6 +125,7 @@ public class AgentMetaUtility {
                                 ? " Du weisst, dass die Person " + nickname
                                                 + " heisst. Sprich sie gelegentlich mit diesem Namen an."
                                 : "";
+                String keepShort = " WICHTIG ZUR LÄNGE: Halte deine Antworten KURZ. Reagiere auf die Antwort der Person mit maximal 1-2 kurzen Sätzen, dann stelle direkt die nächste Frage. Keine langen Einleitungen, keine ausführlichen Kommentare, keine Zusammenfassungen innerhalb des Gesprächs. Beispiel: 'Das klingt wunderbar! Und wie sieht es mit... aus?'";
                 String noWrapUp = " WICHTIG: Verabschiede dich NICHT und sage NICHT dass du 'fertig bist', 'abschliesst' oder 'es war mir eine Freude'. Es folgen nach diesem Thema noch weitere Gesprächsthemen. Stelle einfach die nächste Frage, wenn die Person geantwortet hat.";
 
                 // ==========================================================
@@ -143,7 +144,7 @@ public class AgentMetaUtility {
                                 + "\n2. Welches Lied, welcher Film oder welches Buch hat dich am meisten geprägt? Was daran berührt dich?"
                                 + "\n3. Was ist eine Sache, die die meisten Menschen mögen, die du aber überhaupt nicht ausstehen kannst?"
                                 + "\n4. Wenn du einen ganzen freien Tag hättest ohne jede Verpflichtung - was wäre das Erste, das du tun würdest, und was das Letzte vor dem Einschlafen?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[0][1] = langInstr
                                 + "Schreibe eine kurze, warmherzige Begrüssung (max. 2 Sätze). Knüpfe an das Onboarding an: Die Person hat sich gerade registriert und den Einführungsfragebogen ausgefüllt. Begrüsse sie herzlich und erkläre kurz, dass ihr jetzt gemeinsam ihre Geschichte erkundet. Beginne dann mit der ersten Frage über Lieblingsessen.";
                 p[0][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Lieblingsessen und was man niemals essen würde, (2) prägendes Lied/Film/Buch, (3) etwas Populäres das man nicht ausstehen kann, (4) freier Tag ohne Verpflichtung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -174,7 +175,7 @@ public class AgentMetaUtility {
                                 + "\n2. Welcher Ort fühlt sich für dich am meisten wie 'zuhause' an? Was macht ihn besonders?"
                                 + "\n3. Gibt es ein Ritual oder eine Gewohnheit, die dein Tag ohne nicht komplett wäre?"
                                 + "\n4. Was machst du beruflich - und wie würdest du jemandem auf einer Party erklären, was du den ganzen Tag tust? Liebst du es, oder ist es einfach dein Job?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[1][1] = langInstr
                                 + "Schreibe eine warme Überleitung vom Thema Geschmack und Vorlieben zum Alltag und der Lebenswelt. Lade die Person ein, über ihren typischen Tag zu sprechen.";
                 p[1][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Morgenroutine, (2) Ort der sich wie zuhause anfühlt, (3) Alltagsritual, (4) Beruf und Einstellung dazu. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -206,7 +207,7 @@ public class AgentMetaUtility {
                                 + "\n3. Wie reagierst du, wenn etwas nicht nach Plan läuft - eher gelassen, genervt, lösungsorientiert?"
                                 + "\n4. Wenn dich jemand um Rat fragt - bist du eher der Typ, der zuhört, oder der sofort Lösungen vorschlägt?"
                                 + "\n5. Stell dir vor, du musst jemandem absagen, auf den du keine Lust hast - was schreibst du?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[2][1] = langInstr
                                 + "Schreibe eine spielerische Überleitung vom Alltag zum Thema Kommunikationsstil. Lade die Person ein, über ihre Art zu kommunizieren zu sprechen.";
                 p[2][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Schreibstil (lange Nachricht oder viele kurze), (2) was zum Lachen bringt, (3) Reaktion wenn etwas nicht nach Plan läuft, (4) Beratungsstil (zuhören oder Lösungen), (5) wie man jemandem absagt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -239,7 +240,7 @@ public class AgentMetaUtility {
                                 + "\n2. Was war der schwierigste Moment, den du je durchlebt hast? Was hat er dich gelehrt?"
                                 + "\n3. Gibt es ein Erlebnis, das die Richtung deines Lebens verändert hat (Wendepunkt)?"
                                 + "\n4. Welche Kindheitserinnerung kommt dir sofort in den Sinn, wenn du die Augen schliesst?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[3][1] = langInstr
                                 + "Schreibe eine respektvolle, behutsame Überleitung zum Thema Erinnerungen und Schlüsselerlebnisse. Gib der Person das Gefühl, dass sie sich Zeit nehmen darf.";
                 p[3][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) schönster Moment des Lebens, (2) schwierigster Moment, (3) Wendepunkt, (4) Kindheitserinnerung. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -270,7 +271,7 @@ public class AgentMetaUtility {
                                 + "\n2. Wie zeigst du Menschen, dass du sie liebst - mit Worten, Taten oder auf andere Weise?"
                                 + "\n3. Erzähle von einem Streit, der gut ausgegangen ist - was ist passiert, und wie habt ihr es gelöst?"
                                 + "\n4. Worauf reagierst du empfindlich - also was kann dich schnell verletzen oder ärgern?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[4][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Erinnerungen zu Emotionen und Beziehungsmustern. Lade die Person ein, über ihre emotionale Welt zu sprechen.";
                 p[4][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) was man bei schlechtem Tag tut, (2) wie man Liebe zeigt, (3) ein Streit der gut ausgegangen ist, (4) worauf man empfindlich reagiert. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -300,7 +301,7 @@ public class AgentMetaUtility {
                                 + "\n2. Erzähle von einer Freundschaft, die dein Leben geprägt hat. Was macht sie besonders?"
                                 + "\n3. Gibt es etwas, das andere Menschen oft an dir falsch einschätzen?"
                                 + "\n4. Was ist das Beste, das je jemand über dich gesagt hat - und hat es gestimmt?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[5][1] = langInstr
                                 + "Schreibe eine warmherzige Überleitung vom Thema Emotionen zu Beziehungen und dem Bild, das andere von der Person haben.";
                 p[5][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Person die einen am besten kennt und was sie sagen würde, (2) prägende Freundschaft, (3) was andere falsch einschätzen, (4) bestes Kompliment. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -331,7 +332,7 @@ public class AgentMetaUtility {
                                 + "\n3. Wenn du am Ende einer Woche zurückblickst und denkst 'das war eine gute Woche' - was muss passiert sein?"
                                 + "\n4. Stell dir vor, du beobachtest eine Ungerechtigkeit in der Öffentlichkeit - was tust du konkret?"
                                 + "\n5. Worüber kannst du dich so richtig aufregen - und wie merken das die Leute um dich herum?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[6][1] = langInstr
                                 + "Schreibe eine nachdenkliche Überleitung zum Thema Werte und Überzeugungen. Der Biograf möchte verstehen, was der Person wirklich wichtig ist.";
                 p[6][2] = "Gehe die folgenden 5 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) wofür nachts um drei aufstehen, (2) veränderte Überzeugung, (3) was eine gute Woche ausmacht, (4) Reaktion auf Ungerechtigkeit, (5) worüber man sich aufregt. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 5 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -361,7 +362,7 @@ public class AgentMetaUtility {
                                 + "\n2. Gibt es etwas, das du heimlich gerne machst, von dem die meisten Leute in deinem Umfeld nichts wissen (ein Guilty Pleasure)?"
                                 + "\n3. Gibt es etwas an dir, das Leute überrascht, wenn sie es erfahren - weil es nicht zu dem passt, wie sie dich kennen?"
                                 + "\n4. Wenn dein bester Freund dich in drei Worten beschreiben müsste, die nicht auf deinen Lebenslauf passen - welche wären das?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[7][1] = langInstr
                                 + "Schreibe eine humorvolle, einladende Überleitung zum Thema Macken und verborgene Seiten. Mach es der Person leicht, über ihre lustigen Eigenheiten zu sprechen.";
                 p[7][2] = "Gehe die folgenden 4 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) Macke oder Angewohnheit, (2) Guilty Pleasure, (3) überraschende Eigenschaft, (4) drei Worte vom besten Freund. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 4 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -390,7 +391,7 @@ public class AgentMetaUtility {
                                 + "\n1. Wofür möchtest du in Erinnerung bleiben?"
                                 + "\n2. Wenn du jemandem, der dir wichtig ist, einen ehrlichen Brief schreiben würdest - was würde drin stehen?"
                                 + "\n3. Wenn dein Leben ein Buch wäre - wie würde der Titel lauten, und was stünde auf der Rückseite?"
-                                + noWrapUp;
+                                + keepShort + noWrapUp;
                 p[8][1] = langInstr
                                 + "Schreibe eine feierliche, wertschätzende Überleitung zum Thema Vermächtnis und Zukunft. Die Person soll spüren, dass ihre Worte wichtig sind.";
                 p[8][2] = "Gehe die folgenden 3 Fragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage im Gespräch EXPLIZIT gestellt hat: (1) wofür in Erinnerung bleiben, (2) ehrlicher Brief an wichtige Person, (3) Buchtitel des Lebens. WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Dass die Person ein Thema von sich aus anspricht, zählt NICHT. Antworte mit true NUR wenn alle 3 Fragen vom Biografen gestellt oder von der Person explizit übersprungen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
@@ -418,7 +419,8 @@ public class AgentMetaUtility {
                                 + "\n\nFragen für diesen Block:"
                                 + "\n1. Hast du das Gefühl, dass das, was du gerade erzählt hast, ein gutes Bild von dir ergibt - oder fehlt noch etwas Wichtiges?"
                                 + "\n2. Gibt es etwas Wichtiges über dich, das in keiner unserer Fragen vorkam?"
-                                + "\n3. Wenn jemand in 50 Jahren mit deinem digitalen Vermächtnis spricht - was soll er oder sie spüren?";
+                                + "\n3. Wenn jemand in 50 Jahren mit deinem digitalen Vermächtnis spricht - was soll er oder sie spüren?"
+                                + keepShort;
                 p[9][1] = langInstr
                                 + "Schreibe eine dankbare Überleitung zum Abschluss. Zeige Wertschätzung für alles, was die Person geteilt hat, und leite den letzten Teil ein.";
                 p[9][2] = "Gehe die folgenden 3 Abschlussfragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage EXPLIZIT gestellt hat: (1) ob das Bild vollständig ist, (2) ob etwas fehlt das nicht gefragt wurde, (3) was man in 50 Jahren spüren soll. Wenn die Person bei Frage 1 oder 2 gesagt hat dass etwas fehlt, wurden diese Lücken besprochen? WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Antworte mit true NUR wenn alle 3 Fragen gestellt und allfällige Lücken besprochen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
