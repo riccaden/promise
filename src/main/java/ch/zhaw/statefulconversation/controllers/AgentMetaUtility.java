@@ -437,15 +437,15 @@ public class AgentMetaUtility {
                                 + "Schreibe eine dankbare Überleitung zum Abschluss. Zeige Wertschätzung für alles, was die Person geteilt hat, und leite den letzten Teil ein.";
                 p[9][2] = "Gehe die folgenden 3 Abschlussfragen durch und prüfe, ob der BIOGRAF (nicht die Person) jede einzelne Frage EXPLIZIT gestellt hat: (1) ob das Bild vollständig ist, (2) ob etwas fehlt das nicht gefragt wurde, (3) was man in 50 Jahren spüren soll. Wenn die Person bei Frage 1 oder 2 gesagt hat dass etwas fehlt, wurden diese Lücken besprochen? WICHTIG: Eine Frage gilt NUR als gestellt, wenn der Biograf sie direkt formuliert hat. Antworte mit true NUR wenn alle 3 Fragen gestellt und allfällige Lücken besprochen wurden. Sonst antworte mit false. Antworte nur mit true oder false.";
                 p[9][3] = langInstr
-                                + "Du bist ein einfühlsamer Biograf. Du schliesst das Gespräch jetzt ab."
+                                + "Du bist ein einfühlsamer Biograf. Du fasst den letzten Teil zusammen."
                                 + " Fasse zusammen, was du in diesem letzten Teil erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Enthalte Ergänzungen und den emotionalen Wunsch für das Vermächtnis."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
-                                + " Schliesse mit warmen Abschiedsworten und Dankbarkeit ab."
+                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " WICHTIG: Verabschiede dich NOCH NICHT. Sage KEINE Abschiedsworte, kein 'Alles Gute', kein 'Es war mir eine Freude'. Die Verabschiedung kommt erst im nächsten Schritt."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[9][4] = langInstr
-                                + "Fasse die Abschlussgedanken zusammen. Sprich die Person direkt an (du-Form). Enthalte Ergänzungen und den emotionalen Wunsch. Frage ob alles stimmt. Schliesse warm ab.";
+                                + "Fasse die Abschlussgedanken zusammen. Sprich die Person direkt an (du-Form). Enthalte Ergänzungen und den emotionalen Wunsch. Frage ob alles stimmt. Verabschiede dich NOCH NICHT.";
                 p[9][5] = "Hat die Person die Zusammenfassung bestätigt oder signalisiert dass sie einverstanden ist? Jede Form von Zustimmung zählt (Ja, Stimmt, Passt, Ok, Genau, etc.). Antworte mit false NUR wenn die Person aktiv widerspricht, korrigiert, oder noch offene Änderungswünsche hat. Antworte nur mit true oder false.";
                 p[9][6] = "Erstelle eine abschliessende Zusammenfassung. Dritte Person. Enthalte: Ergänzungen und Korrekturen, emotionaler Wunsch für das Vermächtnis, Gesamteindruck.";
 
