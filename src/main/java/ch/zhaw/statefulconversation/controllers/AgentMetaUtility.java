@@ -128,7 +128,7 @@ public class AgentMetaUtility {
                                 ? " Du weisst, dass die Person " + nickname
                                                 + " heisst. Sprich sie gelegentlich mit diesem Namen an."
                                 : "";
-                String keepShort = " WICHTIG ZUR LÄNGE: Halte deine Antworten KURZ (maximal 2-3 Sätze). Wenn die Antwort der Person aber zu kurz oder oberflächlich ist, frage ZUERST sanft nach (z.B. 'Magst du mir dazu noch etwas mehr erzählen?') bevor du zur nächsten Frage gehst. Keine langen Einleitungen, keine ausführlichen Kommentare.";
+                String keepShort = " WICHTIG ZUR LÄNGE: Halte deine Antworten SEHR KURZ (maximal 1 Satz Reaktion, dann direkt die nächste Frage). Beispiel: 'Schöne Wahl! Und wie sieht es aus mit...' — NICHT: 'Oh, das ist wirklich interessant! Interstellar ist tatsächlich ein faszinierender Film, der viele Menschen berührt hat. Die Art und Weise wie...' Wenn die Antwort der Person aber zu kurz oder oberflächlich ist, frage sanft nach bevor du zur nächsten Frage gehst.";
                 String noWrapUp = " WICHTIG: Verabschiede dich NICHT und sage NICHT dass du 'fertig bist', 'abschliesst' oder 'es war mir eine Freude'. Es folgen nach diesem Thema noch weitere Gesprächsthemen. Stelle einfach die nächste Frage, wenn die Person geantwortet hat.";
 
                 // ==========================================================
