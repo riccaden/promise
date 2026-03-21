@@ -53,7 +53,9 @@ public class AgentMetaUtility {
                 String[] blockNames = buildBlockNames();
 
                 // Build chain backwards: Final ← Block10_Confirm ← Block10_Conv ← ... ← Block1_Conv
-                State current = new Final("Biografie abgeschlossen");
+                String finalPrompt = getFinalPrompt(language);
+                String finalStarter = getFinalStarterPrompt(language, nickname);
+                State current = new Final("Biografie abgeschlossen", finalPrompt, finalStarter);
 
                 for (int i = 9; i >= 0; i--) {
                         State nextState = current;
@@ -472,6 +474,49 @@ public class AgentMetaUtility {
                                 return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Chinesisch (vereinfacht, Mandarin) kommunizieren. Übersetze alle Fragen und Antworten in vereinfachtes Chinesisch. ";
                         default:
                                 return "";
+                }
+        }
+
+        // ============================================================
+        // FINAL STATE PROMPTS (language-aware)
+        // ============================================================
+
+        private static String getFinalPrompt(String language) {
+                switch (language) {
+                        case "en":
+                                return "The conversation is complete. The biography has been successfully recorded. If the user writes again, briefly and warmly say that the biography is finished and a new session would be needed. Do not ask questions or introduce new topics.";
+                        case "fr":
+                                return "La conversation est terminée. La biographie a été enregistrée avec succès. Si l'utilisateur écrit à nouveau, dis brièvement et chaleureusement que la biographie est terminée et qu'une nouvelle session serait nécessaire. Ne pose pas de questions et n'introduis pas de nouveaux sujets.";
+                        case "it":
+                                return "La conversazione è terminata. La biografia è stata registrata con successo. Se l'utente scrive di nuovo, rispondi brevemente e calorosamente che la biografia è conclusa e che servirebbe una nuova sessione. Non fare domande e non introdurre nuovi argomenti.";
+                        case "ko":
+                                return "대화가 완료되었습니다. 전기가 성공적으로 기록되었습니다. 사용자가 다시 메시지를 보내면 전기가 완료되었으며 새 세션이 필요하다고 간단하고 따뜻하게 알려주세요. 질문하거나 새로운 주제를 소개하지 마세요.";
+                        case "ja":
+                                return "会話は完了しました。伝記は正常に記録されました。ユーザーが再度メッセージを送った場合、伝記が完了したことと新しいセッションが必要であることを簡潔に温かく伝えてください。質問や新しい話題の紹介はしないでください。";
+                        case "zh":
+                                return "对话已结束。传记已成功记录。如果用户再次发送消息，请简短而温暖地告知传记已完成，需要开始新的会话。不要提问或引入新话题。";
+                        default: // de
+                                return "Das Gespräch ist abgeschlossen. Die Biografie wurde erfolgreich aufgenommen. Wenn der Benutzer nochmal schreibt, sage kurz und warmherzig, dass die Biografie abgeschlossen ist und eine neue Sitzung nötig wäre. Stelle keine Fragen und führe keine neuen Themen ein.";
+                }
+        }
+
+        private static String getFinalStarterPrompt(String language, String nickname) {
+                String name = (nickname != null && !nickname.isBlank()) ? nickname : "";
+                switch (language) {
+                        case "en":
+                                return "Say a very brief, warm goodbye" + (name.isEmpty() ? "" : " to " + name) + ". Thank them for sharing their story. Mention that their legacy has been saved. 1-2 sentences max.";
+                        case "fr":
+                                return "Dis un au revoir très bref et chaleureux" + (name.isEmpty() ? "" : " à " + name) + ". Remercie-le/la d'avoir partagé son histoire. Mentionne que son héritage a été sauvegardé. 1-2 phrases max.";
+                        case "it":
+                                return "Saluta brevemente e calorosamente" + (name.isEmpty() ? "" : " " + name) + ". Ringrazia per aver condiviso la sua storia. Menziona che il suo lascito è stato salvato. 1-2 frasi al massimo.";
+                        case "ko":
+                                return (name.isEmpty() ? "사용자" : name) + "에게 매우 간단하고 따뜻한 작별 인사를 해주세요. 이야기를 나눠준 것에 감사하고, 유산이 저장되었음을 알려주세요. 최대 1-2문장.";
+                        case "ja":
+                                return (name.isEmpty() ? "ユーザー" : name) + "にとても簡潔で温かいお別れの挨拶をしてください。物語を共有してくれたことに感謝し、遺産が保存されたことを伝えてください。最大1-2文。";
+                        case "zh":
+                                return "向" + (name.isEmpty() ? "用户" : name) + "说一句简短而温暖的告别。感谢他们分享了自己的故事。提到他们的遗产已被保存。最多1-2句话。";
+                        default: // de
+                                return "Verabschiede dich sehr kurz und warmherzig" + (name.isEmpty() ? "" : " von " + name) + ". Bedanke dich fürs Teilen der Geschichte. Erwähne, dass das Vermächtnis gespeichert wurde. Maximal 1-2 Sätze.";
                 }
         }
 }
