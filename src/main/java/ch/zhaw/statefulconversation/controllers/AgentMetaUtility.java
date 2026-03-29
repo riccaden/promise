@@ -165,7 +165,7 @@ public class AgentMetaUtility {
                                 + " Fasse zusammen, was du über die Person erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Zum Beispiel: 'Aus unserem Gespräch habe ich mitgenommen, dass du...' oder 'Besonders spannend fand ich, dass du...'"
                                 + " Die Zusammenfassung soll warm und persönlich sein, maximal 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen oder Ergänzungen: anpassen und erneut fragen.";
                 p[0][4] = langInstr
                                 + "Fasse zusammen, was du über den Geschmack und die Vorlieben der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
@@ -195,7 +195,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Alltag und Lebenswelt geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[1][4] = langInstr
                                 + "Fasse zusammen, was du über den Alltag der Person erfahren hast. Sprich sie direkt an (du-Form), warm und persönlich. Frage ob du alles richtig verstanden hast.";
@@ -228,7 +228,7 @@ public class AgentMetaUtility {
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " WICHTIG: Achte besonders auf Schreibstil, Humorart und Reaktionsmuster."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[2][4] = langInstr
                                 + "Fasse zusammen, was du über den Kommunikationsstil der Person erfahren hast. Sprich sie direkt an (du-Form). Achte auf Schreibstil und Reaktionsmuster. Frage ob alles stimmt.";
@@ -261,7 +261,7 @@ public class AgentMetaUtility {
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Achte besonders auf die emotionale Bedeutung, nicht nur Fakten."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[3][4] = langInstr
                                 + "Fasse zusammen, was du über die Erinnerungen der Person erfahren hast. Sprich sie direkt an (du-Form). Betone die emotionale Bedeutung. Frage ob alles stimmt.";
@@ -291,7 +291,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Emotionen und Beziehungsmuster geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[4][4] = langInstr
                                 + "Fasse zusammen, was du über die Emotionen und Beziehungsmuster der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
@@ -321,7 +321,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Beziehungen und Fremdbild geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[5][4] = langInstr
                                 + "Fasse zusammen, was du über die Beziehungen und das Fremdbild der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
@@ -352,7 +352,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Werte und Überzeugungen geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[6][4] = langInstr
                                 + "Fasse zusammen, was du über die Werte und Überzeugungen der Person erfahren hast. Sprich sie direkt an (du-Form). Frage ob alles stimmt.";
@@ -382,7 +382,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Macken und Widersprüche geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Bewahre den humorvollen Ton. Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[7][4] = langInstr
                                 + "Fasse zusammen, was du über die Macken und verborgenen Seiten der Person erfahren hast. Sprich sie direkt an (du-Form). Humorvoller Ton. Frage ob alles stimmt.";
@@ -411,7 +411,7 @@ public class AgentMetaUtility {
                                 + "Du bist ein einfühlsamer Biograf. Du hast gerade ein Gespräch über Vermächtnis und Zukunft geführt."
                                 + " Fasse zusammen, was du erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Bewahre die feierliche Tiefe. Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[8][4] = langInstr
                                 + "Fasse zusammen, was du über das Vermächtnis und die Zukunftsgedanken der Person erfahren hast. Sprich sie direkt an (du-Form). Feierlicher Ton. Frage ob alles stimmt.";
@@ -441,7 +441,7 @@ public class AgentMetaUtility {
                                 + " Fasse zusammen, was du in diesem letzten Teil erfahren hast. Sprich die Person direkt an (du-Form)."
                                 + " Enthalte Ergänzungen und den emotionalen Wunsch für das Vermächtnis."
                                 + " Warm und persönlich, max. 200-300 Wörter."
-                                + " Frage am Ende: 'Habe ich alles richtig verstanden? Möchtest du noch etwas ergänzen oder korrigieren?'"
+                                + " Frage am Ende ob du alles richtig verstanden hast und ob die Person noch etwas ergänzen oder korrigieren möchte."
                                 + " WICHTIG: Verabschiede dich NOCH NICHT. Sage KEINE Abschiedsworte, kein 'Alles Gute', kein 'Es war mir eine Freude'. Die Verabschiedung kommt erst im nächsten Schritt."
                                 + " Bei Korrekturen anpassen und erneut fragen.";
                 p[9][4] = langInstr

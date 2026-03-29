@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -43,7 +44,10 @@ public class TTSController {
      * @return Audio data as byte array
      */
     @PostMapping("{agentID}/tts")
-    public ResponseEntity<byte[]> textToSpeech(@PathVariable String agentID, @RequestBody TTSRequest request) {
+    public ResponseEntity<byte[]> textToSpeech(
+            @PathVariable String agentID,
+            @RequestBody TTSRequest request,
+            @RequestParam(value = "voice_id", required = false) String customVoiceId) {
 
         // Validate API key
         if (apiKey == null || apiKey.isBlank() || apiKey.equals("YOUR_ELEVENLABS_API_KEY_HERE")) {
@@ -56,9 +60,11 @@ public class TTSController {
         }
 
         try {
+            // Use custom voice_id if provided, otherwise fall back to default
+            String effectiveVoiceId = (customVoiceId != null && !customVoiceId.isBlank()) ? customVoiceId : voiceId;
+
             // Prepare ElevenLabs API request
-            // output_format is a query parameter, not a body field
-            String url = "https://api.elevenlabs.io/v1/text-to-speech/" + voiceId + "?output_format=mp3_44100_128";
+            String url = "https://api.elevenlabs.io/v1/text-to-speech/" + effectiveVoiceId + "?output_format=mp3_44100_128";
 
             // Set headers
             HttpHeaders headers = new HttpHeaders();
