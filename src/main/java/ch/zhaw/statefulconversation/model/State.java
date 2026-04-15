@@ -27,9 +27,9 @@ public class State extends Prompt {
     }
 
     private String name;
-    @Column(length = 10000)
+    @Column(columnDefinition = "TEXT")
     private String starterPrompt;
-    @Column(length = 10000)
+    @Column(columnDefinition = "TEXT")
     private String summarisePrompt;
     private boolean isStarting;
     private boolean isOblivious;
