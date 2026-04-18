@@ -472,6 +472,8 @@ public class AgentMetaUtility {
                                 return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Japanisch kommunizieren. Übersetze alle Fragen und Antworten in Japanisch. ";
                         case "zh":
                                 return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Chinesisch (vereinfacht, Mandarin) kommunizieren. Übersetze alle Fragen und Antworten in vereinfachtes Chinesisch. ";
+                        case "tr":
+                                return "WICHTIG: Die folgenden Anweisungen sind auf Deutsch formuliert, aber du MUSST ausschliesslich auf Türkisch kommunizieren. Übersetze alle Fragen und Antworten in Türkisch. ";
                         default:
                                 return "";
                 }
@@ -495,6 +497,8 @@ public class AgentMetaUtility {
                                 return "会話は完了しました。伝記は正常に記録されました。ユーザーが再度メッセージを送った場合、伝記が完了したことと新しいセッションが必要であることを簡潔に温かく伝えてください。質問や新しい話題の紹介はしないでください。";
                         case "zh":
                                 return "对话已结束。传记已成功记录。如果用户再次发送消息，请简短而温暖地告知传记已完成，需要开始新的会话。不要提问或引入新话题。";
+                        case "tr":
+                                return "Konuşma tamamlandı. Biyografi başarıyla kaydedildi. Kullanıcı tekrar yazarsa, biyografinin tamamlandığını ve yeni bir oturumun gerekli olacağını kısaca ve sıcak bir şekilde belirt. Soru sorma ve yeni konular açma.";
                         default: // de
                                 return "Das Gespräch ist abgeschlossen. Die Biografie wurde erfolgreich aufgenommen. Wenn der Benutzer nochmal schreibt, sage kurz und warmherzig, dass die Biografie abgeschlossen ist und eine neue Sitzung nötig wäre. Stelle keine Fragen und führe keine neuen Themen ein.";
                 }
@@ -515,6 +519,8 @@ public class AgentMetaUtility {
                                 return (name.isEmpty() ? "ユーザー" : name) + "にとても簡潔で温かいお別れの挨拶をしてください。物語を共有してくれたことに感謝し、遺産が保存されたことを伝えてください。最大1-2文。";
                         case "zh":
                                 return "向" + (name.isEmpty() ? "用户" : name) + "说一句简短而温暖的告别。感谢他们分享了自己的故事。提到他们的遗产已被保存。最多1-2句话。";
+                        case "tr":
+                                return (name.isEmpty() ? "Kullanıcıya" : name + "'e") + " çok kısa ve sıcak bir veda et. Hikayesini paylaştığı için teşekkür et. Mirasının kaydedildiğini belirt. En fazla 1-2 cümle.";
                         default: // de
                                 return "Verabschiede dich sehr kurz und warmherzig" + (name.isEmpty() ? "" : " von " + name) + ". Bedanke dich fürs Teilen der Geschichte. Erwähne, dass das Vermächtnis gespeichert wurde. Maximal 1-2 Sätze.";
                 }
