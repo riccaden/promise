@@ -167,6 +167,8 @@ public class State extends Prompt {
 
     public Response respond(String userSays, String outerPrompt) throws TransitionException {
         this.acknowledge(userSays, outerPrompt);
+        // Compact conversation history if it has grown too long
+        this.utterances.compactIfNeeded();
         // no transition, compose prompt
         String totalPrompt = this.composeTotalPrompt(outerPrompt);
         // @todo: is it ok to avoid completion if there's no prompt?

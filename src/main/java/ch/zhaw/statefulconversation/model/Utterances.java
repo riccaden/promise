@@ -3,7 +3,12 @@ package ch.zhaw.statefulconversation.model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.zhaw.statefulconversation.spi.LMOpenAI;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -15,8 +20,12 @@ import jakarta.persistence.OrderBy;
 @Entity
 public class Utterances {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(Utterances.class);
     private static final String ASSISTANT = "assistant";
     private static final String USER = "user";
+    private static final String SYSTEM = "system";
+    private static final int USER_MESSAGE_COMPACT_THRESHOLD = 20;
+    private static final int MESSAGES_TO_KEEP = 10;
 
     @Id
     @GeneratedValue
@@ -97,6 +106,76 @@ public class Utterances {
     public List<Utterance> toList() {
         List<Utterance> result = List.copyOf(this.utteranceList);
         return result;
+    }
+
+    /**
+     * Compacts conversation history when user messages exceed the threshold.
+     * Summarises the oldest messages into a single system message, keeping
+     * the most recent ones intact. This mirrors natural human memory —
+     * older details fade into a general impression while recent exchanges
+     * stay vivid.
+     */
+    public void compactIfNeeded() {
+        long userMessageCount = this.utteranceList.stream()
+                .filter(u -> USER.equals(u.getRole()))
+                .count();
+
+        if (userMessageCount <= USER_MESSAGE_COMPACT_THRESHOLD) {
+            return;
+        }
+
+        // Check if already compacted (first message is a system summary)
+        if (!this.utteranceList.isEmpty()
+                && SYSTEM.equals(this.utteranceList.get(0).getRole())
+                && this.utteranceList.get(0).getContent().startsWith("[Zusammenfassung")) {
+            return;
+        }
+
+        LOGGER.info("Compacting conversation: {} user messages exceed threshold of {}",
+                userMessageCount, USER_MESSAGE_COMPACT_THRESHOLD);
+
+        int totalSize = this.utteranceList.size();
+        int splitPoint = totalSize - MESSAGES_TO_KEEP;
+        if (splitPoint <= 0) {
+            return;
+        }
+
+        // Build text of older messages for summarisation
+        List<Utterance> olderMessages = new ArrayList<>(this.utteranceList.subList(0, splitPoint));
+        String conversationText = olderMessages.stream()
+                .map(u -> u.getRole() + ": " + u.getContent())
+                .collect(Collectors.joining("\n"));
+
+        // Ask LLM to summarise
+        String summaryPrompt = "Fasse das folgende Gespräch in 3-5 Sätzen zusammen. "
+                + "Behalte die wichtigsten Themen, gestellten Fragen und emotionalen Momente. "
+                + "Schreibe die Zusammenfassung in der Sprache des Gesprächs.";
+        String summary;
+        try {
+            Utterances tempUtterances = new Utterances();
+            Utterance tempMsg = new Utterance(USER, conversationText, null);
+            tempMsg.setUtterances(tempUtterances);
+            tempUtterances.utteranceList.add(tempMsg);
+            summary = LMOpenAI.summariseOffline(tempUtterances, summaryPrompt);
+        } catch (Exception e) {
+            LOGGER.warn("Failed to summarise conversation, skipping compaction: {}", e.getMessage());
+            return;
+        }
+
+        // Remove older messages
+        for (Utterance old : olderMessages) {
+            old.setUtterances(null);
+        }
+        this.utteranceList.subList(0, splitPoint).clear();
+
+        // Insert summary as first message
+        Utterance summaryUtterance = new Utterance(SYSTEM,
+                "[Zusammenfassung des bisherigen Gesprächs]\n" + summary, null);
+        summaryUtterance.setUtterances(this);
+        this.utteranceList.add(0, summaryUtterance);
+
+        LOGGER.info("Compacted: removed {} old messages, kept {}, added summary",
+                olderMessages.size(), MESSAGES_TO_KEEP);
     }
 
     @Override
