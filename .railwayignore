@@ -1,8 +1,25 @@
-# Ignoriere unnötige Dateien für schnellere Deployments
+# =============================================================================
+# .railwayignore – Dateien, die beim Railway Deployment ignoriert werden
+# Reduziert die Upload-Grösse und beschleunigt den Build-Prozess
+# =============================================================================
+
+# Kompilierte Artefakte – werden im Docker-Build neu erstellt
 target/
+
+# Git-Historie – wird für den Build nicht benötigt
 .git/
+
+# Maven Wrapper JAR – wird im Docker-Build aus dem Internet heruntergeladen
 .mvn/wrapper/maven-wrapper.jar
+
+# Log-Dateien – irrelevant für den Build
 *.log
+
+# Dokumentationsdateien – werden auf Railway nicht benötigt
 *.md
+
+# README-Assets (Bilder etc.) – nur für GitHub relevant
 .readme/
+
+# macOS Finder-Metadaten – Systemdateien, nicht relevant
 .DS_Store

@@ -1,3 +1,15 @@
+<!--
+  Oblivio / PROMISE Framework – Realtime Voice-Chat-Seite (realtime/index.html)
+  Sprach-zu-Sprach-Konsoleninterface fuer PROMISE-Agenten ueber OpenAI Realtime API.
+  Nutzt WebRTC fuer bidirektionale Audio-Kommunikation:
+    - Mikrofon-Eingabe wird per WebRTC an OpenAI gestreamt
+    - Assistenten-Audio wird in Echtzeit zurueckgespielt
+  Unterstuetzt zwei Turn-Detection-Modi:
+    - Server VAD: Automatische Spracherkennung (Voice Activity Detection)
+    - Manual: Push-to-Talk per Button oder Leertaste
+  Einstellbar: Voice (Alloy, Ash, Coral, etc.), Temperature, Turn Detection
+  Erwartet eine Agent-ID als URL-Parameter: ?agentId=UUID oder ?UUID
+-->
 <!doctype html>
 <html lang="en">
 

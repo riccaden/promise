@@ -18,6 +18,13 @@ import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.model.commons.states.DynamicActionableCoachingState;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Realtime-Variante des offenen Gesundheitscoaching-Bots im PROMISE Framework.
+ * Strukturell identisch mit {@link OpenHealthCoaching}, jedoch als separater Agent
+ * ("Wellness Navigator Realtime") konfiguriert fuer den Einsatz mit Echtzeit-Kommunikation.
+ * Durchlaeuft dieselben Phasen: Rapport-Aufbau und handlungsorientiertes Coaching
+ * mit TransferUtterancesAction und DynamicActionableCoachingState.
+ */
 @SpringBootTest
 class OpenHealthCoachingRealtime {
 

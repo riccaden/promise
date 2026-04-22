@@ -1,10 +1,17 @@
 {
+  "_comment_1": "Railway Deployment-Konfiguration für Oblivio (PROMISE Framework)",
+  "_comment_2": "Definiert Build-Methode (Dockerfile) und Deployment-Verhalten auf Railway",
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
+    "_comment": "Build-Konfiguration: Verwendet das Dockerfile im Projekt-Root für den Multi-Stage Build",
     "builder": "DOCKERFILE",
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
+    "_comment_1": "numReplicas: Anzahl Container-Instanzen (1 = Single Instance, ausreichend für Oblivio)",
+    "_comment_2": "sleepApplication: false = Anwendung läuft dauerhaft, kein Auto-Sleep bei Inaktivität",
+    "_comment_3": "restartPolicyType: ON_FAILURE = Container wird nur bei Absturz neu gestartet",
+    "_comment_4": "restartPolicyMaxRetries: Maximal 10 Neustart-Versuche bei wiederholtem Absturz",
     "numReplicas": 1,
     "sleepApplication": false,
     "restartPolicyType": "ON_FAILURE",

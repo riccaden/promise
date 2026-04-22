@@ -18,6 +18,15 @@ import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.model.commons.states.DynamicActionableCoachingState;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert einen offenen Gesundheitscoaching-Bot im PROMISE Framework.
+ * Der Agent durchlaeuft zwei Phasen: Rapport-Aufbau (Small Talk mit automatischer
+ * Erkennung gesundheitsrelevanter Hinweise) und handlungsorientiertes Coaching
+ * (DynamicActionableCoachingState). Zeigt den Einsatz von TransferUtterancesAction
+ * fuer die Gespraechskontinuitaet zwischen States, StaticExtractionAction fuer
+ * JSON-basierte Motivationsanalyse und einen OuterState mit Trigger/Guard fuer
+ * Benutzer-Abbruch und Problemerkennung.
+ */
 @SpringBootTest
 class OpenHealthCoaching {
 

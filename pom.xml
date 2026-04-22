@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- ============================================================================= -->
+<!-- Maven Build-Konfiguration für Oblivio (PROMISE Framework)                     -->
+<!-- Oblivio ist eine digitale Legacy-Plattform, basierend auf Spring Boot 3.4     -->
+<!-- mit JPA/Hibernate für Persistenz und OpenAI GPT-4o für KI-Konversationen.     -->
+<!-- Backend wird auf Railway deployed, Datenbank auf Supabase (PostgreSQL).       -->
+<!-- ============================================================================= -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
+	<!-- Spring Boot Parent POM: Stellt Dependency Management, Plugin-Konfiguration -->
+	<!-- und vernünftige Defaults für alle Spring Boot Starter bereit -->
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
@@ -9,59 +18,101 @@
 		<relativePath />
 		<!-- lookup parent from repository -->
 	</parent>
+
+	<!-- Projekt-Koordinaten: ZHAW-Gruppierung, da Oblivio auf dem PROMISE Framework basiert -->
 	<groupId>ch.zhaw</groupId>
 	<artifactId>statefulconversation</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>statefulconversation</name>
 	<description>Framweork for Stateful Language Model Prompt Composition</description>
+
+	<!-- Build-Eigenschaften: Java 21 und explizite Tomcat-Version -->
 	<properties>
 		<java.version>21</java.version>
+		<!-- Tomcat-Version explizit gesetzt wegen Sicherheitsupdates -->
 		<tomcat.version>10.1.47</tomcat.version>
 	</properties>
+
 	<dependencies>
+		<!-- === Spring Boot Actuator === -->
+		<!-- Stellt Health-Endpoints bereit (/actuator/health), wird vom Docker HEALTHCHECK -->
+		<!-- und Railway für Monitoring der Oblivio-Instanz verwendet -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+
+		<!-- === Spring Data JPA (Hibernate) === -->
+		<!-- ORM-Layer für die Persistenz von Konversationen, Personas, Zustandsmaschinen -->
+		<!-- und allen PROMISE-Entitäten in der Supabase PostgreSQL-Datenbank -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
+
+		<!-- === Spring Web (REST API) === -->
+		<!-- Stellt die REST-Controller bereit, über die das Frontend (oblivio.ch) -->
+		<!-- Konversationen startet, Nachrichten sendet und Ergebnisse abruft -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+
+		<!-- === JAXB Runtime === -->
+		<!-- XML-Binding-Bibliothek, wird für Spring-interne XML-Verarbeitung benötigt -->
 		<dependency>
 			<groupId>org.glassfish.jaxb</groupId>
 			<artifactId>jaxb-runtime</artifactId>
 			<scope>provided</scope>
 		</dependency>
-		<!-- PostgreSQL statt MySQL für Supabase -->
+
+		<!-- === PostgreSQL JDBC Driver === -->
+		<!-- Datenbankverbindung zur Supabase-Instanz (PostgreSQL statt MySQL) -->
+		<!-- Runtime-Scope: Wird nur zur Laufzeit benötigt, nicht zum Kompilieren -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- === Logging (SLF4J + Logback) === -->
+		<!-- Standard-Logging für Spring Boot – wird für Debug- und Fehlerausgaben verwendet -->
+		<!-- Logging-Verbosity wurde reduziert wegen Railway 500 log/sec Rate Limit -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-logging</artifactId>
 		</dependency>
+
+		<!-- === Configuration Processor === -->
+		<!-- Generiert Metadaten für @ConfigurationProperties-Klassen -->
+		<!-- Ermöglicht IDE-Autovervollständigung für application.properties -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-configuration-processor</artifactId>
 		</dependency>
+
+		<!-- === Test-Dependencies === -->
+		<!-- JUnit 5, Mockito, Spring Test – nur im Test-Scope verfügbar -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- === Gson (JSON-Bibliothek) === -->
+		<!-- Wird für die Serialisierung/Deserialisierung von OpenAI API Requests/Responses -->
+		<!-- verwendet (GPT-4o Prompt-Kommunikation im PROMISE Framework) -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
 	</dependencies>
+
+	<!-- === Build-Konfiguration === -->
 	<build>
 		<plugins>
+			<!-- Spring Boot Maven Plugin: Erstellt ein ausführbares Fat-JAR -->
+			<!-- mit eingebettetem Tomcat-Server für das Railway Deployment -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>

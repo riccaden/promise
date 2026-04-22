@@ -13,6 +13,11 @@ import com.google.gson.JsonPrimitive;
 
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 
+/**
+ * Unit-Test fuer den {@link NamedParametersFormatter} im PROMISE Framework.
+ * Prueft die korrekte Ersetzung von benannten Platzhaltern (${name}, ${age}) in
+ * Template-Strings durch Werte aus einer Map von JsonElement-Eintraegen.
+ */
 @SpringBootTest
 public class NamedParametersFormatterTest {
 

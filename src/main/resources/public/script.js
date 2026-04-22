@@ -1,3 +1,16 @@
+/**
+ * Oblivio / PROMISE Framework – Chat-Client (script.js)
+ *
+ * JavaScript fuer die textbasierte PROMISE-Demo-Seite (index.html).
+ * Verwaltet die Konversation mit dem PROMISE-Agenten ueber REST-API-Aufrufe:
+ *   - GET  /{agentId}/info         – Agent-Informationen laden
+ *   - GET  /{agentId}/conversation – Bestehende Konversation abrufen
+ *   - POST /{agentId}/respond      – Benutzernachricht senden und Antwort erhalten
+ *   - DELETE /{agentId}/reset      – Konversation zuruecksetzen
+ *
+ * Enthaelt ausserdem eine animierte "Tippt..."-Anzeige mit wechselnden Bootstrap Icons.
+ * Abhaengigkeiten: jQuery 3.6+, Bootstrap 5
+ */
 var istyping_icons = [
     "bi bi-chat aaa",
     "bi bi-chat-fill aaa",

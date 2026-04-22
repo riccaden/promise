@@ -27,6 +27,14 @@ import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.model.commons.states.DynamicActionAgreementState;
 import ch.zhaw.statefulconversation.model.commons.states.DynamicCauseAssessmentState;
 
+/**
+ * Smoke-Test fuer einen medizinischen Assistenten im PROMISE Framework.
+ * Simuliert einen vollstaendigen Gespraechsablauf: Der Patient nennt zunaechst einen
+ * unzureichenden Grund fuer eine verpasste Aktivitaet (DynamicCauseAssessmentState),
+ * liefert dann den erwarteten Grund, und waehlt anschliessend eine Alternativmassnahme
+ * (DynamicActionAgreementState). Prueft in geordneten Testschritten, dass extrahierte
+ * Slot-Werte und die getroffene Auswahl korrekt im Storage abgelegt werden.
+ */
 @SpringBootTest
 @TestMethodOrder(OrderAnnotation.class)
 public class SmokeMedicalAssistant {

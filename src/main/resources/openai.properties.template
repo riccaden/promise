@@ -1,10 +1,31 @@
-# connection data
+# =============================================================================
+# Oblivio / PROMISE Framework – OpenAI-Template fuer lokale Entwicklung
+# Kopiere diese Datei nach "openai.properties" und trage deinen API-Key ein.
+# Unterstuetzt sowohl OpenAI direkt als auch Azure OpenAI Service.
+# =============================================================================
+
+# --- Provider-Auswahl --------------------------------------------------------
+# Waehle "openai" fuer direkte OpenAI-API oder "azureopenai" fuer Azure
 openai.openaivsazureopenai = openai | azureopenai
+
+# --- Chat Completions Endpoint ------------------------------------------------
+# OpenAI: Standard-URL verwenden
+# Azure: Ersetze Platzhalter durch deinen Azure AI Service Endpoint und Deployment
 openai.url = https://api.openai.com/v1/chat/completions | [AZURE AI SERVICE API ENDPOINT]/openai/deployments/[MODEL DEPLOYMENT NAME]/chat/completions?api-version=2023-07-01-preview
+
+# --- Modell -------------------------------------------------------------------
+# OpenAI: z.B. gpt-4 oder gpt-4o; Azure: wird ueber das Deployment bestimmt (hier ignoriert)
 openai.model = gpt-4 | unused for azure openai
+
+# --- API-Key ------------------------------------------------------------------
+# OpenAI: Deinen API-Key von platform.openai.com eintragen
+# Azure: Key 1 aus dem Azure AI Service Portal verwenden
 openai.key = openai api key here | azure ai service api key (key 1)
 
-# for realtime only
+# --- Realtime API (nur fuer Sprach-zu-Sprach-Funktion) ------------------------
+# Modell fuer WebRTC-basierte Echtzeit-Sprachinteraktion
 openai.realtimeModel = gpt-4o-realtime-preview-2024-12-17
+# Server-seitiger Endpoint zum Erstellen von Realtime-Sessions
 openai.realtimeSessionUrl = https://api.openai.com/v1/realtime/sessions
+# Client-seitiger WebRTC SDP-Austausch-Endpoint
 openai.realtimeUrl = https://api.openai.com/v1/realtime

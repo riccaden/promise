@@ -1,3 +1,25 @@
+/**
+ * Oblivio / PROMISE Framework – Realtime Voice-Client (realtime/script.js)
+ *
+ * JavaScript fuer die Sprach-zu-Sprach-Interaktion mit PROMISE-Agenten.
+ * Implementiert den kompletten WebRTC-Lifecycle fuer OpenAI Realtime API:
+ *
+ *   1. Session erstellen: POST /realtime/session (Server holt ephemeral Key)
+ *   2. WebRTC-Verbindung aufbauen: PeerConnection + DataChannel
+ *   3. Mikrofon-Stream per addTrack() an die Verbindung haengen
+ *   4. SDP-Austausch mit OpenAI Realtime Endpoint
+ *   5. Events ueber DataChannel empfangen (Transcripts, Audio-Status)
+ *
+ * PROMISE-Integration:
+ *   - GET  /{agentId}/prompt      – System-Prompt + Konversationskontext laden
+ *   - GET  /{agentId}/conversation – Bestehende Konversation abrufen
+ *   - POST /{agentId}/acknowledge – Benutzer-Transkript an PROMISE senden
+ *   - POST /{agentId}/assistant   – Assistenten-Transkript speichern
+ *   - DELETE /{agentId}/reset     – Konversation zuruecksetzen
+ *
+ * Unterstuetzt Server VAD (automatisch) und Push-to-Talk (manuell, Leertaste).
+ * GIF-Animation wechselt zwischen idle und thinking waehrend der Verarbeitung.
+ */
 let session = {
   agentId: null,
   isListening: false,

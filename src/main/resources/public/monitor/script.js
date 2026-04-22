@@ -1,3 +1,21 @@
+/**
+ * Oblivio / PROMISE Framework – Monitor-Client (monitor/script.js)
+ *
+ * JavaScript fuer das Log-Monitor-Dashboard (monitor/index.html).
+ * Bietet Echtzeit-Ueberwachung eines PROMISE-Agenten:
+ *   - SSE-Verbindung zu /logs/stream fuer Live-Log-Streaming
+ *   - Polling alle 2s fuer State, Active-Status und Storage
+ *   - Filterbare Log-Anzeige (Logger, Level, Max-Zeichenanzahl, Timestamps)
+ *   - State-Liste mit Hervorhebung des aktuellen States (inkl. Inner States)
+ *   - Aufklappbare Storage-Eintraege mit JSON-Formatierung
+ *
+ * REST-API-Aufrufe:
+ *   - GET /{agentId}/info    – Agent-Name und Active-Status
+ *   - GET /{agentId}/states  – Liste aller States
+ *   - GET /{agentId}/state   – Aktueller State (inkl. Inner State Chain)
+ *   - GET /{agentId}/storage – Key-Value-Storage-Eintraege
+ *   - GET /logs/stream       – SSE-Stream fuer Log-Events
+ */
 let session = {
   agentId: null,
   currentState: null,

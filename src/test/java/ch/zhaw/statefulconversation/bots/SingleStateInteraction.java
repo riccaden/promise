@@ -17,6 +17,13 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert die einfachste Bot-Konfiguration im PROMISE Framework: ein einzelner State
+ * mit einer Transition zum Final. Ein digitaler Therapie-Coach fuehrt ein taegliches
+ * Check-in-Gespraech mit einem Patienten (Daniel Mueller, Adipositas). Die Transition
+ * kombiniert Trigger (Benutzer-Abbrucherkennung), Guard (offene Probleme pruefen) und
+ * Action (Zusammenfassung via StaticExtractionAction in Storage).
+ */
 @SpringBootTest
 class SingleStateInteraction {
 

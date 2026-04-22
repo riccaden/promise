@@ -40,6 +40,14 @@ import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.repositories.StateRepository;
 import ch.zhaw.statefulconversation.repositories.StorageRepository;
 
+/**
+ * Integrations-Test fuer die Persistenz von StaticExtractionAction im PROMISE Framework.
+ * Prueft den vollstaendigen Lebenszyklus eines State mit Extraction-Transition:
+ * Speichern und Laden via StateRepository, Starten der Konversation, Antworten ohne
+ * Trigger-Ausloesung, Transition bei Namensnennung (TransitionException mit Final),
+ * und abschliessende Verifikation, dass der extrahierte Wert korrekt im Storage
+ * ueber das StorageRepository persistiert wurde.
+ */
 @SpringBootTest
 @TestMethodOrder(OrderAnnotation.class)
 class ExtractionActionPersistenceTest {

@@ -1,10 +1,21 @@
+# =============================================================================
+# .gitignore für Oblivio (Spring Boot / PROMISE Framework)
+# Verhindert, dass Build-Artefakte, IDE-Konfigurationen, sensible Daten
+# und plattformspezifische Dateien ins Repository gelangen
+# =============================================================================
+
+# === Maven Build-Artefakte ===
 HELP.md
+# Kompiliertes Output-Verzeichnis (JAR, Klassen, Ressourcen)
 target/
+# Maven Wrapper JAR explizit einschliessen (Ausnahme von target/)
 !.mvn/wrapper/maven-wrapper.jar
+# Source- und Test-Target-Verzeichnisse einschliessen (bei Multi-Module-Builds)
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### STS ###
+### STS (Spring Tool Suite) ###
+# Eclipse-basierte IDE-Konfigurationsdateien
 .apt_generated
 .classpath
 .factorypath
@@ -14,12 +25,14 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
+# JetBrains IDE-Konfiguration und Projektdateien
 .idea
 *.iws
 *.iml
 *.ipr
 
 ### NetBeans ###
+# NetBeans IDE-Konfiguration und Build-Verzeichnisse
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -30,15 +43,30 @@ build/
 !**/src/test/**/build/
 
 ### VS Code ###
+# Visual Studio Code Workspace-Einstellungen
 .vscode/
 
 ### Website (hosted on Hostpoint, not GitHub) ###
+# Das Frontend (oblivio.ch) wird separat auf Hostpoint gehostet
+# und nicht über dieses Repository versioniert
 Website/
 
 ### Mac ###
+# macOS Finder-Metadaten (Desktop Services Store)
 .DS_Store
 **/.DS_Store
 
+# === Sensible / projektspezifische Dateien ===
+# Eclipse Formatter-Konfiguration (entwicklerabhängig)
 eclipse-formatter.xml
+# Spring Boot Konfigurationsdateien – enthalten Datenbankpasswörter,
+# OpenAI API-Keys und andere sensible Werte (werden via Railway Env Vars gesetzt)
 /**/application.properties
 /**/openai.properties
+
+# === Persoenliche / thesis-spezifische Dateien ===
+*.docx
+~$*.docx
+PROMISE_TECHNICAL_DOCUMENTATION.md
+ZUSAMMENFASSUNG.md
+Personas/

@@ -36,6 +36,14 @@ import ch.zhaw.statefulconversation.model.commons.states.DynamicGatherState;
 import ch.zhaw.statefulconversation.model.commons.states.DynamicSingleChoiceState;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Smoke-Test fuer die Persistenz eines Flugbuchungs-Agenten im PROMISE Framework.
+ * Simuliert einen vollstaendigen Buchungsablauf mit Persistenz zwischen jedem Schritt:
+ * Slot-Erfassung (DynamicGatherState fuer Abflug, Ziel, Datum), Verifikation der
+ * gespeicherten Slot-Werte, Ablehnung einer ungueltigen Auswahl, Annahme eines
+ * gueltigen Angebots (DynamicSingleChoiceState) und Pruefung, dass die Auswahl
+ * korrekt im Storage ueber das AgentRepository persistiert wurde.
+ */
 @SpringBootTest
 @TestMethodOrder(OrderAnnotation.class)
 class SmokeFlightBookingPersistence {

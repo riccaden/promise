@@ -1,3 +1,17 @@
+/**
+ * Oblivio / PROMISE Framework – Gemeinsames Stylesheet (style.css)
+ *
+ * Zentrales CSS fuer alle drei Frontend-Seiten (Chat, Monitor, Realtime).
+ * Definiert das visuelle Design der PROMISE-Oberflaeche:
+ *   - CSS-Variablen fuer Farben und Transparenzen
+ *   - Hintergrund mit radialen Farbverlaeufen
+ *   - Chat-Bubbles fuer Benutzer- und Assistenten-Nachrichten
+ *   - Status-Pills (Active, Inactive, Listening, Idle, Unknown)
+ *   - Glassmorphism-Karten mit Backdrop-Blur
+ *   - Reveal-Animationen beim Seitenaufbau
+ *   - Spezifische Styles fuer Realtime-Controls und Log-Monitor
+ * Schriftarten: Space Grotesk (UI), Spline Sans Mono (Logs/Code)
+ */
 @import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Spline+Sans+Mono:wght@400;500&display=swap");
 
 :root {

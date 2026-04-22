@@ -18,6 +18,13 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert einen zweischichtigen Bot (OuterState mit InnerState) im PROMISE Framework.
+ * Simuliert einen Roboter-Pfleger in einer Senioreneinrichtung, der ein taegliches
+ * Check-in-Gespraech mit einem Bewohner (Walter Hoffman, fruehe Demenz) fuehrt.
+ * Der OuterState definiert die globale Persona und Abbruchlogik (Trigger, Guard, Action),
+ * waehrend der InnerState die strukturierte Gespraechsfuehrung uebernimmt.
+ */
 @SpringBootTest
 class TherapySupport {
 

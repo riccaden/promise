@@ -15,6 +15,14 @@ import ch.zhaw.statefulconversation.model.commons.actions.RemoveLastUtteranceAct
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert eine mehrschichtig verschachtelte State Machine im PROMISE Framework.
+ * Drei Ebenen von OuterState-Hierarchien simulieren ein medizinisches Konsultationstraining:
+ * innerste Ebene (Patient-Rollenspiel und Debriefing), mittlere Ebene (Coach-Intervention bei
+ * mangelndem Mitgefuehl mit zirkulaerer Transition), aeusserste Ebene (globaler Prompt und
+ * Benutzer-Abbrucherkennung). Zeigt das Muster fuer zirkulaere Zustandsuebergaenge
+ * und RemoveLastUtteranceAction.
+ */
 @SpringBootTest
 class MultiLayeredInteraction {
 

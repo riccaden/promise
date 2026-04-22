@@ -1,3 +1,13 @@
+<!--
+  Oblivio / PROMISE Framework – Log-Monitor-Dashboard (monitor/index.html)
+  Echtzeit-Ueberwachungsseite fuer PROMISE-Agenten. Zeigt:
+    - Aktuellen State des Agenten (State Machine)
+    - Liste aller States mit Hervorhebung des aktiven States
+    - Storage-Eintraege (Key-Value-Paare aus der Konversation)
+    - Live-Processing-Log via Server-Sent Events (SSE) von /logs/stream
+  Erwartet eine Agent-ID als URL-Parameter: ?agentId=UUID oder ?UUID
+  Pollt alle 2 Sekunden den aktuellen State, Active-Status und Storage.
+-->
 <!doctype html>
 <html lang="en">
 

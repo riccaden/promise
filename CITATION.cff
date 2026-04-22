@@ -1,3 +1,12 @@
+# =============================================================================
+# CITATION.cff – Zitierungsinformationen für das PROMISE Framework
+# Diese Datei ermöglicht die korrekte akademische Zitierung der Software.
+# Format: Citation File Format (CFF) – wird von GitHub automatisch erkannt
+# und bietet einen "Cite this repository"-Button auf der Repository-Seite.
+# Oblivio basiert auf dem PROMISE Framework der ZHAW / Universität Zürich.
+# Mehr Infos: https://citation-file-format.github.io/
+# =============================================================================
+
 # This CITATION.cff file was generated with cffinit.
 # Visit https://bit.ly/cffinit to generate yours today!
 

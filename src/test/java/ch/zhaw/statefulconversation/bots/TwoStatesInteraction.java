@@ -15,6 +15,14 @@ import ch.zhaw.statefulconversation.model.commons.actions.TransferUtterancesActi
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert eine zweiphasige innere State Machine mit OuterState im PROMISE Framework.
+ * Ein Gewohnheitscoach fuehrt den Nutzer durch zwei aufeinanderfolgende Phasen:
+ * Phase 1 (SMART-Ziel entwickeln) und Phase 2 (Umsetzungsplan gestalten nach HAPA und
+ * Atomic Habits). Nutzt TransferUtterancesAction fuer Gespraechskontinuitaet zwischen
+ * States und einen OuterState mit deutschsprachigen Prompts fuer die globale
+ * Abbrucherkennung. Wird per @RepeatedTest(12) mehrfach ausgefuehrt.
+ */
 @SpringBootTest
 class TwoStatesInteraction {
 

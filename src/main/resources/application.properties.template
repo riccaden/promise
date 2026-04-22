@@ -1,15 +1,27 @@
-# dbms and db connection data
+# =============================================================================
+# Oblivio / PROMISE Framework – Template fuer lokale Entwicklung (Spring Boot)
+# Kopiere diese Datei nach "application.properties" und passe die Werte an.
+# HINWEIS: In Produktion wird stattdessen application-prod.properties verwendet.
+# =============================================================================
+
+# --- Datenbank: Lokale MySQL-Verbindung ---------------------------------------
+# Passe URL, Benutzername und Passwort an deine lokale MySQL-Instanz an.
+# Das Schema "statefulconversation" muss vorab existieren.
 spring.datasource.url=jdbc:mysql://localhost:3306/statefulconversation?useSSL=false&allowPublicKeyRetrieval=true
 spring.datasource.username=root
 spring.datasource.password=achselle9
 
+# --- Hibernate / JPA-Einstellungen -------------------------------------------
+# MySQL-Dialekt fuer lokale Entwicklung; ddl-auto=update erzeugt Tabellen automatisch
 spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQLDialect
 spring.jpa.hibernate.ddl-auto=update
 
-# log level
+# --- Log-Level ----------------------------------------------------------------
+# INFO fuer Anwendungslogik; ERROR fuer Framework-Pakete, um Konsole sauber zu halten
 logging.level.ch.zhaw.statefulconversation=INFO
 logging.level.org=ERROR
 logging.level.com=ERROR
 
-# tomcat server port
+# --- Tomcat Server-Port -------------------------------------------------------
+# Lokaler Entwicklungsport; in Produktion wird er ueber die PORT-Umgebungsvariable gesetzt
 server.port = 8080

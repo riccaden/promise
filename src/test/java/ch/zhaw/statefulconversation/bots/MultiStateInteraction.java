@@ -20,6 +20,14 @@ import ch.zhaw.statefulconversation.model.commons.states.DynamicSingleChoiceStat
 import ch.zhaw.statefulconversation.model.commons.states.EN_DynamicCauseAssessmentState;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Demonstriert eine mehrstufige Interaktion mit dynamischen States im PROMISE Framework.
+ * Ein digitaler Therapie-Coach fuehrt den Patienten durch mehrere Phasen: Grund fuer verpasste
+ * Aktivitaet erfassen (DynamicCauseAssessmentState), Alternativvorschlag auswaehlen
+ * (DynamicSingleChoiceState) und abschliessende Zusammenfassung (StaticExtractionAction).
+ * Nutzt Storage fuer den Datenaustausch zwischen States und einen OuterState mit
+ * Trigger/Guard-Kombination fuer Benutzer-Abbruch.
+ */
 @SpringBootTest
 class MultiStateInteraction {
 

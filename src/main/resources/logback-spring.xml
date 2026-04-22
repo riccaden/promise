@@ -1,12 +1,23 @@
+<!--
+  Oblivio / PROMISE Framework – Logback-Konfiguration (logback-spring.xml)
+  Definiert zwei Appender:
+    1. STDOUT – Konsolenausgabe mit Zeitstempel, Level und Logger-Name
+    2. SSE    – Eigener Appender, der Log-Events per Server-Sent Events an das
+                Monitor-Dashboard (/monitor) streamt (SseLogAppender)
+  Root-Level ist INFO; feingranulare Level werden in application(-prod).properties gesetzt.
+-->
 <configuration>
+    <!-- Konsolen-Appender: Ausgabe auf STDOUT mit Zeitstempel und Log-Level -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
+    <!-- SSE-Appender: Streamt Log-Events per Server-Sent Events an /logs/stream -->
     <appender name="SSE" class="ch.zhaw.statefulconversation.logging.SseLogAppender" />
 
+    <!-- Root-Logger: alle Events ab INFO an beide Appender weiterleiten -->
     <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="SSE" />
