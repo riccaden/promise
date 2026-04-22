@@ -4,7 +4,8 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * View-Klasse für User-Conversations
+ * Response-DTO fuer eine einzelne Nachricht innerhalb einer User-Conversation.
+ * Enthaelt die Agent-Zuordnung, Rolle (user/assistant), Inhalt, State-Name und Zeitstempel.
  */
 public class UserConversationView {
     private UUID agentId;

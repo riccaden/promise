@@ -16,6 +16,17 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamische Variante des {@link GatherState} — die einzusammelnden Slots werden
+ * zur Laufzeit aus dem {@link Storage} gelesen.
+ *
+ * Der Prompt-Template enthaelt Platzhalter (z.B. {@code ${slots}}), die mit den aktuellen
+ * Storage-Werten befuellt werden. Sowohl Decision als auch Action verwenden dynamische
+ * Varianten ({@link DynamicDecision}, {@link DynamicExtractionAction}).
+ *
+ * @see GatherState
+ * @see State
+ */
 @Entity
 public class DynamicGatherState extends State {
 

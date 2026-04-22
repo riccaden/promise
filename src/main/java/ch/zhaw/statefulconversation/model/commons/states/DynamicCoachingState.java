@@ -14,6 +14,18 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamischer Coaching-State, der einfuehlsam auf vom Benutzer angesprochene Themen eingeht.
+ *
+ * Liest das aktuelle Thema aus dem {@link Storage} und setzt es in einen mehrteiligen
+ * Coaching-Prompt ein, der empathische Unterstuetzung und sanfte Ratschlaege bietet.
+ * Die Transition feuert, wenn das LLM erkennt, dass der Benutzer bereit ist weiterzugehen.
+ *
+ * Die Prompts sind auf Deutsch formuliert.
+ *
+ * @see State
+ * @see DynamicDecision
+ */
 @Entity
 public class DynamicCoachingState extends State {
 

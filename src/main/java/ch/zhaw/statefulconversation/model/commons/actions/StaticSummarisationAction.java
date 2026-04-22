@@ -8,6 +8,16 @@ import ch.zhaw.statefulconversation.model.Utterances;
 import ch.zhaw.statefulconversation.spi.LMOpenAI;
 import jakarta.persistence.Entity;
 
+/**
+ * Transition-Action, die die Konversation via LLM zusammenfasst und das Ergebnis im {@link Storage} ablegt.
+ *
+ * Aehnlich wie {@link StaticExtractionAction}, verwendet aber
+ * {@link ch.zhaw.statefulconversation.spi.LMOpenAI#summarise} statt extract.
+ * Der statische Prompt definiert, wie die Zusammenfassung erstellt werden soll.
+ *
+ * @see Action
+ * @see StaticExtractionAction
+ */
 @Entity
 public class StaticSummarisationAction extends Action {
 

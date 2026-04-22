@@ -17,6 +17,18 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Erweiterte Variante des {@link DynamicSingleChoiceState}, die nach jeder Auswahl
+ * das gewaehlte Element aus der Liste im {@link Storage} entfernt ("Shrinking").
+ *
+ * Neben der normalen Extraktion fuehrt die Transition zusaetzlich eine
+ * {@link DynamicRemoveTopicAction} aus, die das gewaehlte Thema aus der
+ * Optionsliste streicht. So schrumpft die Liste bei jeder Iteration.
+ *
+ * @see DynamicSingleChoiceState
+ * @see DynamicRemoveTopicAction
+ * @see State
+ */
 @Entity
 public class DynamicSingleChoiceStateShrinking extends State {
 

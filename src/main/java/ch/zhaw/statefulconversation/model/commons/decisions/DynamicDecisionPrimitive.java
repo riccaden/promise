@@ -10,6 +10,15 @@ import ch.zhaw.statefulconversation.model.Storage;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Variante der {@link DynamicDecision} fuer primitive Storage-Werte (JsonPrimitive).
+ *
+ * Funktioniert wie DynamicDecision, erwartet aber einen einzelnen primitiven Wert
+ * (String, Number, Boolean) statt eines JsonArray im Storage.
+ *
+ * @see DynamicDecision
+ * @see Decision
+ */
 @Entity
 public class DynamicDecisionPrimitive extends Decision {
 

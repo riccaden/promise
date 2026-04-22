@@ -20,6 +20,25 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.ManyToOne;
 
+/**
+ * Basis-JPA-Entitaet fuer alle prompt-tragenden Klassen im PROMISE Framework.
+ *
+ * Verwendet SINGLE_TABLE-Vererbung — alle Subklassen (State, Action, Decision, Final, etc.)
+ * werden in einer einzigen Datenbanktabelle gespeichert. Der Prompt-Text ist als TEXT-Spalte
+ * definiert, um lange Persona-Prompts (z.B. im Biographer) zu unterstuetzen.
+ *
+ * Optionale Felder fuer dynamische Prompts:
+ * - {@link Storage storage}: Key-Value-Speicher, aus dem Werte geladen werden
+ * - {@link #storageKeysFrom}: Liste von Schluesseln, deren Werte in den Prompt eingesetzt werden
+ *
+ * Die Methode {@link #getValuesForKeys()} liest die entsprechenden Werte aus dem Storage
+ * und gibt sie als Map zurueck, die von dynamischen Subklassen (z.B. DynamicGatherState)
+ * zur Template-Ersetzung via {@code NamedParametersFormatter} verwendet wird.
+ *
+ * @see State
+ * @see Action
+ * @see Decision
+ */
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(length = 60)

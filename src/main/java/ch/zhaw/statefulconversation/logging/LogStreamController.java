@@ -7,6 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+/**
+ * REST-Controller fuer das Echtzeit-Log-Streaming via Server-Sent Events.
+ *
+ * <p>Stellt den Endpoint {@code GET /logs/stream} bereit, ueber den Clients
+ * einen SSE-Stream aller Applikations-Logs abonnieren koennen.
+ */
 @RestController
 @RequestMapping("logs")
 public class LogStreamController {

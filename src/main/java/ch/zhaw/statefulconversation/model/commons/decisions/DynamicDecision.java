@@ -10,6 +10,17 @@ import ch.zhaw.statefulconversation.model.Storage;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamische Transition-Entscheidung, deren Prompt zur Laufzeit aus {@link Storage}-Werten
+ * zusammengesetzt wird.
+ *
+ * Der Prompt-Template enthaelt Platzhalter (z.B. {@code ${topics}}), die via
+ * {@link ch.zhaw.statefulconversation.utils.NamedParametersFormatter} mit aktuellen
+ * Werten aus dem Storage ersetzt werden. Erwartet, dass der Storage-Wert ein JsonArray ist.
+ *
+ * @see StaticDecision
+ * @see Decision
+ */
 @Entity
 public class DynamicDecision extends Decision {
 

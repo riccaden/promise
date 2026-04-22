@@ -4,6 +4,20 @@ import java.util.List;
 
 import jakarta.persistence.Entity;
 
+/**
+ * Terminaler Zustand, der das Ende einer Konversation markiert.
+ *
+ * Ein Final-State ist inaktiv ({@link #isActive()} gibt false zurueck), wodurch der
+ * uebergeordnete {@link Agent} erkennt, dass die Konversation abgeschlossen ist.
+ * Er enthaelt keine Transitions und verwendet einen Standard-Abschiedsprompt.
+ *
+ * Im Oblivio-Biographer bildet Final den letzten Zustand der 20-State-Kette;
+ * in Legacy-Agenten dient er als Exit-State. Verschiedene Konstruktoren ermoeglichen
+ * individuelle Prompts und Starter-Prompts (z.B. fuer mehrsprachige Verabschiedungen).
+ *
+ * @see State
+ * @see Agent#isActive()
+ */
 @Entity
 public class Final extends State {
 
@@ -43,6 +57,7 @@ public class Final extends State {
         super(prompt, name, starterPrompt, List.of(), summarisePrompt, isStarting, false);
     }
 
+    // Final-State ist per Definition inaktiv — signalisiert dem Agenten das Konversationsende
     @Override
     public boolean isActive() {
         return false;

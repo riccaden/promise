@@ -16,6 +16,17 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamische Variante des {@link SingleChoiceState} — die Auswahloptionen werden
+ * zur Laufzeit aus dem {@link Storage} gelesen.
+ *
+ * Verwendet {@link DynamicDecision} und {@link DynamicExtractionAction} mit
+ * Platzhaltern im Prompt-Template, die mit aktuellen Storage-Werten befuellt werden.
+ *
+ * @see SingleChoiceState
+ * @see DynamicSingleChoiceStateShrinking
+ * @see State
+ */
 @Entity
 public class DynamicSingleChoiceState extends State {
 

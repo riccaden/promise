@@ -26,12 +26,22 @@ import ch.zhaw.statefulconversation.model.State;
 import ch.zhaw.statefulconversation.model.Utterance;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * REST-Controller fuer die Laufzeit-Interaktion mit einem bestehenden Agent.
+ *
+ * Stellt Endpoints bereit, um Conversations zu starten, fortzusetzen,
+ * zurueckzusetzen und den aktuellen Zustand (State, Storage) abzufragen.
+ * Jeder Endpoint laedt den Agent anhand seiner UUID aus dem Repository.
+ *
+ * Basis-Pfad: /{agentID}/...
+ */
 @RestController
 public class AgentController {
 
     @Autowired
     private AgentRepository repository;
 
+    // Gibt Metadaten des Agents zurueck (Name, Beschreibung, aktiv-Status)
     @GetMapping("{agentID}/info")
     public ResponseEntity<AgentInfoView> info(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -45,6 +55,7 @@ public class AgentController {
         return new ResponseEntity<AgentInfoView>(result, HttpStatus.OK);
     }
 
+    // Gibt den gesamten bisherigen Gespraechsverlauf (Liste von Utterances) zurueck
     @GetMapping("{agentID}/conversation")
     public ResponseEntity<List<Utterance>> conversation(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -57,6 +68,7 @@ public class AgentController {
         return new ResponseEntity<List<Utterance>>(conversation, HttpStatus.OK);
     }
 
+    // Gibt den aktuellen State des Agents zurueck, inkl. innerer State-Chain bei OuterStates
     @GetMapping("{agentID}/state")
     public ResponseEntity<AgentStateInfoView> state(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -71,6 +83,7 @@ public class AgentController {
         String stateName = currentState.getName();
         String innerName = null;
         java.util.List<String> innerNames = java.util.List.of();
+        // Falls der State ein OuterState ist, zusaetzlich inneren State-Namen und -Kette auslesen
         if (currentState instanceof ch.zhaw.statefulconversation.model.OuterState outerState
                 && outerState.getInnerCurrent() != null) {
             innerName = outerState.getInnerCurrent().getName();
@@ -91,6 +104,7 @@ public class AgentController {
         return new ResponseEntity<>(agentMaybe.get().listStates(), HttpStatus.OK);
     }
 
+    // Gibt alle Key-Value-Paare aus dem Agent-Storage zurueck (z.B. Block-Zusammenfassungen)
     @GetMapping("{agentID}/storage")
     public ResponseEntity<List<StorageEntryView>> storage(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -107,6 +121,7 @@ public class AgentController {
         return new ResponseEntity<>(entries, HttpStatus.OK);
     }
 
+    // Startet die Conversation: Agent generiert die erste Nachricht (Starter-Prompt)
     @PostMapping("{agentID}/start")
     public ResponseEntity<ResponseView> start(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -122,6 +137,7 @@ public class AgentController {
                 HttpStatus.OK);
     }
 
+    // Nimmt eine User-Nachricht entgegen, laesst den Agent antworten und prueft Transitions
     @PostMapping("{agentID}/respond")
     public ResponseEntity<ResponseView> respond(@PathVariable @NonNull UUID agentID,
             @RequestBody UtteranceRequest userSays) {
@@ -145,6 +161,7 @@ public class AgentController {
                 HttpStatus.OK);
     }
 
+    // Generiert eine neue Antwort auf die letzte User-Nachricht (Retry ohne neue Eingabe)
     @PostMapping("{agentID}/rerespond")
     public ResponseEntity<ResponseView> ReRespond(@PathVariable @NonNull UUID agentID) {
 
@@ -161,6 +178,7 @@ public class AgentController {
                 agent.isActive()), HttpStatus.OK);
     }
 
+    // Setzt den Agent zurueck (State + Conversation) und startet ihn neu
     @DeleteMapping("{agentID}/reset")
     public ResponseEntity<ResponseView> reset(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);
@@ -177,6 +195,7 @@ public class AgentController {
                 HttpStatus.OK);
     }
 
+    // Erstellt eine KI-generierte Zusammenfassung der bisherigen Conversation
     @GetMapping("{agentID}/summarise")
     public ResponseEntity<String> summarise(@PathVariable @NonNull UUID agentID) {
         Optional<Agent> agentMaybe = this.repository.findById(agentID);

@@ -16,6 +16,20 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamischer State zur Ursachenermittlung — findet heraus, warum der Benutzer
+ * bestimmte Dinge gesagt oder getan hat.
+ *
+ * Verwendet zwei Decisions als Guards:
+ * 1. Trigger: Prueft, ob fuer alle Probleme ein spezifischer Grund genannt wurde
+ * 2. Guard: Prueft, ob die genannten Gruende konkret genug sind (nicht nur "keine Motivation")
+ *
+ * Erst wenn beide Bedingungen erfuellt sind, wird der Grund extrahiert und die Transition
+ * zum Folgezustand ausgefuehrt. Die Prompts sind auf Deutsch formuliert.
+ *
+ * @see EN_DynamicCauseAssessmentState
+ * @see State
+ */
 @Entity
 public class DynamicCauseAssessmentState extends State {
 

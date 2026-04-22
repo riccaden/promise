@@ -15,8 +15,24 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.actions.TransferUtterancesAction;
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 
+/**
+ * Factory-Klasse fuer die Konstruktion von Agents.
+ *
+ * Enthaelt zwei Factory-Methoden:
+ * - {@code createSingleStateAgent}: Baut einen einfachen Legacy-Agent mit einem State
+ *   und einer Transition zu Final (Trigger + Guard + Action).
+ * - {@code createBiographerAgent}: Baut die 20-State-Kette des Oblivio-Biografen
+ *   (10 thematische Bloecke x 2 States: Conversation + Bestaetigung), rueckwaerts
+ *   verkettet von Final bis Block 1.
+ *
+ * Die Block-Prompts werden in {@code buildBlockPrompts()} fuer 8 Sprachen
+ * (DE, EN, FR, IT, TR, KO, JA, ZH) zusammengestellt. Die Sprach-Umschaltung
+ * erfolgt ueber einen Praefix-Instruction-String, der das LLM anweist,
+ * alle Ausgaben in der Zielsprache zu generieren.
+ */
 public class AgentMetaUtility {
 
+        // Baut einen Agent mit einem einzelnen State, der ueber Trigger/Guard/Action zu Final wechselt
         public static Agent createSingleStateAgent(SingleStateAgentCreateDTO data) {
                 var storage = new Storage();
 
@@ -44,6 +60,7 @@ public class AgentMetaUtility {
         // BIOGRAPHER AGENT: 20-State Architecture (Conv + Confirm per Block)
         // ============================================================
 
+        // Baut den Biographer-Agent: 10 Bloecke (Conv + Confirm) rueckwaerts verkettet bis Final
         public static Agent createBiographerAgent(BiographerAgentCreateDTO data) {
                 var storage = new Storage();
                 String language = data.getLanguage() != null ? data.getLanguage() : "de";
@@ -57,6 +74,7 @@ public class AgentMetaUtility {
                 String finalStarter = getFinalStarterPrompt(language, nickname);
                 State current = new Final("Biografie abgeschlossen", finalPrompt, finalStarter);
 
+                // Rueckwaerts-Aufbau: Block 10 → Block 9 → ... → Block 1 (jeder zeigt auf seinen Nachfolger)
                 for (int i = 9; i >= 0; i--) {
                         State nextState = current;
                         String storageKey = "block" + (i + 1);
@@ -458,6 +476,7 @@ public class AgentMetaUtility {
         // Other languages: instruct the LLM to translate on the fly
         // ============================================================
 
+        // Liefert den Sprach-Praefix fuer Nicht-Deutsch-Sprachen; Deutsch = leerer String (Prompts sind bereits DE)
         private static String getLanguageInstruction(String language) {
                 switch (language) {
                         case "en":
@@ -483,6 +502,7 @@ public class AgentMetaUtility {
         // FINAL STATE PROMPTS (language-aware)
         // ============================================================
 
+        // System-Prompt fuer den Final-State — weist das LLM an, keine neuen Fragen mehr zu stellen
         private static String getFinalPrompt(String language) {
                 switch (language) {
                         case "en":
@@ -504,6 +524,7 @@ public class AgentMetaUtility {
                 }
         }
 
+        // Starter-Prompt fuer den Final-State — generiert die Abschiedsnachricht mit optionalem Nickname
         private static String getFinalStarterPrompt(String language, String nickname) {
                 String name = (nickname != null && !nickname.isBlank()) ? nickname : "";
                 switch (language) {

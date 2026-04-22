@@ -17,12 +17,24 @@ import ch.zhaw.statefulconversation.controllers.views.UtteranceRequest;
 import ch.zhaw.statefulconversation.model.Agent;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * Experimenteller REST-Controller fuer Realtime-/Streaming-Interaktion mit Agents.
+ *
+ * Im Gegensatz zum normalen {@link AgentController} wird hier die LLM-Antwort
+ * nicht serverseitig generiert. Stattdessen liefert {@code /prompt} den aktuellen
+ * System-Prompt + Conversation-Verlauf, damit ein externer Client (z.B. WebRTC)
+ * die Sprachgenerierung selbst uebernehmen kann. {@code /acknowledge} und
+ * {@code /assistant} speichern User- bzw. Assistant-Nachrichten nachtraeglich.
+ *
+ * Endpoint-Pfade: /{agentID}/prompt, /{agentID}/acknowledge, /{agentID}/assistant
+ */
 @RestController
 public class AgentControllerRealtime {
 
     @Autowired
     private AgentRepository repository;
 
+    // Liefert den vollstaendigen System-Prompt und Conversation-Verlauf fuer externe LLM-Aufrufe
     @GetMapping("{agentID}/prompt")
     public ResponseEntity<PromptResponseView> prompt(@PathVariable UUID agentID) {
         if (agentID == null) {
@@ -38,6 +50,7 @@ public class AgentControllerRealtime {
         return new ResponseEntity<>(view, HttpStatus.OK);
     }
 
+    // Speichert eine User-Nachricht nachtraeglich im Agent (ohne LLM-Antwort auszuloesen)
     @PostMapping("{agentID}/acknowledge")
     public ResponseEntity<Void> acknowledge(@PathVariable UUID agentID, @RequestBody UtteranceRequest userSays) {
         if (agentID == null) {
@@ -58,6 +71,7 @@ public class AgentControllerRealtime {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    // Speichert eine extern generierte Assistant-Antwort im Conversation-Verlauf
     @PostMapping("{agentID}/assistant")
     public ResponseEntity<Void> assistant(@PathVariable UUID agentID, @RequestBody UtteranceRequest assistantSays) {
         if (agentID == null) {

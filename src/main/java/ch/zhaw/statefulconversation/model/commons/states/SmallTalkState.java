@@ -11,6 +11,17 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import jakarta.persistence.Entity;
 
+/**
+ * Vorkonfigurierter State fuer Small Talk zu Beginn einer Konversation.
+ *
+ * Begruesst den Benutzer, fragt nach Duzen/Siezen und erkundigt sich nach dem Befinden.
+ * Sobald beide Fragen gestellt und beantwortet wurden ({@link StaticDecision}),
+ * werden die besprochenen Themen als JSON extrahiert und im {@link Storage} gespeichert.
+ *
+ * Die Prompts sind auf Deutsch formuliert (Oblivio-Standardsprache).
+ *
+ * @see State
+ */
 @Entity
 public class SmallTalkState extends State {
 

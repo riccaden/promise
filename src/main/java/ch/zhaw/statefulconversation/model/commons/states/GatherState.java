@@ -11,6 +11,19 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import jakarta.persistence.Entity;
 
+/**
+ * Vorkonfigurierter State, der Informationen vom Benutzer einsammelt (Slot-Filling).
+ *
+ * Fragt den Benutzer nach Werten fuer eine definierte Liste von Slots. Sobald das LLM
+ * erkennt, dass alle Slots befuellt sind ({@link StaticDecision}), werden die Werte
+ * via {@link StaticExtractionAction} extrahiert und im {@link Storage} abgelegt.
+ * Danach erfolgt die Transition zum Folgezustand.
+ *
+ * Die Slot-Namen werden direkt in die Prompts fuer Decision und Action eingebaut.
+ *
+ * @see State
+ * @see DynamicGatherState
+ */
 @Entity
 public class GatherState extends State {
 

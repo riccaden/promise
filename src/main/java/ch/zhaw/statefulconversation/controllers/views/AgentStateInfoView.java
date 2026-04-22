@@ -1,5 +1,10 @@
 package ch.zhaw.statefulconversation.controllers.views;
 
+/**
+ * Response-DTO fuer den aktuellen Zustand eines Agents.
+ * Enthaelt den State-Namen sowie bei verschachtelten OuterStates
+ * den inneren State-Namen und die gesamte innere State-Kette.
+ */
 public class AgentStateInfoView {
     private String name;
     private String innerName;

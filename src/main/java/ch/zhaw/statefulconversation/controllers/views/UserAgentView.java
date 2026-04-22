@@ -3,7 +3,8 @@ package ch.zhaw.statefulconversation.controllers.views;
 import java.util.UUID;
 
 /**
- * View-Klasse für User-Agent-Übersicht
+ * Response-DTO fuer die Uebersicht der Agents eines bestimmten Users.
+ * Enthaelt neben den Agent-Metadaten auch die Anzahl der bisherigen Nachrichten.
  */
 public class UserAgentView {
     private UUID id;

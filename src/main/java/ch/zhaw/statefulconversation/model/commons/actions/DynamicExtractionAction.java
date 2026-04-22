@@ -12,6 +12,18 @@ import ch.zhaw.statefulconversation.spi.LMOpenAI;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamische Variante der {@link StaticExtractionAction} — der Extraktions-Prompt wird
+ * zur Laufzeit aus {@link Storage}-Werten zusammengesetzt.
+ *
+ * Der Prompt-Template enthaelt Platzhalter (z.B. {@code ${topics}}), die ueber
+ * {@link ch.zhaw.statefulconversation.utils.NamedParametersFormatter} mit aktuellen
+ * Werten aus dem Storage ersetzt werden. Erwartet, dass der Storage-Wert ein
+ * {@link com.google.gson.JsonArray} ist.
+ *
+ * @see StaticExtractionAction
+ * @see Action
+ */
 @Entity
 public class DynamicExtractionAction extends Action {
 
@@ -24,6 +36,7 @@ public class DynamicExtractionAction extends Action {
         super(actionPromptTemplate, storage, storageKeyFrom, storageKeyTo);
     }
 
+    // Ersetzt Platzhalter im Prompt-Template mit aktuellen Storage-Werten (JsonArray erwartet)
     @Override
     protected String getPrompt() {
         Map<String, JsonElement> valuesForKeys = this.getValuesForKeys();

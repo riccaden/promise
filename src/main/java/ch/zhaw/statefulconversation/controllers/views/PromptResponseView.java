@@ -5,6 +5,11 @@ import java.util.List;
 import ch.zhaw.statefulconversation.model.PromptResult;
 import ch.zhaw.statefulconversation.model.Utterance;
 
+/**
+ * Response-DTO fuer den Realtime-/prompt-Endpoint.
+ * Liefert den vollstaendigen System-Prompt, den bisherigen Conversation-Verlauf
+ * und den Aktiv-Status, damit ein externer Client die LLM-Anfrage selbst ausfuehren kann.
+ */
 public class PromptResponseView {
     private String stateName;
     private String systemPrompt;

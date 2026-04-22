@@ -16,6 +16,20 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 
+/**
+ * Key-Value-Speicher (String → JsonElement), der einem {@link Agent} zugeordnet ist.
+ *
+ * Wird im Oblivio-Biographer verwendet, um Block-Zusammenfassungen (block1–block10) und
+ * andere extrahierte Daten persistent zu speichern. Dynamische States und Actions greifen
+ * ueber Storage-Keys auf gespeicherte Werte zu, um Prompts zur Laufzeit zusammenzusetzen.
+ *
+ * Die Eintraege werden als Liste von {@link StorageEntry}-Entitaeten verwaltet.
+ * Statische Hilfsmethoden ermoeglichen die Konvertierung zwischen Java-Objekten
+ * und {@link com.google.gson.JsonElement}.
+ *
+ * @see StorageEntry
+ * @see Prompt
+ */
 @Entity
 public class Storage {
 
@@ -34,6 +48,7 @@ public class Storage {
         this.entries = new ArrayList<StorageEntry>();
     }
 
+    // Setzt einen Wert: aktualisiert bestehenden Eintrag oder legt neuen an (Upsert-Semantik)
     public void put(String key, JsonElement value) {
         for (StorageEntry current : this.entries) {
             if (current.getKey().equals(key)) {

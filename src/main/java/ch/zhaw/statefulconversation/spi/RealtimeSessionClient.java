@@ -9,6 +9,13 @@ import java.net.http.HttpResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
+/**
+ * Client fuer die OpenAI Realtime API (experimentelles Feature).
+ *
+ * <p>Erstellt eine Realtime-Session ueber die OpenAI REST API und gibt die
+ * Session-Metadaten (Client Secret, Modell, URL) als {@link RealtimeSessionInfo} zurueck.
+ * Aktuell nur fuer den OpenAI-Provider unterstuetzt (nicht Azure).
+ */
 public class RealtimeSessionClient {
 
     private static final String DEFAULT_REALTIME_SESSION_URL = "https://api.openai.com/v1/realtime/sessions";

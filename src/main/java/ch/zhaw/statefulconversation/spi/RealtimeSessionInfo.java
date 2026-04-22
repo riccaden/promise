@@ -1,5 +1,11 @@
 package ch.zhaw.statefulconversation.spi;
 
+/**
+ * Datenklasse fuer die Metadaten einer OpenAI Realtime-Session.
+ *
+ * <p>Enthaelt das Client Secret (zur Authentifizierung), das verwendete Modell
+ * und die WebSocket-URL fuer die Realtime-Verbindung.
+ */
 public class RealtimeSessionInfo {
     private final String clientSecret;
     private final String model;

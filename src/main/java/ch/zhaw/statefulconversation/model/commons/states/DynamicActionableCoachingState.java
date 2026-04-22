@@ -17,6 +17,20 @@ import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamischer Coaching-State, der den Benutzer zu einer konkreten, SMART-formulierten
+ * Gesundheitsmassnahme fuehrt.
+ *
+ * Liest das identifizierte Gesundheitsziel aus dem {@link Storage} und baut daraus
+ * einen Coaching-Prompt, der den Benutzer bei der Definition einer praktischen Wochenaktion
+ * unterstuetzt. Bei erfolgreicher Festlegung werden die SMART-Plandetails extrahiert
+ * und die Utterances in den Folgezustand transferiert.
+ *
+ * Die Prompts sind auf Englisch formuliert (fuer den englischsprachigen Health-Coaching-Kontext).
+ *
+ * @see State
+ * @see TransferUtterancesAction
+ */
 @Entity
 public class DynamicActionableCoachingState extends State {
 

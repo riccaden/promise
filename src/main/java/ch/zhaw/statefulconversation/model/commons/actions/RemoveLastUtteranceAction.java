@@ -8,6 +8,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToOne;
 
+/**
+ * Transition-Action, die die letzte Benutzer-Nachricht aus einem bestimmten State entfernt.
+ *
+ * Wird verwendet, wenn eine Transition die letzte Eingabe rueckgaengig machen soll,
+ * z.B. wenn die Eingabe nur als Trigger diente und nicht im Folgezustand erscheinen soll.
+ *
+ * @see Action
+ * @see Utterances#removeLastUtterance()
+ */
 @Entity
 public class RemoveLastUtteranceAction extends Action {
 

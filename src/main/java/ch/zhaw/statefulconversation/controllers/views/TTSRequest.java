@@ -1,7 +1,7 @@
 package ch.zhaw.statefulconversation.controllers.views;
 
 /**
- * Request body for Text-to-Speech conversion
+ * Request-DTO fuer den TTS-Endpoint. Enthaelt den Text, der in Sprache umgewandelt werden soll.
  */
 public class TTSRequest {
     private String text;

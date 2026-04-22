@@ -12,6 +12,19 @@ import ch.zhaw.statefulconversation.model.Storage;
 import ch.zhaw.statefulconversation.model.Utterances;
 import jakarta.persistence.Entity;
 
+/**
+ * Transition-Action, die ein Thema aus einer dynamischen Liste im {@link Storage} entfernt.
+ *
+ * Liest die Themenliste ({@code storageKeyFrom}, JsonArray) und das ausgewaehlte Thema
+ * ({@code storageKeyTo}, JsonPrimitive oder JsonObject) aus dem Storage, entfernt das
+ * ausgewaehlte Thema aus der Liste und schreibt die aktualisierte Liste zurueck.
+ *
+ * Wird typischerweise zusammen mit {@link DynamicSingleChoiceStateShrinking} verwendet,
+ * um bereits bearbeitete Themen aus der Auswahlliste zu streichen.
+ *
+ * @see Action
+ * @see DynamicSingleChoiceStateShrinking
+ */
 @Entity
 public class DynamicRemoveTopicAction extends Action {
 
@@ -24,10 +37,13 @@ public class DynamicRemoveTopicAction extends Action {
         super(actionPromptTemplate, storage, storageKeyFrom, storageKeyTo);
     }
 
+    // Liest Themenliste und ausgewaehltes Thema aus Storage, entfernt das Thema
+    // und schreibt die reduzierte Liste zurueck. Unterstuetzt JsonPrimitive und JsonObject.
     @Override
     public void execute(Utterances utterances) {
-        // Get the JSON array from storage
+        // Themenliste aus Storage laden (storageKeyFrom)
         JsonElement topicsTo = this.getStorage().get(this.getStorageKeysFrom().get(0));
+        // Ausgewaehltes/zu entfernendes Thema laden (storageKeyTo)
         JsonElement topicFrom = this.getStorage().get(this.getStorageKeyTo());
 
         if (!(topicsTo instanceof JsonArray)) {

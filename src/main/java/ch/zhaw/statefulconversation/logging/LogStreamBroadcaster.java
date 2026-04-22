@@ -6,6 +6,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+/**
+ * Verteilt Log-Ereignisse an alle aktiven SSE-Subscriber.
+ *
+ * <p>Verwaltet eine thread-sichere Liste von {@link SseEmitter}-Instanzen.
+ * Neue Clients registrieren sich via {@link #subscribe()}, Log-Events werden
+ * ueber {@link #publish(LogEvent)} an alle Subscriber gesendet.
+ * Singleton-Zugriff ueber {@link #getInstance()} fuer den {@link SseLogAppender}.
+ */
 @Component
 public class LogStreamBroadcaster {
     private static LogStreamBroadcaster instance;
@@ -20,6 +28,7 @@ public class LogStreamBroadcaster {
     }
 
     public SseEmitter subscribe() {
+        // Timeout 0 = kein Timeout, die Verbindung bleibt offen bis der Client sie schliesst
         SseEmitter emitter = new SseEmitter(0L);
         this.emitters.add(emitter);
         emitter.onCompletion(() -> this.emitters.remove(emitter));

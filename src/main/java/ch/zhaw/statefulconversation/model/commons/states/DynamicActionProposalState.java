@@ -16,6 +16,19 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamischer State, der Massnahmen vorschlaegt und sowohl Akzeptanz als auch Ablehnung behandelt.
+ *
+ * Im Gegensatz zu {@link DynamicActionAgreementState} hat dieser State zwei Transitions:
+ * - Eine fuer die Akzeptanz einer Massnahme (Transition zum Akzeptanz-Folgezustand)
+ * - Eine fuer die Ablehnung aller Massnahmen (Transition zum Ablehnungs-Folgezustand)
+ *
+ * Beide Transitions verwenden dynamische Decisions und Actions, die ihre Prompts
+ * aus dem {@link Storage} zusammensetzen.
+ *
+ * @see DynamicActionAgreementState
+ * @see State
+ */
 @Entity
 public class DynamicActionProposalState extends State {
 

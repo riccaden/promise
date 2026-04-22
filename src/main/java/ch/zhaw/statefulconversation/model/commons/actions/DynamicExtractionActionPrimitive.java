@@ -12,6 +12,16 @@ import ch.zhaw.statefulconversation.spi.LMOpenAI;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Variante der {@link DynamicExtractionAction} fuer primitive Storage-Werte (JsonPrimitive).
+ *
+ * Funktioniert wie DynamicExtractionAction, erwartet aber einen einzelnen primitiven Wert
+ * (String, Number, Boolean) statt eines JsonArray im Storage. Wird verwendet, wenn der
+ * dynamische Prompt-Parameter ein skalarer Wert ist.
+ *
+ * @see DynamicExtractionAction
+ * @see Action
+ */
 @Entity
 public class DynamicExtractionActionPrimitive extends Action {
 

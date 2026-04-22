@@ -14,6 +14,16 @@ package ch.zhaw.statefulconversation.controllers.dto;
 }
  */
 
+/**
+ * Request-DTO fuer die Erstellung eines Legacy-Agents mit einem einzelnen State.
+ *
+ * Enthaelt alle Konfigurationsparameter, die der Client mitsendet:
+ * Agent-Metadaten (Name, Beschreibung, User-ID), den State-Prompt fuer das
+ * Gespraechsverhalten sowie Trigger-, Guard- und Action-Prompts, die bestimmen,
+ * wann und wie die Transition zum Final-State ausgeloest wird.
+ *
+ * Endpoint: POST /agent/singlestate
+ */
 public class SingleStateAgentCreateDTO {
     private int type;
     private String agentName;

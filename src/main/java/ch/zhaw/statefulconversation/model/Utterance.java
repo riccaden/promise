@@ -13,6 +13,19 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
+/**
+ * Einzelne Nachricht innerhalb einer Konversation.
+ *
+ * Speichert die Rolle (user/assistant/system), den Inhalt (als TEXT fuer lange Nachrichten),
+ * einen automatisch generierten Zeitstempel ({@code createdDate}) und den Namen des
+ * {@link State}, der diese Nachricht erzeugt hat ({@code stateName}).
+ *
+ * Die Zuordnung zur uebergeordneten {@link Utterances}-Sammlung erfolgt ueber eine
+ * bidirektionale ManyToOne-Beziehung. Felder, die nicht serialisiert werden sollen
+ * (z.B. ID, stateName, Eltern-Referenz), sind mit {@code @GsonExclude} annotiert.
+ *
+ * @see Utterances
+ */
 @Entity
 public class Utterance {
 

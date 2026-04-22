@@ -2,6 +2,10 @@ package ch.zhaw.statefulconversation.controllers.views;
 
 import java.util.UUID;
 
+/**
+ * Response-DTO mit den Metadaten eines Agents (ID, Name, Beschreibung, Aktiv-Status).
+ * Wird von den meisten Agent-Endpoints als Antwort zurueckgegeben.
+ */
 public class AgentInfoView {
     private UUID id;
     private String name;

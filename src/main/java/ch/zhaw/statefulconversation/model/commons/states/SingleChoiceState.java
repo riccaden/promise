@@ -11,6 +11,16 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import jakarta.persistence.Entity;
 
+/**
+ * Vorkonfigurierter State, der dem Benutzer eine Auswahl aus einer festen Liste praesentiert.
+ *
+ * Fordert den Benutzer auf, genau ein Element aus der gegebenen Liste zu waehlen.
+ * Sobald das LLM erkennt, dass eine Wahl getroffen wurde ({@link StaticDecision}),
+ * wird die Auswahl via {@link StaticExtractionAction} extrahiert und im {@link Storage} gespeichert.
+ *
+ * @see State
+ * @see DynamicSingleChoiceState
+ */
 @Entity
 public class SingleChoiceState extends State {
 

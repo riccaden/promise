@@ -17,6 +17,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 
+/**
+ * Verwaltung der Konversationshistorie als geordnete Liste von {@link Utterance}-Entitaeten.
+ *
+ * Jeder {@link State} besitzt genau ein Utterances-Objekt, das alle Nachrichten (User,
+ * Assistant, System) in chronologischer Reihenfolge speichert.
+ *
+ * Zentrale Funktionalitaet:
+ * - {@link #compactIfNeeded()}: Nach {@value #USER_MESSAGE_COMPACT_THRESHOLD} User-Nachrichten
+ *   werden aeltere Nachrichten vom LLM zusammengefasst und durch eine einzelne
+ *   System-Nachricht ersetzt. Die letzten {@value #MESSAGES_TO_KEEP} Nachrichten bleiben
+ *   erhalten. Dies ahmt menschliches Gedaechtnis nach — aeltere Details verblassen zu
+ *   einem Gesamteindruck, waehrend juengste Austaeusche lebendig bleiben.
+ * - {@link #removeLastTwoUtterances()}: Fuer die reRespond()-Logik des Agenten, entfernt
+ *   die letzte Assistenz-Antwort und gibt die letzte User-Nachricht zurueck.
+ *
+ * @see Utterance
+ * @see State
+ */
 @Entity
 public class Utterances {
 

@@ -17,6 +17,33 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.OrderColumn;
 
+/**
+ * Kernklasse des PROMISE State-Machine-Frameworks — repraesentiert einen einzelnen
+ * Konversationszustand.
+ *
+ * Jeder State hat einen Namen, einen System-Prompt, einen optionalen starterPrompt
+ * (fuer die Einstiegsnachricht) und eine geordnete Liste von {@link Transition Transitions}.
+ * Die Konversationshistorie wird in einem {@link Utterances}-Objekt verwaltet.
+ *
+ * Ablauf einer Interaktion:
+ * 1. {@link #start()} — betritt den State, generiert via LLM die erste Assistenz-Nachricht
+ * 2. {@link #respond(String)} — nimmt Benutzereingabe entgegen, prueft Transitions,
+ *    kompaktiert bei Bedarf die Historie ({@link Utterances#compactIfNeeded()}),
+ *    und generiert eine LLM-Antwort
+ * 3. Falls eine Transition zutrifft, wird eine {@link TransitionException} geworfen
+ *
+ * Der System-Prompt wird in {@link #composeTotalPrompt(String)} zusammengesetzt aus
+ * dem eigenen Prompt des States plus einem optionalen outerPrompt (bei verschachtelten States).
+ *
+ * Flags:
+ * - isStarting: ob beim Betreten automatisch eine Startnachricht generiert wird
+ * - isOblivious: ob beim Betreten die bisherige Konversationshistorie geloescht wird
+ *
+ * @see Transition
+ * @see Utterances
+ * @see Final
+ * @see OuterState
+ */
 @Entity
 public class State extends Prompt {
     private static final Logger LOGGER = LoggerFactory.getLogger(State.class);
@@ -124,6 +151,8 @@ public class State extends Prompt {
         }
     }
 
+    // Prueft alle Transitions in Reihenfolge; die erste zutreffende wird ausgefuehrt.
+    // Transitions werden sequentiell evaluiert — Reihenfolge ist entscheidend.
     private State transit() {
         for (Transition current : this.transitions) {
             if (this.transitThisOne(current)) {
@@ -133,6 +162,8 @@ public class State extends Prompt {
         return null;
     }
 
+    // Evaluiert eine einzelne Transition: zuerst decide() (LLM-Entscheidung),
+    // dann action() (z.B. Extraktion, Transfer). Gibt true zurueck bei Zustandswechsel.
     private boolean transitThisOne(Transition transition) {
         if (transition.decide(this.utterances)) {
             State.LOGGER.info(this.getName() + ": Transition to "
@@ -180,6 +211,8 @@ public class State extends Prompt {
         return new Response(this, assistantSays);
     }
 
+    // Betritt diesen State. Bei isOblivious=true wird die Konversationshistorie
+    // geloescht — der State "vergisst" alles Bisherige (z.B. bei Themen-Neubeginn).
     public void enter() {
         State.LOGGER
                 .info(this.getName() + " Starting");
@@ -232,6 +265,8 @@ public class State extends Prompt {
         return new PromptResult(this, totalPrompt, conversation);
     }
 
+    // Setzt den System-Prompt zusammen: outerPrompt (von uebergeordnetem OuterState)
+    // wird dem eigenen Prompt vorangestellt. Dynamische States ueberschreiben getPrompt().
     protected String composeTotalPrompt(String outerPrompt) {
         String totalPrompt = (this.getPrompt() != null ? this.getPrompt() : "");
         if (outerPrompt != null) {

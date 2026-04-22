@@ -16,6 +16,17 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Englischsprachige Variante des {@link DynamicCauseAssessmentState} fuer den
+ * Health-Coaching-Kontext.
+ *
+ * Ermittelt im Gespraech mit dem Patienten die Gruende fuer Nicht-Einhaltung von
+ * Therapieplaenen. Verwendet wie die deutsche Variante zwei Guards (Trigger + Guard),
+ * aber mit englischen Prompts, die auf medizinisches Coaching zugeschnitten sind.
+ *
+ * @see DynamicCauseAssessmentState
+ * @see State
+ */
 @Entity
 public class EN_DynamicCauseAssessmentState extends State {
 

@@ -17,6 +17,23 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderColumn;
 
+/**
+ * Verbindung zwischen zwei States im PROMISE State-Machine-Framework.
+ *
+ * Eine Transition enthaelt:
+ * - Eine geordnete Liste von {@link Decision Decisions} (Guards/Trigger): Alle muessen
+ *   zutreffen (UND-Verknuepfung), damit die Transition feuert. Jede Decision wird via
+ *   {@link ch.zhaw.statefulconversation.spi.LMOpenAI#decide} an das LLM delegiert.
+ * - Eine geordnete Liste von {@link Action Actions}: Werden bei erfolgreicher Transition
+ *   ausgefuehrt (z.B. Zusammenfassung extrahieren, Utterances transferieren).
+ * - Einen {@link State subsequentState}: Der Zielzustand nach dem Uebergang.
+ *
+ * Falls keine Decisions vorhanden sind, feuert die Transition immer (unconditional transition).
+ *
+ * @see Decision
+ * @see Action
+ * @see State#raiseIfTransit()
+ */
 @Entity
 public class Transition {
     private static final Logger LOGGER = LoggerFactory.getLogger(Transition.class);
@@ -76,6 +93,9 @@ public class Transition {
         this.subsequentState = subsequentState;
     }
 
+    // Evaluiert alle Decisions sequentiell (UND-Logik). Jede Decision wird als
+    // Ja/Nein-Frage an das LLM gesendet. Sobald eine false zurueckgibt, wird abgebrochen.
+    // Ohne Decisions gilt die Transition als bedingungslos erfuellt.
     public boolean decide(Utterances utterances) {
         Transition.LOGGER.info("Checking decisions if transition to " + this.subsequentState.getName());
         if (this.decisions.isEmpty()) {

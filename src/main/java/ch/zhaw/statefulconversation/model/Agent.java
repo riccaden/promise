@@ -19,6 +19,25 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 
+/**
+ * Oberste Entitaet des PROMISE Frameworks — repraesentiert einen Konversations-Agenten.
+ *
+ * Ein Agent verwaltet den Lebenszyklus einer zustandsbasierten Konversation. Er haelt
+ * einen {@link State initialState} (Startzustand) und einen {@link State currentState}
+ * (aktueller Zustand), zwischen denen mittels {@link TransitionException} gewechselt wird.
+ * Ueber die userId wird Multi-User-Tracking ermoeglicht (z.B. im Biographer-Modul von Oblivio).
+ *
+ * Zentrale Methoden:
+ * - {@link #start()} — betritt den aktuellen State und generiert die erste Assistenz-Nachricht
+ * - {@link #respond(String)} — verarbeitet Benutzereingaben; faengt TransitionExceptions ab,
+ *   um automatisch in den naechsten State zu wechseln
+ * - {@link #reset()} — setzt den Agenten auf den Startzustand zurueck
+ * - {@link #reRespond()} — entfernt die letzte Antwort und generiert eine neue
+ *
+ * @see State
+ * @see TransitionException
+ * @see Storage
+ */
 @Entity
 public class Agent {
 
@@ -91,6 +110,8 @@ public class Agent {
         return this.currentState.isActive();
     }
 
+    // Gibt die Konversationshistorie zurueck: aus dem aktuellen State falls aktiv,
+    // sonst aus dem Startzustand (z.B. nach Erreichen eines Final-States).
     public List<Utterance> getConversation() {
         if (this.isActive()) {
             return this.currentState.getUtterances().toList();
@@ -115,6 +136,10 @@ public class Agent {
         }
     }
 
+    // Kernmethode: leitet Benutzereingabe an den aktuellen State weiter.
+    // Bei einer TransitionException wird automatisch in den Folgezustand gewechselt.
+    // Falls der neue State ein Starting-State ist, wird start() aufgerufen;
+    // andernfalls wird respond() rekursiv mit derselben Eingabe wiederholt.
     public Response respond(String userSays) {
         try {
             return this.currentState.respond(userSays);
@@ -146,6 +171,8 @@ public class Agent {
         return this.currentState.getPromptBundle();
     }
 
+    // Entfernt die letzte Assistenz-Antwort und die zugehoerige User-Nachricht,
+    // und generiert eine neue Antwort auf dieselbe Benutzereingabe (Retry-Logik).
     public Response reRespond() {
 
         if (!this.isActive()) {

@@ -4,6 +4,22 @@ import java.util.List;
 
 import jakarta.persistence.Entity;
 
+/**
+ * Abstrakte Basisklasse fuer Transition-Aktionen im PROMISE Framework.
+ *
+ * Eine Action wird ausgefuehrt, wenn eine {@link Transition} erfolgreich feuert.
+ * Typische Aktionen umfassen das Extrahieren von Daten aus der Konversation via LLM,
+ * das Zusammenfassen von Gespraechen oder das Transferieren von Utterances zwischen States.
+ *
+ * Erbt von {@link Prompt} und nutzt optional einen {@link Storage} mit einem
+ * Ziel-Schluessel ({@code storageKeyTo}), unter dem das Ergebnis gespeichert wird.
+ *
+ * Subklassen muessen {@link #execute(Utterances)} implementieren.
+ *
+ * @see StaticExtractionAction
+ * @see TransferUtterancesAction
+ * @see Transition#action(Utterances)
+ */
 @Entity
 public abstract class Action extends Prompt {
 

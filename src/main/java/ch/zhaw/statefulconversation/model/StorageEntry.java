@@ -13,6 +13,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
+/**
+ * Einzelner Key-Value-Eintrag innerhalb eines {@link Storage}-Objekts.
+ *
+ * Der Schluessel ({@code entryKey}) ist ein einfacher String, der Wert ({@code entryValue})
+ * wird als {@link com.google.gson.JsonElement} gespeichert und mittels eines eingebetteten
+ * {@link jakarta.persistence.AttributeConverter} (JsonObjectConverter) fuer die
+ * Datenbank-Persistierung serialisiert/deserialisiert.
+ *
+ * @see Storage
+ */
 @Entity
 public class StorageEntry {
 
@@ -50,6 +60,7 @@ public class StorageEntry {
         return "This is the key: " + this.entryKey + " and this is the entry value: " + this.entryValue;
     }
 
+    // JPA-Converter: wandelt JsonElement <-> String fuer die Datenbank-Spalte um
     @Converter
     private static class JsonObjectConverter implements AttributeConverter<Object, String> {
         private static final Gson GSON = new Gson();

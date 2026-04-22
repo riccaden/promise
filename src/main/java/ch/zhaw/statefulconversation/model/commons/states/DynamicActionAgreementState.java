@@ -16,6 +16,19 @@ import ch.zhaw.statefulconversation.model.commons.decisions.DynamicDecision;
 import ch.zhaw.statefulconversation.utils.NamedParametersFormatter;
 import jakarta.persistence.Entity;
 
+/**
+ * Dynamischer State, der dem Benutzer Massnahmen vorschlaegt und auf Akzeptanz wartet.
+ *
+ * Liest den ermittelten Grund ({@code keyFindReason}, {@code keyReason}) und die verfuegbaren
+ * Massnahmen ({@code keyAvailableActions}) aus dem {@link Storage} und baut daraus einen
+ * Prompt, der den Benutzer zur Annahme einer Massnahme fuehrt. Die Transition feuert,
+ * sobald der Benutzer eine Massnahme akzeptiert.
+ *
+ * Die Prompts sind auf Deutsch formuliert.
+ *
+ * @see State
+ * @see DynamicActionProposalState
+ */
 @Entity
 public class DynamicActionAgreementState extends State {
 

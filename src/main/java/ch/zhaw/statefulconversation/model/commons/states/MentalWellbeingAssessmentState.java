@@ -11,6 +11,22 @@ import ch.zhaw.statefulconversation.model.commons.actions.StaticExtractionAction
 import ch.zhaw.statefulconversation.model.commons.decisions.StaticDecision;
 import jakarta.persistence.Entity;
 
+/**
+ * Spezialisierter State zur Erfassung des mentalen Wohlbefindens des Benutzers.
+ *
+ * Fuehrt ein einfuehlsames Gespraech ueber die mentale Gesundheit des Benutzers,
+ * fragt verschiedene Bereiche ab und sammelt moegliche Probleme. Der State gibt
+ * bewusst keine Ratschlaege — er dient nur der Problemsammlung.
+ *
+ * Die Transition feuert, wenn der Benutzer signalisiert, keine weiteren Themen
+ * besprechen zu wollen. Die identifizierten Probleme werden als JSON-Array
+ * (["Problem 1", "Problem 2", ...]) im {@link Storage} abgelegt.
+ *
+ * Die Prompts sind auf Deutsch formuliert.
+ *
+ * @see State
+ * @see DynamicCauseAssessmentState
+ */
 @Entity
 public class MentalWellbeingAssessmentState extends State {
 

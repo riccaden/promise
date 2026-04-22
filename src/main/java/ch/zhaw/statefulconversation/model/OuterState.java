@@ -9,6 +9,27 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToOne;
 
+/**
+ * Zustand mit eingebetteter innerer State-Machine (verschachtelte Zustaende).
+ *
+ * Ein OuterState haelt einen inneren Start-State ({@code innerInitial}) und den aktuell
+ * aktiven inneren State ({@code innerCurrent}). Benutzereingaben werden an den inneren
+ * State delegiert; bei inneren TransitionExceptions wechselt der innerCurrent.
+ *
+ * Der eigene Prompt des OuterState wird als {@code outerPrompt} an die inneren States
+ * weitergegeben und dort dem jeweiligen State-Prompt vorangestellt. So koennen
+ * uebergreifende Persona-Anweisungen (z.B. "Du bist ein empathischer Biograph")
+ * alle inneren States beeinflussen.
+ *
+ * {@link #isActive()} delegiert an den innerCurrent — der OuterState ist inaktiv,
+ * sobald der innere State ein {@link Final}-State ist.
+ *
+ * Wird fuer komplexe mehrstufige Interaktionen verwendet, z.B. die 20-Block-Kette
+ * des Biographers innerhalb eines einzelnen aeusseren Zustands.
+ *
+ * @see State
+ * @see Final
+ */
 @Entity
 public class OuterState extends State {
 
@@ -65,6 +86,9 @@ public class OuterState extends State {
         return this.respond(userSays, null);
     }
 
+    // Delegiert Benutzereingabe an den inneren State. Bei innerer TransitionException
+    // wird innerCurrent gewechselt und je nach isStarting start() oder respond() aufgerufen.
+    // Die eigene Utterances-Liste wird parallel gefuehrt (fuer aeussere Transition-Pruefung).
     public Response respond(String userSays, String outerPrompt) throws TransitionException {
         this.utterances.appendUserSays(userSays, this);
         this.raiseIfTransit();
@@ -148,6 +172,7 @@ public class OuterState extends State {
         return this.innerCurrent;
     }
 
+    // Traversiert verschachtelte OuterStates und sammelt die Namen aller innerCurrent-States
     public List<String> getInnerCurrentChain() {
         List<String> chain = new java.util.ArrayList<>();
         State current = this.innerCurrent;

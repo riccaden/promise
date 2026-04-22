@@ -19,7 +19,14 @@ import org.springframework.web.client.RestTemplate;
 import ch.zhaw.statefulconversation.controllers.views.TTSRequest;
 
 /**
- * Controller for Text-to-Speech functionality using ElevenLabs API
+ * REST-Controller fuer Text-to-Speech (TTS) ueber die ElevenLabs API.
+ *
+ * Wandelt Text in gesprochene Sprache um und liefert MP3-Audio zurueck.
+ * Unterstuetzt personalisierte Stimmen pro Persona ueber den optionalen
+ * Query-Parameter {@code voice_id}. Verwendet das Modell {@code eleven_multilingual_v2},
+ * das alle 8 Oblivio-Sprachen abdeckt.
+ *
+ * Endpoint: POST /{agentID}/tts
  */
 @RestController
 public class TTSController {

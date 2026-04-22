@@ -6,8 +6,12 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Web Configuration for CORS (Cross-Origin Resource Sharing)
- * Allows the frontend website to access the PROMISE API
+ * CORS-Konfiguration fuer das Oblivio-Backend (PROMISE Framework).
+ *
+ * Erlaubt Cross-Origin-Zugriffe von der Produktions-Domain (oblivio.ch)
+ * sowie von lokalen Entwicklungsumgebungen (localhost:8080, localhost:3000).
+ * Preflight-Responses werden fuer 1 Stunde gecacht, um die Anzahl
+ * OPTIONS-Requests zu reduzieren.
  */
 @Configuration
 public class WebConfig {

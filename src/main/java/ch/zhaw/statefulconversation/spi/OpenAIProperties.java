@@ -7,6 +7,17 @@ import org.springframework.context.annotation.PropertySources;
 
 import com.google.gson.JsonObject;
 
+/**
+ * Konfigurations-Bean fuer die OpenAI API-Einstellungen.
+ *
+ * <p>Laedt URL, API-Key, Modellname und Realtime-Einstellungen aus
+ * {@code openai.properties} bzw. profilspezifischen Property-Dateien.
+ * Implementiert ein Singleton-Pattern ueber den Konstruktor, damit
+ * {@link LMOpenAI} statisch auf die Instanz zugreifen kann.
+ *
+ * <p>Unterstuetzt sowohl OpenAI als auch Azure OpenAI (unterschiedliche
+ * Header-Namen und Payload-Formate).
+ */
 @Configuration
 @PropertySources({
         @PropertySource(value = "classpath:openai.properties", ignoreResourceNotFound = true),

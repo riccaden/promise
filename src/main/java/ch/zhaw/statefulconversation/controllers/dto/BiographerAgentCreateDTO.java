@@ -1,8 +1,15 @@
 package ch.zhaw.statefulconversation.controllers.dto;
 
 /**
- * DTO for creating Biographer agents with minimal configuration.
- * Biographer agents use predefined prompts for gathering life stories.
+ * Request-DTO fuer die Erstellung eines Biographer-Agents.
+ *
+ * Enthaelt nur minimale Konfiguration (Name, Beschreibung, Sprache, Nickname),
+ * da die 20-State-Prompt-Kette in {@link AgentMetaUtility#createBiographerAgent}
+ * vordefiniert ist. Das Feld {@code language} steuert die Gespraechssprache
+ * (de, en, fr, it, tr, ko, ja, zh), {@code nickname} wird optional fuer die
+ * persoenliche Ansprache im Gespraech verwendet.
+ *
+ * Endpoint: POST /agent/biographer
  */
 public class BiographerAgentCreateDTO {
     private int type;

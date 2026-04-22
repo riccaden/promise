@@ -22,8 +22,14 @@ import ch.zhaw.statefulconversation.model.Utterance;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
 /**
- * Controller für user-spezifische Log-Abfragen
- * Ermöglicht das Tracking und Abrufen von Conversations pro User
+ * REST-Controller fuer benutzerspezifische Abfragen und Tracking.
+ *
+ * Ermoeglicht es, alle Agents und Conversations eines bestimmten Users
+ * abzurufen sowie Nutzungsstatistiken (Anzahl Agents, aktive Agents,
+ * Gesamtzahl Nachrichten) zu generieren. Die Zuordnung erfolgt ueber
+ * das Feld {@code userId} im Agent-Modell.
+ *
+ * Basis-Pfad: /user/{userId}/...
  */
 @RestController
 @RequestMapping("/user")

@@ -1,5 +1,12 @@
 package ch.zhaw.statefulconversation.logging;
 
+/**
+ * Datenklasse fuer ein einzelnes Log-Ereignis im SSE-Log-Streaming.
+ *
+ * <p>Enthaelt Zeitstempel, Log-Level, Logger-Name und die formatierte Nachricht.
+ * Instanzen werden vom {@link SseLogAppender} erzeugt und ueber den
+ * {@link LogStreamBroadcaster} an verbundene Clients gesendet.
+ */
 public class LogEvent {
     private final long timestamp;
     private final String level;

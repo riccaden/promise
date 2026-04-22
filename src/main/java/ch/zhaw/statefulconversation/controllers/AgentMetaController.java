@@ -20,12 +20,22 @@ import ch.zhaw.statefulconversation.controllers.views.AgentInfoView;
 import ch.zhaw.statefulconversation.model.Agent;
 import ch.zhaw.statefulconversation.repositories.AgentRepository;
 
+/**
+ * REST-Controller fuer die Erstellung und Verwaltung von Agents.
+ *
+ * Bietet Endpoints zum Auflisten aller Agents sowie zum Erstellen
+ * neuer Agents (Legacy-Einzelzustand oder Biographer mit 20-State-Kette).
+ * Die eigentliche Agent-Konstruktion wird an {@link AgentMetaUtility} delegiert.
+ *
+ * Basis-Pfad: /agent/...
+ */
 @RestController
 public class AgentMetaController {
 
     @Autowired
     private AgentRepository repository;
 
+    // Listet alle gespeicherten Agents mit ihren Metadaten auf
     @GetMapping("agent")
     public ResponseEntity<List<AgentInfoView>> findAll() {
         List<Agent> agents = this.repository.findAll();
@@ -37,6 +47,7 @@ public class AgentMetaController {
         return new ResponseEntity<List<AgentInfoView>>(result, HttpStatus.OK);
     }
 
+    // Gibt alle Agents inkl. vollstaendiger Conversation-Daten zurueck (Debug-Endpoint)
     @GetMapping("agent/conversation")
     public ResponseEntity<List<Agent>> findAllConversation() {
         List<Agent> agents = this.repository.findAll();
@@ -66,6 +77,7 @@ public class AgentMetaController {
         return new ResponseEntity<Agent>(agentMaybe.get(), HttpStatus.OK);
     }
 
+    // Erstellt einen Legacy-Agent mit einem einzelnen State und einer Transition zu Final
     @PostMapping("agent/singlestate")
     public ResponseEntity<AgentInfoView> create(@RequestBody SingleStateAgentCreateDTO data) {
         if (data == null) {
@@ -88,6 +100,7 @@ public class AgentMetaController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
+    // Erstellt einen Biographer-Agent mit 20-State-Kette (10 Bloecke x 2 States: Conv + Confirm)
     @PostMapping("agent/biographer")
     public ResponseEntity<AgentInfoView> createBiographer(@RequestBody BiographerAgentCreateDTO data) {
         if (data == null) {

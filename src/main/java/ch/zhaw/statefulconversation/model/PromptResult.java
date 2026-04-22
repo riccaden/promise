@@ -2,6 +2,16 @@ package ch.zhaw.statefulconversation.model;
 
 import java.util.List;
 
+/**
+ * Buendelt einen {@link State}, dessen zusammengesetzten System-Prompt und die
+ * aktuelle Konversationshistorie.
+ *
+ * Wird von {@link State#getPromptBundle()} zurueckgegeben und dient der Diagnose
+ * bzw. dem Debugging, um den vollstaendigen Prompt-Kontext einzusehen, der an das
+ * LLM gesendet wird.
+ *
+ * @see State#getPromptBundle()
+ */
 public class PromptResult {
     private final String stateName;
     private final String systemPrompt;
