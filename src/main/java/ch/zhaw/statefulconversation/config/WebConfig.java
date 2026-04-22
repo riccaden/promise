@@ -18,9 +18,11 @@ public class WebConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        // Allow all origins during development
-                        // TODO: In production, specify exact origin(s)
-                        .allowedOriginPatterns("*")
+                        .allowedOrigins(
+                                "https://oblivio.ch",
+                                "https://www.oblivio.ch",
+                                "http://localhost:8080",
+                                "http://localhost:3000")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true)

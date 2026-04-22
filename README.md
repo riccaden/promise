@@ -1,169 +1,309 @@
+<div align="center">
+
 # Oblivio
 
-**Oblivio** ist eine Webanwendung zur digitalen Bewahrung von Lebensgeschichten. Menschen erzählen ihr Leben in einem geführten KI-Interview (Biographer Agent) — daraus entsteht eine interaktive digitale Persona (Legacy Agent), mit der Angehörige auch in Zukunft sprechen können.
+**Beyond Memory — A Digital Legacy Platform**
 
-Entwickelt als Bachelorarbeit an der ZHAW, basierend auf dem [PROMISE-Framework](https://github.com/2024-ZHAW-PM4) für zustandsbasierte Konversationssteuerung.
+*Preserve your essence. Share your wisdom. Leave more than just memories.*
+
+[![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](https://openai.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
+[![ElevenLabs](https://img.shields.io/badge/ElevenLabs-TTS-000000?logo=data:image/svg+xml;base64,PHN2Zy8+&logoColor=white)](https://elevenlabs.io/)
+
+[![Personas](https://img.shields.io/badge/Personas-11-orange)](#personas)
+[![Languages](https://img.shields.io/badge/Languages-8-blue)](#languages)
+[![Variants](https://img.shields.io/badge/Conversation_Variants-3-green)](#legacy-agent--digital-persona)
+[![License](https://img.shields.io/badge/License-Academic-lightgrey)](#author)
 
 ---
 
-## Konzept
+*Bachelor's Thesis · ZHAW School of Management and Law · Business Informatics · 2026*
 
-### 1. Biographer Agent — Lebensgeschichte erfassen
-Ein geführtes Interview über **10 thematische Blöcke**, das die Persönlichkeit, Erinnerungen und Werte einer Person systematisch erfasst:
+</div>
 
-| Block | Thema |
-|-------|-------|
-| 1 | Vorlieben, Abneigungen, Geschmack |
-| 2 | Alltag und persönliche Welt |
-| 3 | Sprach- und Schreibstil |
-| 4 | Schlüsselerinnerungen und Erfahrungen |
-| 5 | Emotionen und Beziehungsdynamiken |
-| 6 | Beziehungen und Fremdwahrnehmung |
-| 7 | Werte, Überzeugungen, Wandel |
-| 8 | Eigenheiten, Widersprüche, verborgene Seiten |
-| 9 | Vermächtnis und Zukunft |
-| 10 | Gesamtbild und Selbstreflexion |
+---
 
-Jeder Block besteht aus einer **Gesprächs-Phase** und einer **Bestätigungs-Phase**. Am Ende jedes Blocks wird eine Zusammenfassung extrahiert und gespeichert.
+## Why Oblivio?
 
-### 2. Legacy Agent — Digitale Persona
-Aus den gesammelten Zusammenfassungen wird ein System-Prompt generiert, der eine **interaktive KI-Persona** erschafft. Angehörige können mit dieser Persona sprechen — sie antwortet im Stil, mit den Werten und den Erinnerungen der erfassten Person.
+Everyone has a story worth preserving. But traditional methods — written biographies, video recordings, photo albums — capture *content* without capturing *personality*. They are static. You can read someone's words, but you can't have a new conversation with them.
+
+Oblivio changes this. It uses conversational AI to not only **record** a life story, but to **recreate the way someone speaks, thinks, and feels** — so that loved ones can continue talking to that person's digital essence long after the original conversation ends.
+
+> *"Not a form. Not a questionnaire. A conversation that actually listens."*
+
+---
+
+## What is Oblivio?
+
+Oblivio is a web application for digitally preserving life stories. People tell their story through a guided AI interview (**Biographer Agent**) — from which an interactive digital persona (**Legacy Agent**) is created that loved ones can talk to in the future.
+
+Built as a bachelor's thesis at [ZHAW](https://www.zhaw.ch), powered by the [PROMISE Framework](https://github.com/2024-ZHAW-PM4) for state-based conversational AI.
+
+---
+
+## Concept
+
+### Biographer Agent — Capturing Life Stories
+
+A guided interview across **10 thematic blocks** that systematically captures a person's personality, memories, and values:
+
+| Block | Theme | Purpose |
+|:-----:|-------|---------|
+| 1 | Tastes & Preferences | Ice-breaker, personal flavour |
+| 2 | Daily Life & World | Routines, home, work |
+| 3 | Communication Style | How they speak and write |
+| 4 | Key Memories | Defining moments |
+| 5 | Emotions & Relationships | Patterns, love, conflict |
+| 6 | Relationships & Perception | How others see them |
+| 7 | Values & Change | Beliefs, growth |
+| 8 | Quirks & Contradictions | Hidden sides |
+| 9 | Legacy & Future | What to leave behind |
+| 10 | Self-Reflection | Final portrait |
+
+Each block consists of a **conversation phase** and a **confirmation phase**. At the end of each block, a summary is extracted and stored — forming the foundation for the Legacy Agent.
+
+### Legacy Agent — Digital Persona
+
+From the collected summaries, a system prompt is generated that creates an **interactive AI persona**. Loved ones can speak with this persona — it responds in the style, with the values, and with the memories of the captured person.
+
+**Three conversation variants:**
+
+| Variant | Name | Description |
+|:-------:|------|-------------|
+| 1 | **Active** | Persona greets first and leads the conversation |
+| 2 | **Passive** | Persona waits silently, responds only when spoken to |
+| 3 | **Analysis** | Includes personality analysis (radar chart, communication DNA, life pattern) |
+
+### Prompt Architecture
+
+Each persona prompt is structured in clearly separated sections:
+
+```
+[SECTION:IDENTITY]        Who the person is — core traits, background, age
+[SECTION:CHAPTERS]        10 thematic summaries from the Biographer interview
+[SECTION:ANALYSIS]        Personality radar, communication DNA, life pattern (Variant 3 only)
+[SECTION:STYLE]           Language patterns, dialect, vocabulary, sentence structure
+[SECTION:SELF_KNOWLEDGE]  What the persona knows about itself and the platform
+[SECTION:RULES]           Behavioural constraints — no lists, no AI phrases, stay in character
+```
+
+---
+
+## Personas
+
+Oblivio currently hosts **11 personas** across **4 native languages**, each available in **3 conversation variants**:
+
+| # | Language | Age | Profile |
+|:-:|:--------:|:---:|---------|
+| 1 | Deutsch | 56 | Father, self-employed, pragmatic humour |
+| 2 | Italiano | 81 | Grandmother, Neapolitan dialect, warm storyteller |
+| 3 | Italiano | 62 | Father, Sicilian roots, direct and emotional |
+| 4 | Italiano | 26 | Cousin, Gen-Z, ironic and pop-culture savvy |
+| 5 | 日本語 | 28 | Friend, Tokyo dialect, reflective and poetic |
+| 6 | Deutsch | 28 | Close friend, Swiss-German patterns, analytical |
+| 7 | 日本語 | 72 | Grandmother, Kansai dialect, traditional wisdom |
+| 8 | 한국어 | 24 | Friend, Seoul dialect, warm and emotionally open |
+| 9 | Deutsch | 63 | Father, Austrian roots, structured and principled |
+| 10 | Deutsch | 27 | Best friend, Swiss-German, spontaneous and loyal |
+| 11 | Italiano | 30 | Cousin, Roman dialect, streetwise and genuine |
+
+Each persona includes a **custom voice** via ElevenLabs TTS and a **profile photo** displayed in the chat interface.
+
+---
+
+## Languages
+
+Oblivio supports **8 languages** for the Biographer interview and UI:
+
+| Language | Code | Biographer | Legacy Chat | UI |
+|----------|:----:|:----------:|:-----------:|:--:|
+| Deutsch | `de` | ✓ | ✓ | ✓ |
+| English | `en` | ✓ | ✓ | ✓ |
+| Français | `fr` | ✓ | ✓ | ✓ |
+| Italiano | `it` | ✓ | ✓ | ✓ |
+| Türkçe | `tr` | ✓ | ✓ | ✓ |
+| 한국어 | `ko` | ✓ | ✓ | ✓ |
+| 日本語 | `ja` | ✓ | ✓ | ✓ |
+| 中文 | `zh` | ✓ | ✓ | ✓ |
+
+> **Note:** The Biographer can conduct interviews in all 8 languages. Legacy personas respond in their native language but understand messages in any supported language.
+
+---
+
+## Key Features
+
+- **Context Compaction** — After 20 user messages, older conversation history is automatically summarised and compressed, reducing token usage while preserving key context
+- **Per-Persona Voice** — Each persona has a custom ElevenLabs voice for text-to-speech synthesis
+- **Visitor Isolation** — Each browser session gets a unique visitor ID; conversations are private per device and per mode
+- **Conversation Persistence** — Messages are stored in the database and restored on return visits
+- **Anti-AI Patterns** — Prompts include explicit rules against lists, structured responses, assistant phrases, and repetitive greetings
+- **Multi-Variant Access** — Each persona can be experienced in 3 different conversation styles via a single access code
+
+---
+
+## Architecture
+
+```
+┌─────────────┐     HTTPS      ┌──────────────────────────────┐
+│   Browser    │ ──────────────→│   Spring Boot REST API       │
+│  (HTML/JS)   │                │        (Railway)             │
+└─────────────┘                │                              │
+                               │  ┌────────────────────────┐  │
+                               │  │  PROMISE State Machine  │  │
+                               │  │  ┌──────┐  ┌────────┐  │  │
+                               │  │  │States│→ │Transitions│ │  │
+                               │  │  └──────┘  └────────┘  │  │
+                               │  └────────────┬───────────┘  │
+                               │               │              │
+                               └───────────────┼──────────────┘
+                                               │
+                          ┌────────────────────┼────────────────────┐
+                          │                    │                    │
+                          ▼                    ▼                    ▼
+                   ┌─────────────┐    ┌──────────────┐    ┌──────────────┐
+                   │   OpenAI    │    │   Supabase   │    │  ElevenLabs  │
+                   │   GPT-4o   │    │  PostgreSQL  │    │     TTS      │
+                   └─────────────┘    └──────────────┘    └──────────────┘
+```
 
 ---
 
 ## Tech Stack
 
-| Komponente | Technologie |
-|------------|-------------|
-| Backend | Java 21, Spring Boot, Maven |
-| Datenbank | PostgreSQL (Supabase) |
-| Frontend | HTML5, Vanilla JavaScript |
-| KI | OpenAI GPT (via PROMISE-Framework) |
-| Text-to-Speech | ElevenLabs API |
-| Deployment | Railway (Docker) |
-| Auth | Supabase Authentication |
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Java 21, Spring Boot, Maven | REST API, PROMISE state machine |
+| **Database** | PostgreSQL (Supabase) | Authentication, storage, RLS |
+| **Frontend** | HTML5, Vanilla JS | No framework dependency |
+| **AI Engine** | OpenAI GPT-4o (via PROMISE) | Conversations, summaries, analysis |
+| **TTS** | ElevenLabs API | Voice synthesis for each persona |
+| **Hosting** | Railway (Docker) | Auto-deploy on push to `main` |
+| **Web** | Swiss Hosting Provider | Frontend delivery |
+| **Auth** | Supabase Authentication | JWT-based, bcrypt passwords |
 
 ---
 
-## Projektstruktur
+## Project Structure
 
 ```
 src/main/java/ch/zhaw/statefulconversation/
-├── controllers/          # REST-Endpoints (Agent, TTS, UserLog)
-│   ├── AgentController.java        # Interaktion mit bestehenden Agents
-│   ├── AgentMetaController.java    # Erstellung neuer Agents
+├── controllers/              # REST endpoints
+│   ├── AgentController.java        # Agent interaction (start, respond, reset)
+│   ├── AgentMetaController.java    # Agent creation (biographer, singlestate)
+│   ├── AgentMetaUtility.java       # Block prompts, language handling
 │   ├── TTSController.java          # Text-to-Speech (ElevenLabs)
-│   └── UserLogController.java      # User-Tracking
-├── model/                # Domänenmodell (Agent, State, Transition, Storage)
-├── repositories/         # JPA Repositories
-├── spi/                  # OpenAI-Integration, Content-Filtering
-└── config/               # Spring-Konfiguration
+│   └── UserLogController.java      # User tracking
+├── model/                    # Domain model
+│   ├── Agent.java                  # Agent lifecycle
+│   ├── State.java                  # Conversation state (extends Prompt)
+│   ├── Prompt.java                 # Base prompt entity
+│   ├── Transition.java             # State transitions (guards, triggers)
+│   ├── Utterances.java             # Message history + context compaction
+│   ├── Storage.java                # Key-value storage for summaries
+│   └── commons/states/             # Specialised state types
+├── repositories/             # JPA repositories
+├── spi/                      # OpenAI integration
+│   └── LMOpenAI.java              # GPT API calls, prompt composition
+└── config/                   # Spring configuration
 
-Website/                  # Statisches Frontend
-├── index.html            # Landing Page
-├── biographer.html       # Biographer-Interview UI
-├── legacy.html           # Legacy-Chat UI
-└── js/                   # Frontend-Logik
-
-Personas/                 # Persona-Beispiele (Prompts & Profile)
+Website/                      # Static frontend (hosted separately)
+├── index.html                # Landing page
+├── biographer.html           # Biographer interview UI
+├── legacy.html               # Legacy chat UI (3 variants)
+├── js/
+│   ├── biographer-promise.js # PROMISE API client for biographer
+│   ├── legacy-chat.js        # Legacy chat API client
+│   ├── translations.js       # i18n core (dynamic loading)
+│   └── lang-*.js             # Translation files (8 languages)
+└── images/avatars/           # Persona profile photos
 ```
 
 ---
 
-## Sprachen
+## API Overview
 
-Oblivio unterstützt **7 Sprachen** für das Biographer-Interview:
-Deutsch, English, Français, Italiano, 日本語, 中文, 한국어
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/agent` | List all agents |
+| `POST` | `/agent/singlestate` | Create legacy agent |
+| `POST` | `/agent/biographer` | Create biographer agent |
+| `POST` | `/{agentId}/start` | Start conversation |
+| `POST` | `/{agentId}/respond` | Send message |
+| `GET` | `/{agentId}/conversation` | Get conversation history |
+| `GET` | `/{agentId}/state` | Get current state |
+| `GET` | `/{agentId}/storage` | Get extracted summaries |
+| `POST` | `/{agentId}/tts?voice_id=...` | Generate TTS audio |
+| `DELETE` | `/{agentId}/reset` | Reset conversation |
 
 ---
 
-## Lokale Entwicklung
+## Local Development
 
-### Voraussetzungen
+### Prerequisites
 - Java 21 (JDK)
 - Maven
-- PostgreSQL oder MySQL
+- PostgreSQL
 - OpenAI API Key
-- (Optional) ElevenLabs API Key für TTS
+- (Optional) ElevenLabs API Key
 
 ### Setup
 
-1. Properties-Dateien erstellen:
-   ```
-   src/main/resources/application.properties
-   src/main/resources/openai.properties
-   ```
+```bash
+# 1. Clone
+git clone https://github.com/riccaden/promise.git
+cd promise
 
-2. Datenbank-Verbindung konfigurieren in `application.properties`:
-   ```properties
-   spring.datasource.url=jdbc:postgresql://localhost:5432/oblivio
-   spring.datasource.username=your_user
-   spring.datasource.password=your_password
-   ```
+# 2. Create config files
+cp src/main/resources/application.properties.template src/main/resources/application.properties
+cp src/main/resources/openai.properties.template src/main/resources/openai.properties
 
-3. OpenAI Key setzen in `openai.properties`:
-   ```properties
-   openai.key=sk-...
-   ```
+# 3. Configure database in application.properties
+# spring.datasource.url=jdbc:postgresql://localhost:5432/oblivio
 
-4. Starten:
-   ```bash
-   ./mvnw spring-boot:run
-   ```
+# 4. Set OpenAI key in openai.properties
+# openai.key=sk-...
 
-5. Öffnen: `http://localhost:8080`
+# 5. Run
+./mvnw spring-boot:run
 
----
-
-## Deployment (Railway + Supabase)
-
-Die Produktionsumgebung läuft auf **Railway** mit **Supabase PostgreSQL**.
-
-Umgebungsvariablen auf Railway:
-- `SPRING_DATASOURCE_URL`
-- `SPRING_DATASOURCE_USERNAME`
-- `SPRING_DATASOURCE_PASSWORD`
-- `OPENAI_KEY`
-- `ELEVENLABS_API_KEY` (optional)
-- `PORT` (automatisch von Railway)
-
-Deployment erfolgt automatisch bei Push auf `main`.
-
----
-
-## API-Übersicht
-
-| Methode | Endpoint | Beschreibung |
-|---------|----------|-------------|
-| GET | `/agent` | Alle Agents auflisten |
-| POST | `/agent/singlestate` | Legacy Agent erstellen |
-| POST | `/agent/biographer` | Biographer Agent erstellen |
-| POST | `/{agentId}/start` | Konversation starten |
-| POST | `/{agentId}/respond` | Nachricht senden |
-| GET | `/{agentId}/conversation` | Gesprächsverlauf abrufen |
-| GET | `/{agentId}/state` | Aktuellen State abrufen |
-| GET | `/{agentId}/storage` | Gespeicherte Zusammenfassungen abrufen |
-| DELETE | `/{agentId}/reset` | Konversation zurücksetzen |
-
----
-
-## Architektur
-
-```
-Benutzer ──→ Website (HTML/JS) ──→ Spring Boot REST API
-                                        │
-                                        ├──→ PROMISE State Machine (Agent)
-                                        │         │
-                                        │         └──→ OpenAI GPT
-                                        │
-                                        ├──→ Supabase PostgreSQL
-                                        │
-                                        └──→ ElevenLabs TTS (optional)
+# 6. Open http://localhost:8080
 ```
 
 ---
 
-## Autor
+## Deployment
+
+Production runs on **Railway** (backend) with **Supabase** (database + auth).
+
+| Service | Platform | Auto-Deploy |
+|---------|----------|:-----------:|
+| Java Backend | Railway | ✓ (on push to `main`) |
+| Database | Supabase PostgreSQL | — |
+| Frontend | Swiss Hosting (Hostpoint) | Manual upload |
+
+Environment variables on Railway:
+```
+SPRING_DATASOURCE_URL
+SPRING_DATASOURCE_USERNAME
+SPRING_DATASOURCE_PASSWORD
+OPENAI_KEY
+ELEVENLABS_API_KEY
+PORT (auto-set by Railway)
+```
+
+---
+
+## Author
 
 **Dennis Riccardo Dewiri**
-Bachelorarbeit, ZHAW School of Engineering
+
+Bachelor's Thesis · [ZHAW School of Management and Law](https://www.zhaw.ch/en/sml/) · Business Informatics · 2026
+
+---
+
+<div align="center">
+<sub>Built with conviction that every person deserves to be heard and remembered.</sub>
+</div>
