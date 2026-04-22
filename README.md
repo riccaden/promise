@@ -94,23 +94,7 @@ Each persona prompt is structured in clearly separated sections:
 
 ## Personas
 
-Oblivio currently hosts **11 personas** across **4 native languages**, each available in **3 conversation variants**:
-
-| # | Language | Age | Profile |
-|:-:|:--------:|:---:|---------|
-| 1 | Deutsch | 56 | Father, self-employed, pragmatic humour |
-| 2 | Italiano | 81 | Grandmother, Neapolitan dialect, warm storyteller |
-| 3 | Italiano | 62 | Father, Sicilian roots, direct and emotional |
-| 4 | Italiano | 26 | Cousin, Gen-Z, ironic and pop-culture savvy |
-| 5 | 日本語 | 28 | Friend, Tokyo dialect, reflective and poetic |
-| 6 | Deutsch | 28 | Close friend, Swiss-German patterns, analytical |
-| 7 | 日本語 | 72 | Grandmother, Kansai dialect, traditional wisdom |
-| 8 | 한국어 | 24 | Friend, Seoul dialect, warm and emotionally open |
-| 9 | Deutsch | 63 | Father, Austrian roots, structured and principled |
-| 10 | Deutsch | 27 | Best friend, Swiss-German, spontaneous and loyal |
-| 11 | Italiano | 30 | Cousin, Roman dialect, streetwise and genuine |
-
-Each persona includes a **custom voice** via ElevenLabs TTS and a **profile photo** displayed in the chat interface.
+Oblivio currently hosts **11 personas** across **4 native languages**, each available in **3 conversation variants**.
 
 ---
 
