@@ -13,12 +13,10 @@
 [![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
 [![ElevenLabs](https://img.shields.io/badge/ElevenLabs-TTS-000000?logo=data:image/svg+xml;base64,PHN2Zy8+&logoColor=white)](https://elevenlabs.io/)
 
-[![Personas](https://img.shields.io/badge/Personas-15-orange)](#concept)
-[![Languages](https://img.shields.io/badge/Languages-8-blue)](#languages)
-[![Variants](https://img.shields.io/badge/Conversation_Variants-3-green)](#concept)
-[![Blocks](https://img.shields.io/badge/Biographer_Blocks-10-purple)](#concept)
-[![States](https://img.shields.io/badge/PROMISE_States-21-yellow)](#what-was-adapted-from-promise)
-[![License](https://img.shields.io/badge/License-Academic-lightgrey)](#author)
+[![Personas](https://img.shields.io/badge/Personas-15-orange)](#end-to-end-process)
+[![Languages](https://img.shields.io/badge/Languages-8-blue)](#end-to-end-process)
+[![Variants](https://img.shields.io/badge/Conversation_Variants-3-green)](#end-to-end-process)
+[![Built_on](https://img.shields.io/badge/Built_on-PROMISE_Framework-purple)](https://github.com/zhaw-iwi/promise)
 
 ---
 
@@ -28,1606 +26,485 @@
 
 ---
 
-## Table of Contents
+## What is Oblivio?
 
-1. [Project Status](#project-status)
-2. [Why Oblivio?](#why-oblivio)
-3. [What is Oblivio?](#what-is-oblivio)
-4. [Concept](#concept)
-5. [End-to-End Process: How a Persona Comes to Life](#end-to-end-process-how-a-persona-comes-to-life) ← **full user journey**
-6. [Languages](#languages)
-7. [Key Features](#key-features)
-8. [Architecture](#architecture)
-9. [Tech Stack](#tech-stack)
-10. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
-11. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
-12. [Data Flow: From User Input to Supabase](#data-flow-from-user-input-to-supabase) ← **what gets stored where**
-13. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
-14. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
-15. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
-16. [API Overview](#api-overview)
-17. [Local Development](#local-development)
-18. [Deployment](#deployment)
-19. [Author](#author)
+Oblivio is a web platform that lets people **preserve their life story as an interactive AI persona**. Through a guided AI interview across **10 thematic blocks**, the system captures someone's personality, memories, communication style, and values. From that data, a **digital persona** is generated — one that loved ones can chat with anytime, in **8 languages** and **3 conversation variants**.
 
----
+Built on the [PROMISE Framework](https://github.com/zhaw-iwi/promise) (ZHAW Institute for Applied Information Technology), Oblivio extends it with multi-user support, mehrsprachigkeit, an end-to-end persona pipeline, and full deployment on Railway + Supabase + Hostpoint.
 
-## Project Status
+### Three Components in Production
 
-> **Status:** Active research project — Bachelor's thesis in progress.
-> **Live platform:** [oblivio.ch](https://oblivio.ch)
-> **API endpoint:** [promise-production.up.railway.app](https://promise-production.up.railway.app)
-> **Study participants:** 15 personas captured across 4 native languages
-> **Last updated:** May 2026
+| Component | Hosting | URL | Role |
+|---|---|---|---|
+| **Frontend** | Hostpoint (Swiss) | [oblivio.ch](https://oblivio.ch) | UI, i18n, authentication flow |
+| **Backend (PROMISE + Oblivio extensions)** | Railway | [promise-production.up.railway.app](https://promise-production.up.railway.app) | State machine, REST API, LLM calls |
+| **Database + Auth** | Supabase | `<project>.supabase.co` | PostgreSQL, JWT auth, RLS |
+
+Plus two external APIs: **OpenAI GPT-4o** (LLM) and **ElevenLabs** (voice synthesis).
 
 ### At a Glance
 
-| Metric | Value |
-|---|---|
-| Biographer thematic blocks | 10 |
-| PROMISE states per Biographer | 21 (10 × 2 + Final) |
-| Conversation variants per persona | 3 |
-| Supported languages | 8 |
-| Study participants → personas | 15 |
-| Java classes (backend) | 70+ |
-| Frontend HTML pages | 16 |
-| Translation keys per language | ~400 |
-| Context-compaction threshold | 20 user messages |
+- **21 states** in the Biographer (10 blocks × 2 + Final)
+- **15 personas** captured from study participants
+- **70+ Java classes** in the backend
+- **17 HTML pages** in the frontend (sanitised template at [`Website-template/`](Website-template/))
+- **8 languages** (DE, EN, FR, IT, TR, KO, JA, ZH)
+- **Context compaction** after 20 messages (keeps token costs flat)
+
+### Reading the rest of this README
+
+The remainder of this README is one large guided tour: the complete **end-to-end process** from a user signing up to loved ones chatting with the persona. For every step you'll see:
+
+1. **What happens** (user-facing description)
+2. **Frontend files** involved (HTML or JS)
+3. **Backend files** involved (Java controllers, state machine classes, etc.)
+4. **What had to be added to PROMISE** to make this step work
+5. **Where the data flows** — what reaches Supabase, what goes to Railway, what stays in the browser
 
 ---
 
-## Why Oblivio?
+## End-to-End Process
 
-Everyone has a story worth preserving. But traditional methods — written biographies, video recordings, photo albums — capture *content* without capturing *personality*. They are static. You can read someone's words, but you can't have a new conversation with them.
+The full journey from "user registers" to "loved ones chat with the digital persona", in **two perspectives**:
 
-Oblivio changes this. It uses conversational AI to not only **record** a life story, but to **recreate the way someone speaks, thinks, and feels** — so that loved ones can continue talking to that person's digital essence long after the original conversation ends.
-
-> *"Not a form. Not a questionnaire. A conversation that actually listens."*
-
----
-
-## What is Oblivio?
-
-Oblivio is a web application for digitally preserving life stories. People tell their story through a guided AI interview (**Biographer Agent**) — from which an interactive digital persona (**Legacy Agent**) is created that loved ones can talk to in the future.
-
-Built as a bachelor's thesis at [ZHAW](https://www.zhaw.ch), powered by the [PROMISE Framework](https://github.com/zhaw-iwi/promise) for state-based conversational AI.
+- **Perspective 1 — The Persona Owner:** Someone who registers on oblivio.ch, takes the Biographer interview, and generates a digital persona of themselves
+- **Perspective 2 — The Visitor:** A loved one who receives an access code and chats with that persona
 
 ---
 
-## Concept
+## Perspective 1: The Persona Owner
 
-### Biographer Agent — Capturing Life Stories
+### Step 1 — Sign Up / Log In
 
-A guided interview across **10 thematic blocks** that systematically captures a person's personality, memories, and values:
+**What happens:** User opens oblivio.ch, clicks Sign Up, enters email and password, verifies via email, then logs in.
 
-| Block | Theme | Purpose |
-|:-----:|-------|---------|
-| 1 | Tastes & Preferences | Ice-breaker, personal flavour |
-| 2 | Daily Life & World | Routines, home, work |
-| 3 | Communication Style | How they speak and write |
-| 4 | Key Memories | Defining moments |
-| 5 | Emotions & Relationships | Patterns, love, conflict |
-| 6 | Relationships & Perception | How others see them |
-| 7 | Values & Change | Beliefs, growth |
-| 8 | Quirks & Contradictions | Hidden sides |
-| 9 | Legacy & Future | What to leave behind |
-| 10 | Self-Reflection | Final portrait |
+**Frontend files:**
+- [`Website-template/signup.html`](Website-template/signup.html) — signup form
+- [`Website-template/login.html`](Website-template/login.html) — login form
+- Both files call the Supabase JS client directly (no backend involved)
 
-Each block consists of a **conversation phase** and a **confirmation phase**. At the end of each block, a summary is extracted and stored — forming the foundation for the Legacy Agent.
+**Backend / Railway:**
+- Not involved in this step. Supabase Auth handles registration entirely on its own.
 
-### Legacy Agent — Digital Persona
+**PROMISE adaptations:**
+- None — authentication is handled by Supabase, not by PROMISE. PROMISE had no auth system; Oblivio relies entirely on Supabase Auth.
 
-From the collected summaries, a system prompt is generated that creates an **interactive AI persona**. Loved ones can speak with this persona — it responds in the style, with the values, and with the memories of the captured person.
+**Where the data goes:**
+- Supabase table `auth.users` (managed automatically by Supabase)
+- JWT token stored in browser cookie + localStorage
 
-In total, **15 personas** were created from study participants across **4 native languages** (German, Italian, Japanese, Korean), each available in three conversation variants.
+---
 
-**Three conversation variants:**
+### Step 2 — Choose Language
 
-| Variant | Name | Description |
-|:-------:|------|-------------|
-| 1 | **Analysis** | Persona waits, with personality analysis embedded (radar chart, communication DNA, life pattern) |
-| 2 | **Active** | Persona greets first and leads the conversation |
-| 3 | **Passive** | Persona waits silently, responds only when spoken to |
+**What happens:** User picks one of 8 languages from a dropdown. The whole UI switches plus the Biographer interview is conducted in that language.
 
-Visitors can switch between variants at any time during a conversation; the message history is preserved across mode switches.
+**Frontend files:**
+- [`Website-template/biographer.html`](Website-template/biographer.html) — language picker UI
+- [`Website-template/js/translations.js`](Website-template/js/translations.js) — i18n engine
+- [`Website-template/js/lang-de.js`](Website-template/js/lang-de.js), [`lang-en.js`](Website-template/js/lang-en.js), [`lang-fr.js`](Website-template/js/lang-fr.js), [`lang-it.js`](Website-template/js/lang-it.js), [`lang-tr.js`](Website-template/js/lang-tr.js), [`lang-ko.js`](Website-template/js/lang-ko.js), [`lang-ja.js`](Website-template/js/lang-ja.js), [`lang-zh.js`](Website-template/js/lang-zh.js) — translation tables (~400 keys each)
 
-### Prompt Architecture
+**Backend / Railway:**
+- Not yet — language is recorded locally first, then passed to backend in Step 4.
 
-Each persona prompt is structured in clearly separated sections:
+**PROMISE adaptations:**
+- PROMISE has no built-in language support. Oblivio added [`getLanguageInstruction()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L480) in `AgentMetaUtility.java` which returns a language-specific prefix prepended to every block prompt (e.g. "WICHTIG: Du MUSST auf Türkisch kommunizieren..."). The original German prompts stay, GPT-4o translates at runtime.
+
+**Where the data goes:**
+- `localStorage('oblivio_language')` — kept on the user's device only
+
+---
+
+### Step 3 — Block 0: Pre-Survey
+
+**What happens:** Before the actual Biographer starts, the user fills out a short questionnaire: age range, gender, personality traits, communication style. This gives the Biographer agent context for personalisation.
+
+**Frontend files:**
+- [`Website-template/biographer.html`](Website-template/biographer.html) — the questionnaire form with dropdowns and multi-select fields
+
+**Backend / Railway:**
+- Not involved. The frontend writes directly to Supabase.
+
+**PROMISE adaptations:**
+- None — this is purely an Oblivio addition that happens before any PROMISE agent is created.
+
+**Where the data goes:**
+- Supabase table `questionnaire_answers` (JSONB column `answers` with all responses)
+- Used in Step 5 as `nickname` and contextual hints for the Biographer prompts
+
+---
+
+### Step 4 — Biographer Agent is Created
+
+**What happens:** Frontend sends a POST request to the backend asking for a new Biographer. The backend builds a 21-state agent (10 blocks × 2 states + Final) on the fly and returns its ID.
+
+**Frontend files:**
+- [`Website-template/biographer.html`](Website-template/biographer.html) — UI flow
+- [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) — API client that calls `POST /agent/biographer`
+
+**Backend / Railway:**
+- [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) — the endpoint
+- [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) — factory method [`createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
+- [`controllers/dto/BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) — request body
+
+**PROMISE adaptations:**
+- **New endpoint:** `POST /agent/biographer` added to `AgentMetaController.java` (PROMISE only had `/agent/singlestate`)
+- **New enum value:** `biographer = 1` added to [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java)
+- **New DTO:** `BiographerAgentCreateDTO` includes `language` and `nickname` fields
+- **New factory method:** `createBiographerAgent()` builds the 21-state chain **backwards** (Final → Block 10 → ... → Block 1) because each transition needs to reference its `subsequentState` at creation time
+- **New helper:** [`buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) — returns a 2D array `prompts[10][7]` with 70 prompts (10 blocks × 7 components each: Conv System Prompt, Conv Starter, Conv Guard, Confirm System Prompt, Confirm Starter, Confirm Guard, Extract Prompt)
+- **New `userId` field** in [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) so the agent is linked to the Supabase user
+
+**Where the data goes:**
+- **Supabase (PROMISE-managed tables, written by Hibernate automatically):** `agent`, `state`, `prompt`, `transition`, `prompt_transitions`, `utterance`, `utterances`, `storage`, `storage_entry`
+- **Supabase (Oblivio-managed):** Frontend writes a row to `user_agents` linking `user_id` → `agent_id`
+- **Returned to frontend:** the new agent's UUID
+
+---
+
+### Step 5 — The 10 Blocks (Conversation + Confirmation)
+
+**What happens:** For each of 10 thematic blocks, the user goes through two states: a **conversation state** (AI asks all the block's questions, e.g. "Tell me about your childhood…") and a **confirmation state** (AI summarises what it heard, user confirms or corrects).
+
+#### 5a. Conversation Phase
+
+**Frontend files:**
+- [`Website-template/biographer.html`](Website-template/biographer.html) — chat UI, progress bar, voice-input button
+- [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) — sends each message via `POST /{agentId}/respond`
+
+**Backend / Railway:**
+- [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — endpoint handler `respond()`
+- [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) — loads agent, delegates to current state
+- [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) — [`respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) method
+- [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java) — adds user message, calls [`compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118)
+- [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) — calls OpenAI GPT-4o to generate the assistant response
+- [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) — checks after every message: should this transition fire?
+- [`model/commons/decisions/StaticDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java) — the Guard that asks GPT-4o "Have all questions been asked? true/false"
+
+**PROMISE adaptations:**
+- **Context Compaction (new method):** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) — after 20 user messages, older messages are summarised via [`LMOpenAI.summariseOffline()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) and replaced with one system message. Cuts token costs from linear to constant.
+- **Trigger:** One added line in [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171) calls `compactIfNeeded()` before each LLM call
+- **New LMOpenAI method:** `summariseOffline()` returns plain text (existing `summarise()` returns JSON, which would confuse subsequent turns)
+- **TEXT columns:** [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) — PROMISE used `VARCHAR(10000)` which crashed on long persona prompts; switched to PostgreSQL `TEXT` (unlimited)
+- **PostgreSQL driver in [`pom.xml`](pom.xml)** instead of MySQL (PROMISE used MySQL originally; Supabase requires PostgreSQL)
+
+**Where the data goes:**
+- Every message (user + assistant) → Supabase tables `utterance` / `utterances` (PROMISE-managed by Hibernate)
+- Conversation state itself → Supabase table `state` and `agent.currentState`
+- LLM call → OpenAI API (external service)
+- Browser displays the assistant response
+
+#### 5b. Transition: Conversation → Confirmation
+
+When the Guard returns `true`, the transition fires:
+
+**Backend / Railway:**
+- [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) — calls all decisions, then all actions
+- [`model/commons/actions/TransferUtterancesAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java) — copies all conversation messages from the Conv state to the Confirm state so the Confirm state can summarise them
+
+**PROMISE adaptations:** none — this transition is built with stock PROMISE classes; only the prompts are Oblivio-specific.
+
+**Where the data goes:** A copy of `utterances` is created and linked to the Confirm state in Supabase.
+
+#### 5c. Confirmation Phase
+
+**What happens:** The AI summarises the block (e.g. "From what you told me, I gathered that..."). The user confirms or asks for corrections. On confirmation, the AI extracts a structured JSON summary and stores it.
+
+**Backend / Railway:**
+- Same `State.respond()` flow as above, but now in the Confirm state with its own prompts
+- [`model/commons/actions/StaticExtractionAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) — when the user confirms, this action runs `LMOpenAI.extract()` which returns structured JSON and stores it in the agent's `Storage` under the key `block1` / `block2` / ... / `block10`
+
+**Where the data goes:**
+- Supabase `storage_entry` table (PROMISE-managed) — the new JSON block summary
+
+After Block 10's confirmation, the next transition leads to the Final state.
+
+---
+
+### Step 6 — All Blocks Complete: Final State + Access Code Generation
+
+**What happens:** After Block 10 confirmation, the Biographer agent transitions to the Final state. The frontend now requests the 10 stored summaries, persists them in Supabase, and generates an access code for sharing.
+
+**Frontend files:**
+- [`Website-template/biographer.html`](Website-template/biographer.html) — handles completion UI (shows the access code with a "Copy" button and email-share button)
+
+**Backend / Railway:**
+- [`model/Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) — Final state, `isActive()` returns `false`
+- [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — `GET /{agentId}/storage` returns all 10 block summaries as JSON
+
+**PROMISE adaptations:**
+- None at this point — but the new endpoint `GET /{agentId}/storage` is in the original PROMISE controller and is used by Oblivio to retrieve block summaries.
+
+**Where the data goes:**
+- **Supabase `user_legacies` table:** Frontend writes the 10 block summaries as one JSONB document (column `legacy_data`)
+- **Supabase `legacy_access_codes` table:** Frontend generates an 8-character random code (e.g. `VDSRMACZ`) and inserts a row with `access_code`, `user_id`, `nickname`, `language`, `is_active = true`
+
+---
+
+### Step 7 — Persona Prompts Are Created (Manual Step)
+
+**What happens:** From the 10 block summaries, three full persona prompts are crafted — one per conversation variant. This is currently a **manual admin step** done via SQL: the admin reads the block summaries, drafts the prompts, and inserts them into the `legacy_data` JSONB column.
+
+Each prompt is built from these sections:
 
 ```
-[SECTION:IDENTITY]        Who the person is — core traits, background, age
+[SECTION:IDENTITY]        Who the person is, what language they speak, opening behaviour
 [SECTION:CHAPTERS]        10 thematic summaries from the Biographer interview
 [SECTION:ANALYSIS]        Personality radar, communication DNA, life pattern (Variant 1 only)
 [SECTION:STYLE]           Language patterns, dialect, vocabulary, sentence structure
-[SECTION:SELF_KNOWLEDGE]  What the persona knows about itself and the platform
+[SECTION:EXAMPLES]        Real dialogue examples to anchor the LLM's voice
+[SECTION:SELF_KNOWLEDGE]  First-person paragraphs the persona "knows" about itself
 [SECTION:RULES]           Behavioural constraints — no lists, no AI phrases, stay in character
 ```
 
----
+**Frontend files:** none — manual SQL.
 
-## End-to-End Process: How a Persona Comes to Life
+**Backend / Railway:** none.
 
-This section walks through the complete journey — for each step you'll see **which file is responsible**. Two perspectives: the **persona owner** (the person being captured) and the **visitor** (someone chatting with the persona).
+**PROMISE adaptations:** none — this happens entirely in Supabase.
 
-### Perspective 1: The Persona Owner
-
-#### Step 1 — Sign Up / Log In
-User visits oblivio.ch, clicks "Sign Up".
-
-- **Frontend file:** [`Website-template/signup.html`](Website-template/signup.html), [`Website-template/login.html`](Website-template/login.html)
-- **Service:** Supabase Auth (built-in)
-- **Stores:** `auth.users` (Supabase, automatic)
-- **Result:** User receives confirmation email and can log in afterwards.
-
-#### Step 2 — Choose Language
-One of 8 languages is selected (DE, EN, FR, IT, TR, KO, JA, ZH).
-
-- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (language picker)
-- **i18n engine:** [`Website-template/js/translations.js`](Website-template/js/translations.js)
-- **Translation files:** [`Website-template/js/lang-de.js`](Website-template/js/lang-de.js) … [`lang-zh.js`](Website-template/js/lang-zh.js)
-- **Stores:** `localStorage('oblivio_language')`
-
-#### Step 3 — Block 0 (Pre-Survey)
-Short questionnaire: age, gender, personality traits, communication style.
-
-- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (questionnaire form)
-- **Stores:** Supabase table `questionnaire_answers` (JSONB column)
-- **Used by:** The Biographer prompts later as context
-
-#### Step 4 — Biographer Interview Starts
-Frontend triggers backend to build the 21-state Biographer agent.
-
-- **Frontend file:** [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) (API client)
-- **Backend endpoint:** `POST /agent/biographer` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
-- **Factory:** [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
-- **Block prompts source:** [`AgentMetaUtility.buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) (~500 lines, all 70 prompts)
-- **DTO:** [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java)
-- **Stores:**
-  - PROMISE tables (`agent`, `state`, ...) — auto-created by Hibernate, populated in Supabase
-  - Supabase `user_agents` table (links the Supabase user to the PROMISE agent ID)
-
-#### Step 5 — The 10 Blocks (Conversation + Confirmation Phases)
-For each of 10 blocks, two states alternate: a conversation state and a confirmation state.
-
-**Conversation phase:**
-- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (chat UI + progress bar)
-- **API call:** `POST /{agentId}/respond` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
-- **State logic:** [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) calls `LMOpenAI.complete()` to generate the assistant message
-- **LLM call:** [`LMOpenAI.complete()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) → OpenAI GPT-4o
-- **Context compaction:** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (after 20 user messages)
-- **Guard check:** [`Transition.decide()`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) calls `LMOpenAI.decide()` → "Have all 11 questions been asked?"
-
-**Confirmation phase (transition fires):**
-- **Action:** [`TransferUtterancesAction.execute()`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java) copies messages into the Confirm state
-- **Confirm summary:** AI summarises what it learned; user accepts or corrects
-- **On confirmation:** [`StaticExtractionAction.execute()`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) extracts structured JSON
-- **Stores:** Agent's `Storage` under key `block1` / `block2` / … / `block10`
-
-#### Step 6 — All Blocks Complete → Final State
-After Block 10 confirmation, the agent transitions to Final.
-
-- **Final state:** [`Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) — `isActive()` returns `false`
-- **Frontend call:** `GET /{agentId}/storage` (retrieves all 10 block JSONs)
-- **Frontend writes to Supabase:** Table `user_legacies` (column `legacy_data` JSONB)
-- **Access code generated:** 8-character random code (e.g., `VDSRMACZ`)
-- **Stores:** Supabase `legacy_access_codes` table — code, nickname, language, user_id
-
-#### Step 7 — Persona Prompts Are Created
-For each of the 3 variants, a complete system prompt is built and stored.
-
-- **Manual step (admin):** SQL UPDATE on `legacy_access_codes.legacy_data` JSONB column
-- **Three keys added:**
-  - `full_prompt_active` (Variant 2 — persona greets first)
-  - `full_prompt_passive` (Variant 3 — persona waits)
-  - `full_prompt_analysis` (Variant 1 — with personality analysis)
-- **Structure of each prompt:** 6–7 sections (IDENTITY, CHAPTERS, ANALYSIS, STYLE, EXAMPLES, SELF_KNOWLEDGE, RULES)
-
-#### Step 8 — Access Code Shared
-The owner shares the 8-character code with loved ones. Persona is now reachable.
+**Where the data goes:**
+- Supabase `legacy_access_codes.legacy_data` JSONB column gets three new keys:
+  - `full_prompt_active` — Variant 2 (persona greets first)
+  - `full_prompt_passive` — Variant 3 (persona waits)
+  - `full_prompt_analysis` — Variant 1 (with personality analysis block)
 
 ---
 
-### Perspective 2: The Visitor (Loved One)
+### Step 8 — Optional: Voice and Avatar Assignment
 
-#### Step 1 — Open Legacy Chat
-Visitor goes to oblivio.ch/legacy.html and enters the access code.
+**What happens:** Optionally, the admin records or selects an [ElevenLabs](https://elevenlabs.io) voice for the persona and uploads a profile photo. These enable audio playback and a face for the chat avatar.
 
-- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (code input UI)
-- **Frontend queries Supabase:** `SELECT * FROM legacy_access_codes WHERE access_code = ?`
-- **Received fields:** `nickname`, `language`, `legacy_data`, `avatar_url`, `voice_id`
+**Frontend files:** Avatar images are uploaded to Hostpoint at `/images/avatars/<name>.jpg` (referenced by `avatar_url`).
 
-#### Step 2 — Enter Visitor Info
-Visitor enters name, relationship, gender.
+**Backend / Railway:** none for assignment; voice is used in Step 14 of Perspective 2.
 
-- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (visitor info form)
-- **Stores locally:** `localStorage('oblivio_visitor_<accessCode>')` as JSON
-- **Used later in:** Visitor Context Block (Step 4)
+**PROMISE adaptations:** none.
 
-#### Step 3 — Choose Variant
-Visitor clicks one of three buttons: Variant 1 (Analysis), Variant 2 (Active), Variant 3 (Passive).
+**Where the data goes:**
+- Supabase `legacy_access_codes` gets `voice_id` (ElevenLabs voice identifier) and `avatar_url` (path to the avatar image on Hostpoint)
 
-- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (mode toggle buttons, line ~1054)
-- **Stores locally:** `localStorage('oblivio_mode_<accessCode>')` = `'active'` / `'passive'` / `'analysis'`
-- **Default:** Variant 1 (Analysis)
-
-#### Step 4 — Chat Session Starts
-Frontend constructs the full system prompt and creates a PROMISE agent.
-
-- **Prompt-building function:** [`buildLegacySystemPrompt()` in legacy-chat.js](Website-template/js/legacy-chat.js#L98)
-  - Loads the appropriate `full_prompt_*` from `legacy_data`
-  - Appends a "Visitor Context Block" (e.g., "You are talking to Maria, your daughter, female...")
-- **Visitor context builder:** [`buildVisitorContext()` in legacy-chat.js](Website-template/js/legacy-chat.js#L29) (multi-language)
-- **Agent creation:** `POST /agent/singlestate` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
-- **Factory:** [`AgentMetaUtility.createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20)
-
-#### Step 5 — Starter Message
-Frontend triggers the first AI message.
-
-- **Frontend call:** `POST /{agentId}/start` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
-- **Starter prompt logic:** [`createLegacyAgent()` in legacy-chat.js](Website-template/js/legacy-chat.js#L176) (around line 196)
-  - **Variant 2 (Active):** Real greeting prompt → persona answers with a personalised hello
-  - **Variant 1 & 3 (Analysis/Passive):** Prompt instructs LLM to respond with literally `__WAIT__`
-    - Frontend filters out `__WAIT__` and shows "Type to start chatting"
-
-#### Step 6 — Conversation Loop
-For every visitor message:
-
-**a) Frontend sends message to backend:**
-- **API call:** `POST /{agentId}/respond` from [`legacy-chat.js`](Website-template/js/legacy-chat.js) (`sendLegacyMessage()`, line ~271)
-- **Endpoint:** [`AgentController.respond()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
-
-**b) Backend processes (PROMISE logic):**
-- **State logic:** [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168)
-- **Acknowledge user message:** Added to `Utterances` collection
-- **Compaction check:** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (after 20 messages)
-- **LLM call:** [`LMOpenAI.complete()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) → GPT-4o
-- **Guard check:** [`Transition.decide()`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) → "Is the visitor saying goodbye?"
-  - If yes: [`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) fires, transitions to Final
-
-**c) Frontend writes to Supabase:**
-- **Function:** `saveMessage()` in [`legacy.html`](Website-template/legacy.html) (line ~1212)
-- **Table:** `legacy_messages` — fields: `access_code`, `visitor_id` (mode-scoped), `visitor_name`, `user_id`, `role`, `content`
-
-**d) Optional voice playback:**
-- **Frontend call:** `POST /{agentId}/tts?voice_id=...`
-- **Backend endpoint:** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java)
-- **External call:** ElevenLabs API returns MP3 bytes
-- **Browser plays audio** via `new Audio(URL.createObjectURL(blob)).play()`
-
-#### Step 7 — Variant Switch (optional, anytime)
-Visitor clicks another variant button mid-conversation.
-
-- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (mode buttons + `switchMode()` function)
-- **Loads new history:** Filtered by mode-scoped `visitor_id` from `legacy_messages`
-- **New agent created:** Calls `POST /agent/singlestate` with new prompt (and full history as context)
-- **Old conversation preserved:** Stored separately under different `visitor_id` suffix
-
-#### Step 8 — Session Ends
-Conversation is fully persisted in Supabase.
-
-- **Persistence:** `legacy_messages` table holds the full chat history
-- **Return visits:** Frontend's `loadConversationHistory()` rehydrates the chat
-- **Per-device privacy:** `visitor_id` is per-browser via localStorage (different devices → different histories)
-
-### How the 3 Variants Work Technically
-
-All three variants run on the **same PROMISE mechanism** — a Single-State Agent. They differ only in **which prompt is loaded** and **which starter behavior is used**:
-
-| | Variant 1 (Analysis) | Variant 2 (Active) | Variant 3 (Passive) |
-|---|:-:|:-:|:-:|
-| Persona greets first? | ❌ Waits | ✅ Greets | ❌ Waits |
-| Has personality analysis? | ✅ Yes | ❌ No | ❌ No |
-| Sections in prompt | 6 (incl. ANALYSIS) | 5 (active IDENTITY) | 5 (passive IDENTITY) |
-| Loaded from Supabase | `full_prompt_analysis` | `full_prompt_active` | `full_prompt_passive` |
-| Starter behavior | `__WAIT__` token | Real greeting | `__WAIT__` token |
-| Visitor ID suffix | `__analysis` | `__active` | `__passive` |
-| Token usage | Highest | Medium | Medium |
-
-**The `__WAIT__` trick:** In Variant 1 and 3, the persona must wait. The starter prompt instructs the LLM to respond with literally the text `__WAIT__`. The frontend detects this and filters it out, showing the user a hint like "Type something to start" instead of a generated greeting. The agent stays in a valid PROMISE state, ready to respond when the visitor writes.
-
-**Mode-Switching preserves history:** When a visitor switches variants, the conversation messages don't disappear — they're stored in `legacy_messages` with a mode-scoped `visitor_id` (e.g., `uuid__active`, `uuid__passive`, `uuid__analysis`). Each variant has its own history, but the visitor can freely jump between them. If they switch from Variant 2 (where they had 10 messages) to Variant 1 (empty), they see a fresh conversation. Switching back returns them to the 10 messages.
+The persona is now fully online. The 8-character access code can be shared with loved ones.
 
 ---
 
-## Languages
+## Perspective 2: The Visitor
 
-Oblivio supports **8 languages** for the Biographer interview and UI:
+### Step 9 — Open Legacy Chat with Access Code
 
-| Language | Code | Biographer | Legacy Chat | UI |
-|----------|:----:|:----------:|:-----------:|:--:|
-| Deutsch | `de` | ✓ | ✓ | ✓ |
-| English | `en` | ✓ | ✓ | ✓ |
-| Français | `fr` | ✓ | ✓ | ✓ |
-| Italiano | `it` | ✓ | ✓ | ✓ |
-| Türkçe | `tr` | ✓ | ✓ | ✓ |
-| 한국어 | `ko` | ✓ | ✓ | ✓ |
-| 日本語 | `ja` | ✓ | ✓ | ✓ |
-| 中文 | `zh` | ✓ | ✓ | ✓ |
+**What happens:** A loved one goes to oblivio.ch/legacy.html, enters the 8-character access code, and the website loads the persona's data.
 
-> **Note:** The Biographer can conduct interviews in all 8 languages. Legacy personas respond in their native language but understand messages in any supported language.
+**Frontend files:**
+- [`Website-template/legacy.html`](Website-template/legacy.html) — code input form, then chat UI
 
----
+**Backend / Railway:**
+- Not involved. The frontend queries Supabase directly via the JS client.
 
-## Key Features
+**PROMISE adaptations:**
+- None — this is purely frontend-to-Supabase.
 
-- **Context Compaction** — After 20 user messages, older conversation history is automatically summarised and compressed, reducing token usage while preserving key context
-- **Per-Persona Voice** — Each persona has a custom ElevenLabs voice for text-to-speech synthesis
-- **Visitor Isolation** — Each browser session gets a unique visitor ID; conversations are private per device and per mode
-- **Conversation Persistence** — Messages are stored in the database and restored on return visits
-- **Anti-AI Patterns** — Prompts include explicit rules against lists, structured responses, assistant phrases, and repetitive greetings
-- **Multi-Variant Access** — Each persona can be experienced in 3 different conversation styles via a single access code
+**Where the data goes:**
+- Frontend reads from Supabase `legacy_access_codes` table: `nickname`, `language`, `legacy_data` (with all 3 prompts), `avatar_url`, `voice_id`
+- Returned data drives the rest of the chat experience
 
 ---
 
-## Architecture
+### Step 10 — Enter Visitor Info (Name, Relation, Gender)
 
-```
-                            ┌──────────────────────────────────────────────┐
-                            │           BROWSER (User-Device)              │
-                            │  - Vanilla JavaScript                        │
-                            │  - localStorage (Visitor-IDs, Mode, Lang)    │
-                            └──────────────┬───────────────────────────────┘
-                                           │ HTTPS GET/POST
-                ┌──────────────────────────┼──────────────────────────┐
-                ▼                          ▼                          ▼
-       ┌───────────────────┐   ┌───────────────────────┐    ┌───────────────────┐
-       │  HOSTPOINT (CH)   │   │  RAILWAY (Container)  │    │  SUPABASE (Cloud) │
-       │  oblivio.ch       │   │  Java 21 + Spring     │    │  PostgreSQL       │
-       │  HTML/CSS/JS      │   │  PROMISE Framework    │    │  Auth (JWT)       │
-       │  manual upload    │   │  auto-deploy on push  │    │  RLS Policies     │
-       └───────────────────┘   └───────────┬───────────┘    └───────────────────┘
-                                           │ JDBC
-                          ┌────────────────┴────────────────┐
-                          ▼                                 ▼
-                  ┌────────────────┐               ┌────────────────┐
-                  │   OpenAI API   │               │ ElevenLabs API │
-                  │   GPT-4o       │               │   TTS          │
-                  └────────────────┘               └────────────────┘
-```
+**What happens:** Before chatting, the visitor enters their name (e.g. "Maria"), their relationship to the persona (child, friend, etc.), and their gender. The persona will know who's talking to it.
 
-Three physical components: **Hostpoint** (frontend), **Railway** (Java backend), **Supabase** (database). Two external APIs: **OpenAI** (LLM) and **ElevenLabs** (voice).
+**Frontend files:**
+- [`Website-template/legacy.html`](Website-template/legacy.html) — visitor info form
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js) — handles the visitor info, builds the [Visitor Context block](Website-template/js/legacy-chat.js#L29) that will be injected into the persona prompt
+
+**Backend / Railway:** none.
+
+**PROMISE adaptations:** none.
+
+**Where the data goes:**
+- `localStorage('oblivio_visitor_<accessCode>')` as JSON: `{ name, relation, gender }`
+- Used to personalise the persona prompt in Step 12
 
 ---
 
-## Tech Stack
+### Step 11 — Choose Conversation Variant
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Backend** | Java 21, Spring Boot, Maven | REST API, PROMISE state machine |
-| **Database** | PostgreSQL (Supabase) | Authentication, storage, RLS |
-| **Frontend** | HTML5, Vanilla JS | No framework dependency |
-| **AI Engine** | OpenAI GPT-4o (via PROMISE) | Conversations, summaries, analysis |
-| **TTS** | ElevenLabs API | Voice synthesis for each persona |
-| **Hosting** | Railway (Docker) | Auto-deploy on push to `main` |
-| **Web** | Swiss Hosting Provider | Frontend delivery |
-| **Auth** | Supabase Authentication | JWT-based, bcrypt passwords |
+**What happens:** The visitor sees three buttons at the top of the chat:
+
+```
+[Variant 1]   [Variant 2]   [Variant 3]
+ Analysis      Active        Passive
+```
+
+Default = Variant 1 (Analysis).
+
+| Variant | Behaviour | Loaded from |
+|:-:|---|---|
+| **1 (Analysis)** | Persona waits silently. Includes personality analysis (radar, communication DNA, life pattern). | `legacy_data.full_prompt_analysis` |
+| **2 (Active)** | Persona greets first with a personal hello. | `legacy_data.full_prompt_active` |
+| **3 (Passive)** | Persona waits silently, no analysis. | `legacy_data.full_prompt_passive` |
+
+**Frontend files:**
+- [`Website-template/legacy.html`](Website-template/legacy.html) — mode toggle buttons (~line 1054)
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js) — `getScopedVisitorId()` adds `__active`, `__passive`, or `__analysis` suffix so the three conversations stay isolated
+
+**Backend / Railway:** none yet.
+
+**PROMISE adaptations:** none — the variants are an Oblivio concept layered on top of PROMISE. The backend treats all three identically: a single PROMISE state machine with a different prompt.
+
+**Where the data goes:**
+- `localStorage('oblivio_mode_<accessCode>')` = `'active'` / `'passive'` / `'analysis'`
 
 ---
 
-## Repository Walkthrough
+### Step 12 — Build the System Prompt + Create Legacy Agent
 
-This section explains what every file in the repository does, what was adapted, and how it connects to Railway and Supabase.
+**What happens:** The frontend assembles the final system prompt by combining (a) the right variant's `full_prompt_*` and (b) the Visitor Context block. Then it asks the backend to create a Single-State Agent.
 
-> **Note:** A sanitised copy of the **frontend** is available at [`Website-template/`](Website-template/) — the live production frontend (`Website/`) is uploaded to Hostpoint separately and not tracked here. This repo contains the **Java backend** plus the **frontend template**.
+**Frontend files:**
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L98) — [`buildLegacySystemPrompt()`](Website-template/js/legacy-chat.js#L98) composes the full prompt
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L29) — [`buildVisitorContext()`](Website-template/js/legacy-chat.js#L29) generates the visitor block in 7 languages
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L176) — [`createLegacyAgent()`](Website-template/js/legacy-chat.js#L176) calls `POST /agent/singlestate` to Railway
 
-### Root-Level Files
+**Backend / Railway:**
+- [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) — endpoint
+- [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20) — [`createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20) builds a one-state agent with one transition to Final
+- [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) — CORS configuration so the Hostpoint frontend is allowed to call Railway
 
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`README.md`](README.md) | This file — main documentation | ✓ Rewritten for Oblivio |
-| [`pom.xml`](pom.xml) | Maven build config + all dependencies | ✓ PostgreSQL driver added (for Supabase) |
-| [`Dockerfile`](Dockerfile) | Multi-stage Docker build for Railway | ✓ New for Oblivio |
-| [`railway.json`](railway.json) | Railway deployment config | ✓ New |
-| [`.railwayignore`](.railwayignore) | Files Railway ignores during build | ✓ New |
-| [`.gitignore`](.gitignore) | Files Git ignores | ✓ Extended with Oblivio-specific entries |
-| [`.env.example`](.env.example) | Environment variable template | ✓ New |
-| [`CITATION.cff`](CITATION.cff) | Citation metadata for academic work | ✓ New |
-| [`LICENSE`](LICENSE) | Academic license | — |
-| [`mvnw`](mvnw) / [`mvnw.cmd`](mvnw.cmd) | Maven Wrapper (no local Maven needed) | — |
+**PROMISE adaptations:**
+- **CORS configuration (new file):** [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) — PROMISE has no CORS, and browsers block cross-origin POSTs by default. Without this, the frontend on oblivio.ch could not call promise-production.up.railway.app at all.
+- The `createSingleStateAgent()` method is from PROMISE, but Oblivio's `userId` extension means the Legacy agents can also be tracked per user.
 
-### Java Backend Structure
-
-```
-src/main/java/ch/zhaw/statefulconversation/
-├── StatefulconversationApplication.java   ← Spring Boot entry point
-├── config/                                ★ New CORS config
-├── controllers/                           ★ REST API + Biographer factory
-├── logging/                               ★ New SSE log streaming
-├── model/                                 ← PROMISE state machine
-├── repositories/                          ← JPA repositories
-└── spi/                                   ★ OpenAI integration (extended)
-```
-
-★ = Oblivio-specific additions or modifications.
-
-### `config/` — Spring Configuration
-
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) | CORS configuration — allows the Hostpoint frontend to call the Railway backend | ✓ **New** in Oblivio |
-
-### `controllers/` — REST API Endpoints
-
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) | Runtime endpoints: `/{agentId}/start`, `/respond`, `/reset`, `/conversation`, `/state`, `/storage` | PROMISE original |
-| [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) | Creation endpoints: `POST /agent/singlestate`, `POST /agent/biographer` | ✓ `/biographer` endpoint added |
-| [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) | Factory: builds the 21-state Biographer + 70 block prompts in 8 languages | ✓ Heavily extended |
-| [`controllers/AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java) | Enum of agent types | ✓ `biographer = 1` added |
-| [`controllers/TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) | Bridge to ElevenLabs API for voice synthesis | ✓ **New** |
-| [`controllers/UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) | Multi-user tracking endpoints: `/user/{id}/agents`, `/conversations`, `/stats` | ✓ **New** |
-
-**`controllers/dto/`** — Request bodies:
-- [`SingleStateAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/SingleStateAgentCreateDTO.java) — PROMISE original
-- [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) — ✓ **New** (with `language` and `nickname` fields)
-
-**`controllers/views/`** — Response classes:
-- [`AgentInfoView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/AgentInfoView.java)
-- [`ResponseView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/ResponseView.java)
-- [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java) ✓ **New**
-- [`UserAgentView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserAgentView.java) ✓ **New**
-- [`UserConversationView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserConversationView.java) ✓ **New**
-
-### `logging/` — Live Log Streaming (✓ entirely new in Oblivio)
-
-| File | What It Does |
-|---|---|
-| [`logging/LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java) | DTO for log events |
-| [`logging/SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java) | Custom Logback appender, captures all logs |
-| [`logging/LogStreamBroadcaster.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamBroadcaster.java) | Broadcasts logs to all SSE subscribers |
-| [`logging/LogStreamController.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamController.java) | REST endpoint `GET /logs/stream` for real-time browser-based log viewing |
-
-### `model/` — Domain Model (PROMISE State Machine Core)
-
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) | Top-level container with `initialState`, `currentState`, `storage` | ✓ `userId` column added |
-| [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) | Conversation state with prompts, utterances, transitions | ✓ `compactIfNeeded()` call added + TEXT columns |
-| [`model/Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java) | Base entity for all prompt-like classes (uses SINGLE_TABLE inheritance) | ✓ TEXT column instead of VARCHAR(10000) |
-| [`model/Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) | A single message in the conversation | ✓ TEXT column |
-| [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java) | Conversation history + **Context Compaction** logic | ✓ `compactIfNeeded()` method added (~60 lines) |
-| [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) | Connection between states with Decisions (Guards) and Actions | PROMISE original |
-| [`model/Decision.java`](src/main/java/ch/zhaw/statefulconversation/model/Decision.java) | Abstract base for guards | PROMISE original |
-| [`model/Action.java`](src/main/java/ch/zhaw/statefulconversation/model/Action.java) | Abstract base for transition side effects | PROMISE original |
-| [`model/Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) | End-state of the conversation | PROMISE original |
-| [`model/Storage.java`](src/main/java/ch/zhaw/statefulconversation/model/Storage.java) | Key-value store on the agent (for block summaries) | PROMISE original |
-| [`model/StorageEntry.java`](src/main/java/ch/zhaw/statefulconversation/model/StorageEntry.java) | Single key-value pair | PROMISE original |
-| [`model/Response.java`](src/main/java/ch/zhaw/statefulconversation/model/Response.java), [`PromptResult.java`](src/main/java/ch/zhaw/statefulconversation/model/PromptResult.java) | Wrapper classes | PROMISE original |
-| [`model/TransitionException.java`](src/main/java/ch/zhaw/statefulconversation/model/TransitionException.java) | Exception used for state transitions | PROMISE original |
-| [`model/OuterState.java`](src/main/java/ch/zhaw/statefulconversation/model/OuterState.java) | Nested states (unused in Oblivio) | PROMISE original |
-
-**`model/commons/actions/`** — Reusable action types (all PROMISE originals):
-- [`StaticExtractionAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) — Extracts data to storage (used for block summaries)
-- [`TransferUtterancesAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java) — Copies utterances between states
-- [`StaticSummarisationAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticSummarisationAction.java)
-- [`RemoveLastUtteranceAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/RemoveLastUtteranceAction.java)
-- [`DynamicExtractionAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/DynamicExtractionAction.java)
-
-**`model/commons/decisions/`** — Reusable decision types (all PROMISE originals):
-- [`StaticDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java) — Fixed guard prompt
-- [`DynamicDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/DynamicDecision.java)
-
-### `repositories/` — JPA Database Access (all PROMISE originals)
-
-| File | What It Does |
-|---|---|
-| [`AgentRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/AgentRepository.java) | CRUD for `agent` table |
-| [`StateRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/StateRepository.java) | CRUD for `state` table |
-| [`StorageRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/StorageRepository.java) | CRUD for `storage` table |
-| [`StorageEntryRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/StorageEntryRepository.java) | CRUD for `storage_entry` table |
-| [`UtteranceRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/UtteranceRepository.java) | CRUD for `utterance` table |
-| [`UtterancesRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/UtterancesRepository.java) | CRUD for `utterances` table |
-
-### `spi/` — Service Provider Interface (OpenAI integration)
-
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) | Central GPT-4o bridge — `complete()`, `decide()`, `extract()`, `summarise()` | ✓ `summariseOffline()` added |
-| [`spi/OpenAIProperties.java`](src/main/java/ch/zhaw/statefulconversation/spi/OpenAIProperties.java) | Loads API key from properties | PROMISE original |
-| [`spi/ContenFilterException.java`](src/main/java/ch/zhaw/statefulconversation/spi/ContenFilterException.java) | Exception for OpenAI content filter | PROMISE original |
-| [`spi/GsonExclude.java`](src/main/java/ch/zhaw/statefulconversation/spi/GsonExclude.java) | Annotation to exclude JPA fields from JSON | PROMISE original |
-
-### Configuration Files
-
-| File | What It Does | Adapted? |
-|---|---|---|
-| [`resources/application.properties.template`](src/main/resources/application.properties.template) | Template for local DB connection | — |
-| [`resources/application-prod.properties`](src/main/resources/application-prod.properties) | **Production config — reads Railway env vars for Supabase** | ✓ **New** |
-| [`resources/openai.properties.template`](src/main/resources/openai.properties.template) | Template for local OpenAI key | — |
-| [`resources/openai-prod.properties`](src/main/resources/openai-prod.properties) | Production OpenAI config | ✓ **New** |
-| [`resources/logback-spring.xml`](src/main/resources/logback-spring.xml) | Logging config | ✓ SSE appender registered |
-
-### Database Scripts ([`sql/`](sql/))
-
-| File | What It Does |
-|---|---|
-| [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) | Creates Oblivio-specific tables: `user_agents`, `user_legacies`, `legacy_access_codes`, `legacy_messages` |
-| [`sql/supabase_migrations.sql`](sql/supabase_migrations.sql) | Later migrations (e.g. `visitor_name`, `user_id` columns added to `legacy_messages`) |
-
-### Documentation ([`docs/`](docs/))
-
-| File | What It Covers |
-|---|---|
-| [`docs/OBLIVIO_BUILD_GUIDE.md`](docs/OBLIVIO_BUILD_GUIDE.md) | **Complete technical guide** — PROMISE introduction, all extensions, step-by-step rebuild instructions |
-| [`docs/OBLIVIO_GITHUB_GUIDE.md`](docs/OBLIVIO_GITHUB_GUIDE.md) | **Repository tour** — what every file does, deployment workflow |
-| [`docs/QUICKSTART.md`](docs/QUICKSTART.md) | Fast setup guide |
-| [`docs/PROMISE_INTEGRATION_GUIDE.md`](docs/PROMISE_INTEGRATION_GUIDE.md) | How Oblivio integrates PROMISE |
-| [`docs/FRONTEND_INTEGRATION_STEPS.md`](docs/FRONTEND_INTEGRATION_STEPS.md) | Frontend setup steps |
-| [`docs/ELEVENLABS_SETUP.md`](docs/ELEVENLABS_SETUP.md) | TTS configuration |
-| [`docs/RAILWAY_SUPABASE_DEPLOYMENT.md`](docs/RAILWAY_SUPABASE_DEPLOYMENT.md) | Deployment instructions |
-| [`docs/USER_TRACKING_FEATURES.md`](docs/USER_TRACKING_FEATURES.md) | Multi-user tracking |
-| [`docs/INTEGRATION_COMPLETE.md`](docs/INTEGRATION_COMPLETE.md) | All integration components |
+**Where the data goes:**
+- Supabase PROMISE-tables: new agent + state + utterances rows
+- Returned to frontend: agent UUID
 
 ---
 
-## How GitHub → Railway → Supabase works
+### Step 13 — Starter Message
 
-The deployment is a fully automated push-to-deploy model. Here's the complete flow:
+**What happens:** The frontend calls `POST /{agentId}/start` to get the persona's opening message. Behaviour depends on the variant:
 
-### 1. Code Push to GitHub
+- **Variant 2 (Active):** Persona produces a real greeting in its own voice, e.g. *"Hey Maria, schön dich zu sehen!"*
+- **Variants 1 & 3 (Analysis, Passive):** The starter prompt instructs the LLM to respond with literally the text `__WAIT__`. The frontend filters this out and shows a hint like *"Type to start the conversation"*.
 
-```
-Developer makes changes locally
-        │
-        ▼
-git push origin main
-        │
-        ▼
-GitHub registers the push, fires webhook to Railway
-```
+**Frontend files:**
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L196) — `__WAIT__` filtering logic
+- [`Website-template/legacy.html`](Website-template/legacy.html) — displays the greeting or hint
 
-### 2. Railway Builds the Container
+**Backend / Railway:**
+- [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — `start()` endpoint
+- [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) — `start()` method, calls `LMOpenAI.complete()` with the starter prompt
 
-```
-Railway reads Dockerfile
-        │
-        ▼
-Stage 1: JDK + Maven Wrapper → compiles JAR (`./mvnw clean package -DskipTests`)
-        │
-        ▼
-Stage 2: JRE + JAR → final runtime image
-        │
-        ▼
-Container starts: `java -jar app.jar`
-```
+**PROMISE adaptations:**
+- The `__WAIT__` token mechanism is an Oblivio invention. PROMISE's `State.start()` always generates a starter message. By passing a starter prompt that forces the LLM to emit only `__WAIT__`, Oblivio gets a valid PROMISE state with a (filtered) starter message — without showing a generic AI greeting to the visitor.
 
-### 3. Application Connects to Supabase
-
-When the Java app starts, it reads [`application-prod.properties`](src/main/resources/application-prod.properties):
-
-```properties
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
-```
-
-The `${...}` placeholders are filled by Railway from environment variables. **Passwords never live in the repo.**
-
-Spring Boot uses **JDBC** to open a connection pool (HikariCP, 5 connections) to Supabase PostgreSQL.
-
-### 4. Hibernate Manages Tables Automatically
-
-`spring.jpa.hibernate.ddl-auto=update` means Hibernate inspects all `@Entity` classes and creates/updates tables accordingly:
-
-| Table | Created By | Used By |
-|---|---|---|
-| `agent`, `state`, `prompt` | **Hibernate (automatic)** | Backend |
-| `transition`, `prompt_transitions` | **Hibernate** | Backend |
-| `utterance`, `utterances` | **Hibernate** | Backend |
-| `storage`, `storage_entry` | **Hibernate** | Backend |
-| `user_agents` | Manual via [`SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) | Frontend |
-| `user_legacies` | Manual | Frontend |
-| `legacy_access_codes` | Manual | Frontend |
-| `legacy_messages` | Manual | Frontend |
-
-**Important caveat:** Hibernate's `update` mode adds new columns but does NOT change column types. When Oblivio migrated from `VARCHAR(10000)` to `TEXT` (for long persona prompts), this had to be done manually:
-```sql
-ALTER TABLE prompt ALTER COLUMN prompt TYPE TEXT;
-```
-
-### 5. The Full Request Flow (Single Message Example)
-
-When a visitor sends a message in the Legacy Chat:
-
-```
-1. Browser → POST https://promise-production.up.railway.app/{agentId}/respond
-              body: { "content": "Tell me about your childhood" }
-              
-2. Railway: AgentController.respond() handles the request
-              
-3. Spring + JPA: Loads Agent + all states + all utterances from Supabase
-
-4. Agent.respond("Tell me...") → State.respond(...)
-              
-5. State.respond() calls Utterances.compactIfNeeded()
-   ├── if >20 user messages, calls LMOpenAI.summariseOffline()
-   ├──    → OpenAI API call to summarize old messages
-   └── replaces old messages with one system message
-
-6. State.respond() calls LMOpenAI.complete()
-   └── → OpenAI API call to generate the persona's response
-
-7. Persona response is added to utterances
-
-8. State.raiseIfTransit() checks all transitions
-   └── each Decision calls LMOpenAI.decide() → true/false from GPT
-   
-9. If guard returns true → Transition fires:
-   ├── StaticExtractionAction.execute() saves data to storage
-   └── currentState = subsequentState
-
-10. Repository.save(agent) → JPA writes everything back to Supabase
-
-11. Response returned to browser → also saved to legacy_messages by frontend
-```
-
-### 6. Frontend Deployment (Separate Workflow)
-
-The frontend is **not on GitHub**. It's uploaded manually via FTP to Hostpoint:
-
-```
-Local: edit Website/legacy.html
-        │
-        ▼
-FTP-Client uploads to Hostpoint server
-        │
-        ▼
-Live on https://oblivio.ch
-```
+**Where the data goes:**
+- The greeting (real or `__WAIT__`) is added to `utterances` in Supabase
+- The frontend displays the real greeting in the chat or shows a hint instead
 
 ---
 
-## Data Flow: From User Input to Supabase
+### Step 14 — The Conversation Loop
 
-Whenever a user enters data on oblivio.ch (registration, pre-survey answers, chat messages), it's almost always sent **directly to Supabase** — not stored locally. This section explains exactly what gets stored where.
+**What happens:** For every message the visitor types, the same flow runs:
 
-### What Goes Where
+1. Frontend sends `POST /{agentId}/respond`
+2. Backend adds the message to the agent's `utterances`, runs `compactIfNeeded()`, calls GPT-4o for a response, checks if the visitor is saying goodbye (Guard), then returns the response
+3. Frontend writes both messages (visitor + persona) to Supabase `legacy_messages`
+4. Frontend displays the persona's response
+5. Optionally: Frontend calls `POST /{agentId}/tts?voice_id=...` for spoken audio
 
-| Data Entered by User | Stored In | Visible to Admin? |
-|---|---|---|
-| Login / Registration | **Supabase** (`auth.users`) | ✓ Dashboard |
-| Pre-Survey answers (Block 0) | **Supabase** (`questionnaire_answers`) | ✓ Dashboard |
-| Biographer conversation messages | **Supabase** (PROMISE tables via backend) | ✓ Dashboard |
-| Block 1–10 summaries | **Supabase** (`user_legacies`) | ✓ Dashboard |
-| Persona access codes | **Supabase** (`legacy_access_codes`) | ✓ Dashboard |
-| Legacy chat messages | **Supabase** (`legacy_messages`) | ✓ Dashboard |
-| Visitor name + relation (in Legacy Chat) | **Supabase** (`legacy_messages.visitor_name`) | ✓ Dashboard |
-| ─────────────── | ─────────────── | ─────────────── |
-| Active language preference | **localStorage** (browser only) | ✗ |
-| Visitor UUID (per browser) | **localStorage** | ✗ |
-| Selected variant (1/2/3) | **localStorage** | ✗ |
-| TTS on/off toggle | **localStorage** | ✗ |
+**Frontend files:**
+- [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js) — `sendLegacyMessage()` function
+- [`Website-template/legacy.html`](Website-template/legacy.html) — `saveMessage()` (~line 1212) writes to Supabase; voice playback via `Audio(URL.createObjectURL(blob))`
 
-### Why this split?
+**Backend / Railway:**
+- [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — `respond()` endpoint
+- [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) — state-machine logic
+- [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) — context compaction
+- [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) — LLM call
+- [`controllers/TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — calls ElevenLabs API, returns MP3 bytes
 
-- **localStorage** holds **UI preferences** that should not follow the user across devices (e.g., a phone session should not inherit a desktop's last-used variant).
-- **Supabase** holds **content** that must be centrally retrievable, multi-device accessible, and visible to the admin (you) via the Dashboard.
+**PROMISE adaptations:**
+- **Context Compaction** (same as Step 5a) keeps cost low across long chats
+- **TTS Controller (new file):** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — PROMISE has no audio output. Oblivio added this as a server-side bridge so the ElevenLabs API key stays on Railway (never exposed to the browser)
+- **New DTO:** [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java)
 
-### Concrete Example: User Answers Pre-Survey (Block 0)
+**Where the data goes:**
+- **Supabase PROMISE-tables (Hibernate):** Each message is stored as a row in `utterance`
+- **Supabase Oblivio-tables (frontend):** Each message is *also* written to `legacy_messages` with: `access_code`, `visitor_id` (mode-scoped: `<uuid>__active` etc.), `visitor_name`, `user_id`, `role` (`user`/`legacy`), `content`, `created_at`
+- **OpenAI API:** the GPT-4o call (text → text)
+- **ElevenLabs API:** optional text-to-speech call (text → MP3)
 
-```
-Browser:  "My age is 28, gender female, traits ..."
-   │
-   ▼
-JavaScript collects answers into a {} object
-   │
-   ▼
-supabase.from('questionnaire_answers').insert({
-    user_id: currentUser.id,
-    answers: { age: 28, gender: 'female', traits: [...] }
-});
-   │
-   ▼
-HTTPS request to https://<project>.supabase.co
-   │
-   ▼
-Supabase persists the row in PostgreSQL  ← centrally, not locally
-   │
-   ▼
-Immediately retrievable in the Supabase Dashboard:
-SELECT * FROM questionnaire_answers WHERE user_id = '...';
-```
-
-### Concrete Example: Legacy Chat Message
-
-When a visitor types a message in the Legacy chat, **two parallel requests** are fired:
-
-```
-Browser: "Hi, how are you?"
-   │
-   ├──► (1) Railway Backend ─► POST /{agentId}/respond
-   │       └─► Returns the persona's AI response
-   │
-   └──► (2) Supabase Directly ─► INSERT INTO legacy_messages
-           └─► Persists the message
-```
-
-The backend handles the conversation logic; Supabase handles the persistence. Two separate concerns.
-
-### Where the Insert Happens in Code
-
-For each writeable table, here is the file and method that performs the insert:
-
-| Insert Target | Source File | Method/Location |
-|---|---|---|
-| `questionnaire_answers` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Block 0 submit |
-| `user_agents` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Biographer creation |
-| `user_legacies` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Block 10 completion |
-| `legacy_access_codes` | [`Website-template/journey.html`](Website-template/journey.html) | When generating access code |
-| `legacy_messages` | [`Website-template/legacy.html`](Website-template/legacy.html) | `saveMessage()` function (~line 1212) |
-
-### How the Browser Knows the Supabase URL
-
-In [`Website-template/js/config.js.template`](Website-template/js/config.js.template):
-```javascript
-window.OBLIVIO_CONFIG = {
-    SUPABASE_URL: 'https://<project>.supabase.co',
-    SUPABASE_ANON_KEY: 'eyJhbGc...',  // public anon key
-    PROMISE_API_URL: 'https://promise-production.up.railway.app'
-};
-```
-
-The Anon Key is **deliberately public** — security is enforced via Supabase Row-Level Security (RLS) Policies, not via key secrecy. Each table has policies like *"users can only read rows where `user_id = auth.uid()`"*.
-
-### Retrieving the Data in Supabase
-
-Once stored, you can query any table directly in the Supabase Dashboard:
-
-```sql
--- See all pre-survey answers
-SELECT user_id, answers->>'age' AS age, answers->>'gender' AS gender, created_at
-FROM questionnaire_answers;
-
--- See all messages for a specific persona
-SELECT visitor_name, role, content, created_at
-FROM legacy_messages
-WHERE access_code = 'VDSRMACZ'
-ORDER BY created_at;
-
--- See which user has which biographer agent
-SELECT u.email, ua.agent_id, ua.language, ua.created_at
-FROM user_agents ua
-JOIN auth.users u ON u.id = ua.user_id;
-```
-
-### The Complete Cycle
-
-```
-   User types in browser
-        │
-        ▼
-   JavaScript function (in legacy.html / biographer.html / journey.html)
-        │
-        │ supabase.from('table').insert({...})
-        ▼
-   HTTPS request to Supabase
-        │
-        ▼
-   Supabase stores in PostgreSQL
-        │
-   ┌────┴────┐
-   ▼         ▼
-You at the  Backend on Railway
-Dashboard   (via JDBC for PROMISE tables)
-   │         │
-SELECT *   Hibernate queries
-```
+The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PROMISE tables are the canonical state-machine record (used to reconstruct the agent on the next request), while `legacy_messages` is a denormalised read-friendly history for the frontend and analytics.
 
 ---
 
-## What Was Adapted From PROMISE
+### Step 15 — Variant Switching (Optional, Anytime)
 
-Oblivio is built on top of [PROMISE](https://github.com/zhaw-iwi/promise), a state-machine framework for LLM conversations developed at ZHAW. This section is a **step-by-step guide** to recreate Oblivio from a fresh PROMISE clone — with concrete before/after code comparisons.
+**What happens:** Mid-conversation, the visitor clicks a different variant button (e.g. switches from Variant 2 to Variant 1). The frontend creates a **new** PROMISE agent with the new variant's prompt, includes the old conversation as context, and loads the previous history for the new mode if any exists.
 
----
+**Frontend files:**
+- [`Website-template/legacy.html`](Website-template/legacy.html) — `switchMode()` function: changes `currentMode`, updates `getScopedVisitorId(newMode)`, calls `createLegacyAgent()` again with the new prompt
 
-### Step 1: Fork PROMISE and Set Up Local Environment
+**Backend / Railway:**
+- Same flow as Step 12: a new `POST /agent/singlestate` request creates another agent on Railway.
 
-```bash
-git clone https://github.com/zhaw-iwi/promise.git oblivio-backend
-cd oblivio-backend
-```
+**PROMISE adaptations:**
+- The agent itself is stock PROMISE. The mode-scoped `visitor_id` is the Oblivio mechanism that keeps the three histories isolated per browser.
 
-Required tools:
-- Java 21 (JDK)
-- Maven Wrapper (included)
-- PostgreSQL access (local or Supabase)
-- OpenAI API Key
-- (Optional) ElevenLabs API Key
+**Where the data goes:**
+- Supabase `legacy_messages` filter changes (`WHERE visitor_id = '<uuid>__<newmode>'`)
+- A new agent UUID is created in Supabase PROMISE-tables
+- Old agent stays untouched (the visitor can return)
 
 ---
 
-### Step 2: Swap MySQL for PostgreSQL in [`pom.xml`](pom.xml)
+### Step 16 — Session Ends
 
-**Why this change?**
-PROMISE was originally configured for MySQL. Oblivio needed a hosted database with built-in authentication and JWT support — Supabase was chosen because it offers PostgreSQL plus user management out of the box, removing the need to write a separate auth service. PostgreSQL also handles JSONB and TEXT columns better than MySQL, which matters for our long persona prompts and structured block summaries.
+**What happens:** The visitor closes the browser, or the persona's "goodbye" guard fires and transitions the agent to Final. Either way, the conversation history is persisted.
 
-**Before (PROMISE):**
-```xml
-<dependency>
-    <groupId>com.mysql</groupId>
-    <artifactId>mysql-connector-j</artifactId>
-    <scope>runtime</scope>
-</dependency>
-```
+**Frontend files:**
+- [`Website-template/legacy.html`](Website-template/legacy.html) — `loadConversationHistory()` rehydrates the chat on the next visit
 
-**After (Oblivio):**
-```xml
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <scope>runtime</scope>
-</dependency>
-```
+**Backend / Railway:**
+- [`model/Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) — Final state if goodbye triggered
+- [`model/commons/actions/StaticExtractionAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) — extracts a summary of the whole legacy chat to storage (optional analytics)
 
-**Without this change:** Spring Boot would fail at startup with `Driver org.postgresql.Driver claims to not accept jdbcUrl` because the PostgreSQL driver wouldn't be on the classpath.
+**PROMISE adaptations:** none — final-state handling is stock PROMISE.
+
+**Where the data goes:**
+- Everything stays in Supabase. On return, the frontend reads `legacy_messages` filtered by `access_code` and `visitor_id` (mode-scoped) and rebuilds the chat history exactly.
+- Different devices show **different histories** because `visitor_id` is per-browser via `localStorage`.
 
 ---
 
-### Step 3: Migrate Database Columns to TEXT
-
-**Why this change?**
-PROMISE caps prompt columns at VARCHAR(10000). Oblivio's persona prompts are much longer because they contain six sections (IDENTITY + CHAPTERS + ANALYSIS + STYLE + EXAMPLES + SELF_KNOWLEDGE + RULES) — a single persona prompt can reach 20,000 characters. Without this migration, inserting such prompts crashes with `value too long for type character varying(10000)`. Switching to PostgreSQL's TEXT type removes the size limit entirely without performance penalties.
-
-Three Java entity files must be modified:
-
-**Before (in [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java)):**
-```java
-@Column(length = 10000)
-private String prompt;
-```
-
-**After:**
-```java
-@Column(columnDefinition = "TEXT")
-private String prompt;
-```
-
-**Important caveat — why this isn't automatic:** Hibernate's `ddl-auto=update` mode adds new columns but does NOT modify existing column types. If the database was previously running with VARCHAR(10000), the Java annotation alone won't change the schema. Run this manually in Supabase SQL Editor:
-```sql
-ALTER TABLE prompt ALTER COLUMN prompt TYPE TEXT;
-ALTER TABLE state ALTER COLUMN starter_prompt TYPE TEXT;
-ALTER TABLE state ALTER COLUMN summarise_prompt TYPE TEXT;
-ALTER TABLE utterance ALTER COLUMN content TYPE TEXT;
-```
-
----
-
-### Step 4: Add `userId` to [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) for Multi-User Tracking
-
-**Why this change?**
-PROMISE was designed for a single user — every agent in the database belonged to "the user". Oblivio is a multi-user platform: many people simultaneously run their own Biographer sessions and own their own Legacy personas. Without a `userId` field, there would be no way to filter "show me only my agents" — anyone could potentially see everyone else's conversations. Adding this column to the `agent` entity links each agent to a Supabase Auth user via UUID.
-
-**Add to `Agent` class:**
-```java
-// User-ID for Multi-User tracking
-private String userId;
-
-public String getUserId() { return this.userId; }
-public void setUserId(String userId) { this.userId = userId; }
-```
-
-**Without this change:** The `/user/{userId}/agents` endpoint (Step 12) would have no field to filter by — and the frontend dashboard couldn't show users their own biographer history.
-
----
-
-### Step 5: Add Context Compaction to [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java)
-
-**Why this change?**
-In PROMISE, every new user message resends the full conversation history to GPT — token costs grow linearly with conversation length. A 50-message conversation sends ~5000 input tokens on every turn, multiplied by every additional message. At GPT-4o pricing, a long biographer session can quickly cost several dollars. Beyond cost, GPT-4o's 128k token context window would eventually overflow for very long conversations, causing API errors.
-
-The compaction mechanism solves both problems: after 20 user messages, older messages are summarized into a single system message (3–5 sentences). This keeps the cost roughly constant regardless of conversation length, while still preserving the gist of what was discussed earlier. The threshold of 20 was chosen empirically — early enough to keep costs manageable, late enough that natural conversation context is preserved.
-
-**Add constants and method:**
-```java
-private static final int USER_MESSAGE_COMPACT_THRESHOLD = 20;
-private static final int MESSAGES_TO_KEEP = 10;
-
-public void compactIfNeeded() {
-    long userCount = utteranceList.stream()
-        .filter(u -> "user".equals(u.getRole())).count();
-    if (userCount <= USER_MESSAGE_COMPACT_THRESHOLD) return;
-
-    // Skip if already compacted
-    if (!utteranceList.isEmpty()
-        && "system".equals(utteranceList.get(0).getRole())
-        && utteranceList.get(0).getContent().startsWith("[Zusammenfassung")) return;
-
-    int splitPoint = utteranceList.size() - MESSAGES_TO_KEEP;
-    // ... build text from older messages, call LMOpenAI.summariseOffline()
-    // ... replace old messages with one system message
-}
-```
-
-Full implementation: ~60 lines. See [`Utterances.java:118-179`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java).
-
----
-
-### Step 6: Trigger Compaction in [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java)
-
-**Why this change?**
-The `compactIfNeeded()` method from Step 5 doesn't run by itself — it needs to be called at the right moment. The best moment is **right before each new LLM call**, so the compacted context is used in the next request. By placing it in `State.respond()` immediately after `acknowledge()` (which adds the new user message), every conversation in every state automatically benefits — Biographer, Legacy, even future agent types. One line, one place, full coverage.
-
-**Before (PROMISE `State.respond()`):**
-```java
-public Response respond(String userSays, String outerPrompt) throws TransitionException {
-    this.acknowledge(userSays, outerPrompt);
-    String totalPrompt = this.composeTotalPrompt(outerPrompt);
-    // ...
-}
-```
-
-**After (one line added):**
-```java
-public Response respond(String userSays, String outerPrompt) throws TransitionException {
-    this.acknowledge(userSays, outerPrompt);
-    this.utterances.compactIfNeeded();  // ← Oblivio addition
-    String totalPrompt = this.composeTotalPrompt(outerPrompt);
-    // ...
-}
-```
-
----
-
-### Step 7: Add `summariseOffline()` to [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java)
-
-**Why this change?**
-PROMISE's existing `summarise()` method returns a JSON object (designed for structured data extraction). But for context compaction, we need a plain-text paragraph to inject as a system message — JSON would confuse the LLM in subsequent turns. The new `summariseOffline()` method skips the JSON-format instruction and returns a raw string, ready to be wrapped in `[Zusammenfassung des bisherigen Gesprächs]` and prepended to the message list.
-
-**Add:**
-```java
-public static String summariseOffline(Utterances utterances, String systemPrepend) {
-    if (utterances.isEmpty()) throw new RuntimeException("...");
-    List<Utterance> totalPrompt = composePromptCondensed(utterances, systemPrepend);
-    return openai(totalPrompt, 0.0f, 0.0f);  // returns raw string
-}
-```
-
----
-
-### Step 8: Build the Biographer Factory ([`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java))
-
-**Why this change?**
-PROMISE provides only the building blocks (State, Transition, Decision, Action) — it does NOT provide ready-made agents. To create the Biographer, every block had to be hand-wired: a conversation state for asking questions, a confirmation state for validating the summary, transitions between them with the right guards, and an extraction action that saves the block summary to storage. Doing this 10 times manually would be error-prone, so the logic was centralized in one factory method. The factory also handles language selection (8 languages) and nickname injection so the same code produces customized biographers per user. **The chain is built backwards** because each transition needs to reference its `subsequentState`, which must exist at creation time — starting from Final and working back to Block 1 is the only practical way.
-
-This is the most complex addition (~500 lines). The Biographer is a chain of 21 states (10 blocks × 2 + Final).
-
-**Key method:**
-```java
-public static Agent createBiographerAgent(BiographerAgentCreateDTO data) {
-    var storage = new Storage();
-    String[][] prompts = buildBlockPrompts(data.getLanguage(), data.getNickname());
-    String[] blockNames = buildBlockNames();
-
-    // Start at Final, build backwards
-    State current = new Final("Biografie abgeschlossen",
-                              getFinalPrompt(data.getLanguage()),
-                              getFinalStarterPrompt(data.getLanguage(), data.getNickname()));
-
-    for (int i = 9; i >= 0; i--) {
-        // Build Confirm state
-        Decision confirmGuard = new StaticDecision(prompts[i][5]);
-        Action extract = new StaticExtractionAction(prompts[i][6], storage, "block" + (i + 1));
-        Transition confirmT = new Transition(List.of(confirmGuard), List.of(extract), current);
-        State confirmState = new State(prompts[i][3], blockNames[i] + " - Bestätigung",
-                                       prompts[i][4], List.of(confirmT));
-
-        // Build Conv state
-        Decision convGuard = new StaticDecision(prompts[i][2]);
-        Action transfer = new TransferUtterancesAction(confirmState);
-        Transition convT = new Transition(List.of(convGuard), List.of(transfer), confirmState);
-        State convState = new State(prompts[i][0], blockNames[i], prompts[i][1], List.of(convT));
-
-        current = convState;
-    }
-    return new Agent(data.getAgentName(), data.getAgentDescription(), current, storage);
-}
-```
-
-Plus helpers:
-- `buildBlockPrompts(language, nickname)` — returns 2D array `prompts[10][7]` with 70 prompt components
-- `buildBlockNames()` — 10 block names
-- `getLanguageInstruction(language)` — language prefix for 8 languages
-- `getFinalPrompt(language)`, `getFinalStarterPrompt(language, nickname)` — for the Final state
-
----
-
-### Step 9: Add `/agent/biographer` Endpoint
-
-**Why this change?**
-PROMISE exposes only `POST /agent/singlestate`, which creates a basic single-state agent. The Biographer is fundamentally different — it has 21 states, accepts a language parameter, and accepts a nickname. Adding a dedicated endpoint keeps the API clean: the frontend simply calls `/agent/biographer` with the user's chosen language and gets back a fully wired agent. Sharing the `/agent/singlestate` endpoint would require overloading it with optional fields and runtime type-checks, which is messy.
-
-In [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java), add:
-
-```java
-@PostMapping("agent/biographer")
-public ResponseEntity<AgentInfoView> createBiographer(@RequestBody BiographerAgentCreateDTO data) {
-    if (data == null || AgentMetaType.biographer.getValue() != data.getType()) {
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-    }
-    Agent agent = AgentMetaUtility.createBiographerAgent(data);
-    this.repository.save(agent);
-    return new ResponseEntity<>(new AgentInfoView(agent.getId(), agent.getName(),
-                                                   agent.getDescription(), agent.isActive()),
-                                HttpStatus.OK);
-}
-```
-
-Plus extend [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java) with `biographer = 1`.
-
-Plus create [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) (extends `SingleStateAgentCreateDTO` with `language` and `nickname` fields).
-
----
-
-### Step 10: Add CORS Configuration
-
-**Why this change?**
-The Oblivio frontend lives on `oblivio.ch` (Hostpoint), the backend on `promise-production.up.railway.app` (Railway). These are two different domains. By default, browsers enforce the Same-Origin Policy: a JavaScript fetch from one origin to another is blocked unless the server explicitly permits it. Without CORS headers from the backend, every API call from the frontend would fail with `Access-Control-Allow-Origin missing`. The CORS configuration tells the browser "yes, this Railway server accepts requests from any origin" — a single Spring Boot bean fixes this for all endpoints at once.
-
-**Create new file [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java):**
-```java
-@Configuration
-public class WebConfig {
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOriginPatterns("*")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
-            }
-        };
-    }
-}
-```
-
----
-
-### Step 11: Add TTS Bridge ([`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java))
-
-**Why this change?**
-PROMISE is text-only — there's no audio. Oblivio's legacy personas needed voices to feel emotionally real (a grandmother's voice carries memory the way text cannot). ElevenLabs provides the voice synthesis. But we cannot call ElevenLabs directly from the browser, because that would expose the API key in the frontend code where anyone could copy it and run up our bill. The Backend-as-a-bridge pattern keeps the key on the server: the frontend sends plain text to our backend, and our backend calls ElevenLabs with the key and returns the MP3 bytes.
-
-```java
-@PostMapping("{agentID}/tts")
-public ResponseEntity<byte[]> textToSpeech(@PathVariable String agentID,
-                                            @RequestBody TTSRequest request,
-                                            @RequestParam String voice_id) {
-    String url = "https://api.elevenlabs.io/v1/text-to-speech/" + voice_id
-                 + "?output_format=mp3_44100_128";
-    Map<String, Object> body = Map.of(
-        "text", request.getText(),
-        "model_id", "eleven_multilingual_v2",
-        "voice_settings", Map.of("stability", 0.5, "similarity_boost", 0.75)
-    );
-    // ... RestTemplate POST, return MP3 bytes
-}
-```
-
-Also create [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java) as the request DTO.
-
----
-
-### Step 12: Add Multi-User Endpoints ([`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java))
-
-**Why this change?**
-PROMISE's `AgentController` exposes operations per-agent (`/{agentId}/respond` etc.), but it has no endpoints per-user. Once we added `userId` to the Agent entity (Step 4), we need ways to query "show me all of user X's agents", "their full conversation history", and "their usage stats". The frontend journey-dashboard page needs these endpoints to render the user's overview.
-
-```java
-@GetMapping("/user/{userId}/agents")        // List user's agents
-@GetMapping("/user/{userId}/conversations") // Their conversations
-@GetMapping("/user/{userId}/stats")         // Statistics
-```
-
-Plus DTOs [`UserAgentView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserAgentView.java) and [`UserConversationView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserConversationView.java).
-
----
-
-### Step 13: Add Live Log Streaming (`logging/` package)
-
-**Why this change?**
-When something goes wrong in production on Railway, getting logs traditionally requires SSH access or the Railway CLI — neither is convenient during a live debugging session. With the live log stream, we open `/logs/stream` in any browser and immediately see what the state machine is doing in real time. This was especially helpful while debugging the cascading-transition bug: watching guards fire in sequence revealed exactly which condition was wrong. Implemented with Server-Sent Events because they're unidirectional (server → browser only), require no special client libraries, and survive automatic reconnects.
-
-Four new classes:
-
-- [`LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java) — DTO
-- [`SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java) — Logback appender
-- [`LogStreamBroadcaster.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamBroadcaster.java) — broadcaster
-- [`LogStreamController.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamController.java) — `GET /logs/stream` endpoint
-
-Register the appender in [`logback-spring.xml`](src/main/resources/logback-spring.xml).
-
----
-
-### Step 14: Add Production Properties
-
-**Why this change?**
-PROMISE ships with only local-development properties — database URL, password, API key are hardcoded. Pushing those to GitHub would leak credentials. Spring Boot's "profiles" mechanism allows different property files per environment: `application-prod.properties` is loaded only when `SPRING_PROFILES_ACTIVE=prod` is set. By using `${ENV_VAR}` placeholders, the actual values come from Railway's environment variables at runtime — keeping passwords out of the repository entirely. The `prepareThreshold=0` setting at the bottom is essential because Supabase uses PgBouncer in transaction-pooling mode, which incompatibly handles prepared statements.
-
-**Create [`application-prod.properties`](src/main/resources/application-prod.properties):**
-```properties
-spring.datasource.url=${SPRING_DATASOURCE_URL}
-spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
-spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
-spring.datasource.hikari.maximum-pool-size=5
-spring.datasource.hikari.data-source-properties.prepareThreshold=0  # PgBouncer-compatible
-```
-
-**Create [`openai-prod.properties`](src/main/resources/openai-prod.properties):**
-```properties
-openai.url=https://api.openai.com/v1/chat/completions
-openai.api-key-header=Authorization
-openai.api-key-prefix=Bearer
-openai.key=${OPENAI_KEY}
-openai.model=gpt-4o
-```
-
----
-
-### Step 15: Containerize for Railway
-
-**Why this change?**
-PROMISE has no Dockerfile — it's meant to be run locally with `mvn spring-boot:run`. Railway needs an image to deploy, so we package the application in a Docker container. The multi-stage build is deliberate: Stage 1 includes the full JDK and Maven (~700 MB) needed only to compile the JAR, Stage 2 contains just the JRE and the compiled JAR (~200 MB). The smaller final image starts faster on Railway, uses less memory, and is more secure (fewer attack vectors than a JDK). The `USER nobody` line follows the principle of least privilege — if a vulnerability is exploited, the attacker has no shell privileges. The healthcheck lets Railway automatically restart the container if it stops responding.
-
-Create [`Dockerfile`](Dockerfile) (multi-stage build):
-```dockerfile
-# Stage 1: Build
-FROM eclipse-temurin:21-jdk AS build
-WORKDIR /app
-COPY . .
-RUN ./mvnw clean package -DskipTests
-
-# Stage 2: Runtime
-FROM eclipse-temurin:21-jre
-WORKDIR /app
-COPY --from=build /app/target/*.jar app.jar
-EXPOSE 8080
-USER nobody
-HEALTHCHECK CMD curl -f http://localhost:8080/actuator/health || exit 1
-CMD ["java", "-jar", "app.jar"]
-```
-
-Create [`railway.json`](railway.json):
-```json
-{
-  "build": { "builder": "DOCKERFILE" },
-  "deploy": {
-    "startCommand": "java -jar app.jar",
-    "healthcheckPath": "/actuator/health",
-    "restartPolicyType": "ON_FAILURE"
-  }
-}
-```
-
-Create [`.railwayignore`](.railwayignore) to skip unnecessary files during build:
-```
-target/
-.git/
-docs/
-sql/
-*.md
-```
-
----
-
-### Step 16: Create Supabase Tables for Frontend
-
-**Why this change?**
-Hibernate automatically creates all PROMISE-related tables (agent, state, prompt, utterance, etc.) when the backend starts. But the frontend talks **directly to Supabase** via the JavaScript client (bypassing the backend) for things like login, persona lookup, and message persistence. Those tables don't have corresponding Java entities, so Hibernate doesn't know about them — they must be created manually. Splitting responsibility this way is intentional: it lets the frontend operate independently of the backend for read-heavy operations, reducing latency and load on Railway.
-
-Run [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) once on Supabase. Creates the tables used by the frontend (not by Hibernate):
-
-| Table | Purpose |
-|---|---|
-| `user_agents` | Links Supabase user → PROMISE agent ID |
-| `user_legacies` | Stores final block summaries as JSONB |
-| `legacy_access_codes` | Persona access codes with `legacy_data`, `voice_id`, `avatar_url` |
-| `legacy_messages` | All legacy chat messages (filtered by `visitor_id`) |
-| `questionnaire_answers` | Pre-survey (Block 0) responses |
-
----
-
-### Step 17: Deploy to Railway
-
-**Why Railway?**
-Railway was chosen because it integrates seamlessly with GitHub: every push to `main` triggers a fresh build and rolling deployment automatically — no separate CI/CD scripts, no manual SSH, no downtime. Alternatives like AWS or Google Cloud would have required significantly more setup. Railway also handles SSL/HTTPS, automatic restarts on failure, and Docker builds out of the box. The combination of "git push = live in 3 minutes" was essential for iterating quickly during the bachelor's thesis.
-
-1. Push code to GitHub
-2. On Railway: "New Project" → "Deploy from GitHub" → select your fork
-3. Set environment variables in Railway Dashboard:
-   ```
-   SPRING_DATASOURCE_URL=jdbc:postgresql://<project>.supabase.co:5432/postgres
-   SPRING_DATASOURCE_USERNAME=postgres
-   SPRING_DATASOURCE_PASSWORD=...
-   OPENAI_KEY=sk-proj-...
-   ELEVENLABS_API_KEY=...
-   SPRING_PROFILES_ACTIVE=prod
-   ```
-4. Railway auto-builds the Dockerfile and starts the container
-5. Generate a public domain in Railway settings → done
-
-From now on: every `git push origin main` triggers a new deployment automatically.
-
----
-
-### Summary: Files Modified vs Added
-
-| Category | Count | Examples |
-|---|---|---|
-| **Unchanged from PROMISE** | ~30 files | Agent, Transition, Storage, all `commons/*`, all `repositories/*` |
-| **Slightly modified** | 7 files | Prompt, State, Utterance (TEXT), Agent (userId), AgentMetaController (+endpoint), AgentMetaType, State (+compactIfNeeded call) |
-| **Heavily extended** | 3 files | AgentMetaUtility (+500), Utterances (+60), LMOpenAI (+10) |
-| **Completely new (Java)** | 11 files | WebConfig, TTSController, UserLogController, 4× logging/, 4× DTOs/views |
-| **Completely new (infra)** | 7 files | Dockerfile, railway.json, .railwayignore, .env.example, application-prod, openai-prod, CITATION.cff |
-
----
-
-## Anpassungen am PROMISE-Framework (Deutsch)
-
-> **Deutsche Version der oben stehenden Anleitung.** Dieselben 17 Schritte, in derselben Reihenfolge — für Leser der Bachelorarbeit.
-
-Oblivio baut auf [PROMISE](https://github.com/zhaw-iwi/promise) auf, einem zustandsbasierten Konversationsframework des Instituts für Informatik der ZHAW. Dieser Abschnitt beschreibt **Schritt für Schritt**, was am Original-PROMISE geändert wurde und **warum**.
-
-### Schritt 1: PROMISE forken und lokale Umgebung einrichten
-
-```bash
-git clone https://github.com/zhaw-iwi/promise.git oblivio-backend
-cd oblivio-backend
-```
-
-Benötigte Werkzeuge: Java 21 (JDK), Maven Wrapper (mitgeliefert), PostgreSQL-Zugang (lokal oder Supabase), OpenAI API-Key, optional ElevenLabs API-Key.
-
----
-
-### Schritt 2: MySQL durch PostgreSQL in [`pom.xml`](pom.xml) ersetzen
-
-**Warum diese Änderung?**
-PROMISE war ursprünglich für MySQL konfiguriert. Oblivio benötigte eine gehostete Datenbank mit eingebauter Authentifizierung und JWT-Unterstützung — Supabase wurde gewählt, weil es PostgreSQL plus Benutzerverwaltung "out of the box" anbietet. Dadurch entfällt die Notwendigkeit, einen separaten Authentifizierungsdienst zu schreiben. PostgreSQL handhabt zudem JSONB- und TEXT-Spalten besser als MySQL, was für unsere langen Persona-Prompts und strukturierten Block-Zusammenfassungen entscheidend ist.
-
-Konkret wird die MySQL-Dependency entfernt und durch die PostgreSQL-Dependency ersetzt. **Ohne diese Änderung:** Spring Boot würde beim Start mit `Driver org.postgresql.Driver claims to not accept jdbcUrl` abbrechen, weil der PostgreSQL-Treiber nicht im Classpath wäre.
-
----
-
-### Schritt 3: Datenbank-Spalten auf TEXT migrieren
-
-**Warum diese Änderung?**
-PROMISE limitiert die Prompt-Spalten auf VARCHAR(10000). Die Persona-Prompts in Oblivio sind deutlich länger, weil sie sechs Sektionen enthalten (IDENTITY + CHAPTERS + ANALYSIS + STYLE + EXAMPLES + SELF_KNOWLEDGE + RULES) — ein einzelner Persona-Prompt kann 20.000 Zeichen erreichen. Ohne diese Migration würde der Insert mit `value too long for type character varying(10000)` abbrechen. Der Wechsel auf den TEXT-Typ von PostgreSQL hebt das Grössenlimit vollständig auf, ohne Performance-Nachteile.
-
-Drei Java-Entity-Dateien werden angepasst: [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) — jeweils `@Column(length = 10000)` zu `@Column(columnDefinition = "TEXT")`.
-
-**Wichtiger Stolperstein:** Hibernates `ddl-auto=update`-Modus fügt neue Spalten hinzu, ändert aber **keine** bestehenden Spaltentypen. Wenn die DB bereits mit VARCHAR(10000) lief, müssen die `ALTER TABLE ... TYPE TEXT`-Statements manuell in Supabase ausgeführt werden.
-
----
-
-### Schritt 4: `userId` zu [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) hinzufügen (Multi-User-Tracking)
-
-**Warum diese Änderung?**
-PROMISE war für einen einzelnen Benutzer konzipiert — jeder Agent in der Datenbank gehört "dem Benutzer". Oblivio ist eine Multi-User-Plattform: Viele Personen führen gleichzeitig ihre eigenen Biographer-Sessions und besitzen ihre eigenen Legacy-Personas. Ohne ein `userId`-Feld gäbe es keine Möglichkeit zu filtern, welche Agents zu welchem User gehören — jeder könnte potenziell die Gespräche aller anderen sehen. Das Hinzufügen dieser Spalte verknüpft jeden Agent über UUID mit einem Supabase-Auth-User.
-
-**Ohne diese Änderung:** Der `/user/{userId}/agents`-Endpoint (Schritt 12) hätte kein Feld zum Filtern — und das Frontend-Dashboard könnte den Usern ihre eigene Biographer-Historie nicht anzeigen.
-
----
-
-### Schritt 5: Context Compaction in [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java)
-
-**Warum diese Änderung?**
-In PROMISE wird bei jeder neuen User-Nachricht der **gesamte Gesprächsverlauf** erneut an GPT geschickt — die Token-Kosten wachsen linear mit der Gesprächslänge. Ein 50-Nachrichten-Gespräch sendet ~5000 Input-Tokens bei jeder weiteren Nachricht, multipliziert mit jeder zusätzlichen Antwort. Bei GPT-4o-Preisen kann eine lange Biographer-Session schnell mehrere Dollar kosten. Zusätzlich würde das 128k-Token-Kontextfenster von GPT-4o bei sehr langen Gesprächen überlaufen und API-Fehler erzeugen.
-
-Der Compaction-Mechanismus löst beide Probleme: Nach 20 User-Nachrichten werden ältere Nachrichten zu einer einzigen System-Nachricht (3–5 Sätze) zusammengefasst. Die Kosten bleiben unabhängig von der Gesprächslänge weitgehend konstant, während die Essenz der bisherigen Konversation erhalten bleibt. Der Schwellwert von 20 wurde empirisch gewählt — früh genug um Kosten zu kontrollieren, spät genug um natürlichen Kontext zu bewahren.
-
-Die neue Methode `compactIfNeeded()` (~60 Zeilen) zählt User-Nachrichten, überspringt bereits kompaktierte Gespräche, ruft `LMOpenAI.summariseOffline()` zur Zusammenfassung auf und ersetzt die alten Nachrichten durch eine einzige System-Message mit dem Präfix `[Zusammenfassung des bisherigen Gesprächs]`.
-
----
-
-### Schritt 6: Compaction in [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) auslösen
-
-**Warum diese Änderung?**
-Die `compactIfNeeded()`-Methode aus Schritt 5 läuft nicht von selbst — sie muss zum richtigen Zeitpunkt aufgerufen werden. Der beste Moment ist **direkt vor jedem neuen LLM-Aufruf**, damit der kompaktierte Kontext in der nächsten Anfrage genutzt wird. Indem der Aufruf in `State.respond()` unmittelbar nach `acknowledge()` platziert wird (wo die neue User-Nachricht hinzugefügt wird), profitiert jedes Gespräch in jedem State automatisch davon — Biographer, Legacy und sogar zukünftige Agent-Typen. **Eine Zeile, ein Ort, volle Abdeckung.**
-
----
-
-### Schritt 7: `summariseOffline()` zu [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) hinzufügen
-
-**Warum diese Änderung?**
-Die bestehende `summarise()`-Methode von PROMISE gibt ein JSON-Objekt zurück (entworfen für strukturierte Datenextraktion). Für die Context Compaction brauchen wir aber einen reinen Text-Paragraphen, der als System-Nachricht eingefügt wird — JSON würde das LLM in den nachfolgenden Turns verwirren. Die neue `summariseOffline()`-Methode überspringt die JSON-Format-Anweisung und gibt einen Plain-String zurück, bereit zur Einbettung in `[Zusammenfassung des bisherigen Gesprächs]`.
-
----
-
-### Schritt 8: Biographer-Factory in [`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) bauen
-
-**Warum diese Änderung?**
-PROMISE liefert nur die Bausteine (State, Transition, Decision, Action) — es liefert **keine fertigen Agenten**. Um den Biographer zu erstellen, musste jeder Block von Hand verdrahtet werden: ein Conv-State für die Fragen, ein Confirm-State für die Validierung der Zusammenfassung, Transitions zwischen ihnen mit den richtigen Guards, und eine Extraction-Action zum Speichern der Block-Summary im Storage. Das 10-mal manuell zu tun wäre fehleranfällig, also wurde die Logik in einer einzigen Factory-Methode zentralisiert. Die Factory handhabt auch die Sprachauswahl (8 Sprachen) und die Nickname-Injektion, sodass derselbe Code unterschiedlich personalisierte Biografen pro User erzeugen kann.
-
-**Die Kette wird rückwärts aufgebaut**, weil jede Transition einen `subsequentState` referenzieren muss, der zur Erstellungszeit bereits existieren muss. Bei Final zu beginnen und rückwärts bis Block 1 zu arbeiten ist der einzige praktikable Weg.
-
-Plus drei Hilfsmethoden:
-- `buildBlockPrompts(language, nickname)` — liefert das 2D-Array `prompts[10][7]` mit 70 Prompt-Komponenten
-- `getLanguageInstruction(language)` — Sprach-Präfix für 8 Sprachen (Trick: alle Prompts liegen auf Deutsch vor, GPT übersetzt zur Laufzeit)
-- `getFinalPrompt(language)` und `getFinalStarterPrompt(language, nickname)` — für den Final-State
-
----
-
-### Schritt 9: `/agent/biographer`-Endpoint hinzufügen
-
-**Warum diese Änderung?**
-PROMISE exponiert nur `POST /agent/singlestate`, das einen einfachen Single-State-Agent erzeugt. Der Biographer ist fundamental anders — er hat 21 States, akzeptiert einen Sprach-Parameter und einen Nickname. Ein eigener Endpoint hält die API sauber: das Frontend ruft einfach `/agent/biographer` mit der gewählten Sprache auf und erhält einen vollständig verdrahteten Agenten zurück. Den `/agent/singlestate`-Endpoint zu überladen würde optionale Felder und Laufzeit-Typ-Prüfungen erfordern, was unsauber wäre.
-
-Plus Erweiterung von [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java) um den Wert `biographer = 1` und Erstellung von [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java).
-
----
-
-### Schritt 10: CORS-Konfiguration hinzufügen
-
-**Warum diese Änderung?**
-Das Oblivio-Frontend läuft auf `oblivio.ch` (Hostpoint), das Backend auf `promise-production.up.railway.app` (Railway). Das sind zwei verschiedene Domains. Standardmässig erzwingen Browser die Same-Origin-Policy: ein JavaScript-Fetch von einer Origin zu einer anderen wird blockiert, ausser der Server erlaubt es explizit. Ohne CORS-Header vom Backend würde jeder API-Aufruf vom Frontend mit `Access-Control-Allow-Origin missing` fehlschlagen.
-
-Die CORS-Konfiguration sagt dem Browser "ja, dieser Railway-Server akzeptiert Requests von jeder Origin" — eine einzige Spring-Boot-Bean löst das für alle Endpoints auf einmal. Wurde als neue Datei [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) erstellt.
-
----
-
-### Schritt 11: TTS-Bridge ([`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java))
-
-**Warum diese Änderung?**
-PROMISE ist text-only — es gibt keine Audio-Funktion. Die Legacy-Personas in Oblivio brauchten Stimmen, um emotional real zu wirken (die Stimme einer Grossmutter trägt Erinnerungen so, wie Text es nicht kann). ElevenLabs liefert die Sprachsynthese.
-
-Wir können ElevenLabs aber nicht direkt vom Browser aufrufen, weil das den API-Key im Frontend-Code preisgeben würde, wo ihn jeder kopieren und unsere Rechnung in die Höhe treiben könnte. Das Backend-as-a-Bridge-Pattern hält den Key auf dem Server: das Frontend sendet einfachen Text an unser Backend, und unser Backend ruft ElevenLabs mit dem Key auf und gibt die MP3-Bytes zurück.
-
----
-
-### Schritt 12: Multi-User-Endpoints ([`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java))
-
-**Warum diese Änderung?**
-Der `AgentController` von PROMISE exponiert Operationen pro-Agent (`/{agentId}/respond` usw.), aber keine Endpoints pro-User. Sobald wir `userId` zur Agent-Entity hinzugefügt haben (Schritt 4), brauchen wir Wege, "zeige mir alle Agenten von User X", "deren komplette Gesprächshistorie" und "ihre Nutzungsstatistik" abzufragen. Die Journey-Dashboard-Seite des Frontends benötigt diese Endpoints, um die User-Übersicht zu rendern.
-
----
-
-### Schritt 13: Live-Log-Streaming (`logging/`-Paket)
-
-**Warum diese Änderung?**
-Wenn in der Produktion auf Railway etwas schiefgeht, erfordert das Holen von Logs traditionell SSH-Zugang oder das Railway-CLI — beides ist während einer Live-Debugging-Session unbequem. Mit dem Live-Log-Stream öffnen wir `/logs/stream` in irgendeinem Browser und sehen sofort in Echtzeit, was die State Machine gerade tut. Das war besonders hilfreich beim Debugging des Cascading-Transition-Bugs: das Beobachten der nacheinander feuernden Guards zeigte exakt, welche Bedingung falsch war.
-
-Implementiert mit Server-Sent Events, weil sie unidirektional (nur Server → Browser) sind, keine speziellen Client-Bibliotheken benötigen und automatische Wiederverbindungen unterstützen. Vier neue Klassen im `logging/`-Paket: [`LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java), [`SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java), [`LogStreamBroadcaster.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamBroadcaster.java), [`LogStreamController.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamController.java).
-
----
-
-### Schritt 14: Produktions-Properties hinzufügen
-
-**Warum diese Änderung?**
-PROMISE wird nur mit lokalen Entwicklungs-Properties ausgeliefert — Datenbank-URL, Passwort und API-Key sind hardcoded. Diese auf GitHub zu pushen würde Credentials leaken. Spring Boots "Profiles"-Mechanismus erlaubt unterschiedliche Property-Dateien pro Umgebung: [`application-prod.properties`](src/main/resources/application-prod.properties) wird nur geladen, wenn `SPRING_PROFILES_ACTIVE=prod` gesetzt ist.
-
-Durch die Verwendung von `${ENV_VAR}`-Platzhaltern kommen die tatsächlichen Werte aus den Environment-Variablen von Railway zur Laufzeit — Passwörter verlassen das Repository also nie. Die Einstellung `prepareThreshold=0` am Ende ist essenziell, weil Supabase PgBouncer im Transaction-Pooling-Modus verwendet, das Prepared Statements inkompatibel handhabt.
-
----
-
-### Schritt 15: Containerisierung für Railway
-
-**Warum diese Änderung?**
-PROMISE hat kein Dockerfile — es ist für lokales Ausführen mit `mvn spring-boot:run` gedacht. Railway benötigt aber ein Image zum Deployen, also packen wir die Anwendung in einen Docker-Container. Der **Multi-Stage-Build** ist bewusst gewählt: Stage 1 enthält das volle JDK und Maven (~700 MB), die nur zum Kompilieren des JARs benötigt werden. Stage 2 enthält nur das JRE und das kompilierte JAR (~200 MB).
-
-Das kleinere finale Image startet schneller auf Railway, verbraucht weniger Speicher und ist sicherer (weniger Angriffsflächen als ein JDK). Die `USER nobody`-Zeile folgt dem Least-Privilege-Prinzip — wenn eine Schwachstelle ausgenutzt wird, hat der Angreifer keine Shell-Privilegien. Der Healthcheck lässt Railway den Container automatisch neu starten, wenn er aufhört zu antworten.
-
-Plus [`railway.json`](railway.json) für die Railway-Konfiguration und [`.railwayignore`](.railwayignore) zum Überspringen unnötiger Dateien beim Build.
-
----
-
-### Schritt 16: Supabase-Tabellen für das Frontend anlegen
-
-**Warum diese Änderung?**
-Hibernate erstellt automatisch alle PROMISE-bezogenen Tabellen (agent, state, prompt, utterance etc.) beim Backend-Start. Aber das Frontend spricht **direkt mit Supabase** über den JavaScript-Client (umgeht das Backend) für Dinge wie Login, Persona-Lookup und Nachrichten-Persistierung. Diese Tabellen haben keine entsprechenden Java-Entities, also weiss Hibernate nichts von ihnen — sie müssen manuell erstellt werden.
-
-Die Aufteilung der Verantwortlichkeit ist Absicht: sie lässt das Frontend unabhängig vom Backend operieren für lese-intensive Operationen, was Latenz und Last auf Railway reduziert. Folgende Tabellen werden via [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) erstellt: `user_agents`, `user_legacies`, `legacy_access_codes`, `legacy_messages`, `questionnaire_answers`.
-
----
-
-### Schritt 17: Deployment auf Railway
-
-**Warum Railway?**
-Railway wurde gewählt, weil es nahtlos mit GitHub integriert: jeder Push auf `main` löst automatisch einen frischen Build und Rolling-Deployment aus — keine separaten CI/CD-Skripte, kein manuelles SSH, keine Downtime. Alternativen wie AWS oder Google Cloud hätten deutlich mehr Setup erfordert. Railway handhabt auch SSL/HTTPS, automatische Neustarts bei Fehlern und Docker-Builds "out of the box". Die Kombination aus "git push = live in 3 Minuten" war essenziell, um während der Bachelorarbeit schnell iterieren zu können.
-
-Konkrete Schritte:
-1. Code auf GitHub pushen
-2. Auf Railway: "New Project" → "Deploy from GitHub" → Fork auswählen
-3. Environment-Variablen im Railway-Dashboard setzen (SPRING_DATASOURCE_URL, OPENAI_KEY, ELEVENLABS_API_KEY etc.)
-4. Railway baut automatisch das Dockerfile und startet den Container
-5. Public-Domain in den Railway-Einstellungen generieren → fertig
-
-Ab da: jeder `git push origin main` löst automatisch ein neues Deployment aus.
-
----
-
-### Zusammenfassung: Geänderte vs. Neue Dateien
-
-| Kategorie | Anzahl | Beispiele |
-|---|---|---|
-| **Unverändert von PROMISE** | ~30 Dateien | Agent, Transition, Storage, alle `commons/*`, alle `repositories/*` |
-| **Leicht modifiziert** | 7 Dateien | Prompt, State, Utterance (TEXT), Agent (userId), AgentMetaController (+Endpoint), AgentMetaType, State (+compactIfNeeded Aufruf) |
-| **Stark erweitert** | 3 Dateien | AgentMetaUtility (+500), Utterances (+60), LMOpenAI (+10) |
-| **Komplett neu (Java)** | 11 Dateien | WebConfig, TTSController, UserLogController, 4× logging/, 4× DTOs/Views |
-| **Komplett neu (Infra)** | 7 Dateien | Dockerfile, railway.json, .railwayignore, .env.example, application-prod, openai-prod, CITATION.cff |
-
----
-
-## Website Setup — What the Frontend Needs to Run
-
-The frontend is available as a **sanitised template** at [`Website-template/`](Website-template/) in this repo. The live production version lives separately and is uploaded via FTP to Hostpoint. To recreate Oblivio, fork this template and add your own images, audio, and Supabase credentials.
-
-### Required Directory Layout
-
-```
-Website/                          ← Upload entire folder to your hosting
-├── index.html                    Landing page
-├── biographer.html               Biographer UI (Pre-Survey + Chat)
-├── legacy.html                   Legacy chat UI (3 variants)
-├── journey.html                  User dashboard (own personas)
-├── signup.html, login.html       Supabase Auth pages
-├── about.html, faq.html          Marketing pages
-├── pricing.html, features.html
-├── blog.html, contact.html
-├── privacy.html, terms.html, security.html
-├── 404.html
-├── sitemap.xml, robots.txt
-├── .htaccess                     Redirects (optional)
-├── audio/
-│   └── background.mp3            Ambient sound
-├── images/
-│   ├── logo.png, og-image.jpg
-│   └── avatars/
-│       └── *.jpg                 One photo per persona
-└── js/
-    ├── config.js                 Supabase URL + Anon Key + Backend URL
-    ├── translations.js           i18n engine
-    ├── lang-de.js, lang-en.js, lang-fr.js, lang-it.js,
-    ├── lang-tr.js, lang-ko.js, lang-ja.js, lang-zh.js   8 language files
-    ├── biographer-promise.js     Biographer API client
-    └── legacy-chat.js            Legacy chat API client + visitor context
-```
-
-### Critical Frontend Files
-
-| File | What It Must Contain |
-|---|---|
-| `js/config.js` | Three URLs: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PROMISE_API_URL` (your Railway URL) |
-| `js/legacy-chat.js` | `buildLegacySystemPrompt()`, `createLegacyAgent()`, `sendLegacyMessage()`, visitor context builder |
-| `js/biographer-promise.js` | API client for Biographer (create, respond, fetch state) |
-| `js/translations.js` | i18n engine that loads `lang-<code>.js` and replaces `data-i18n` attributes |
-| `js/lang-*.js` | ~400 translation keys per language |
-| `legacy.html` | Mode toggle (3 buttons), avatar, voice playback, localStorage persistence |
-| `biographer.html` | Pre-Survey (Block 0), language picker, progress bar, completion card |
-
-### Required Browser Libraries (via CDN, no NPM)
-
-```html
-<!-- Supabase JS Client -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
-```
-
-That's it — no build tools, no NPM, no bundler. Pure HTML + Vanilla JS.
-
-### Frontend Upload Workflow
-
-```bash
-# After making local changes to Website/legacy.html or js/lang-*.js:
-
-1. Open FTP client (FileZilla, Cyberduck)
-2. Connect to Hostpoint SFTP
-3. Upload changed files to web root
-4. Refresh browser → changes live on https://oblivio.ch
-```
-
-No staging, no CI. Bewusst einfach gehalten.
-
-### Frontend-Backend Connection
-
-The frontend talks to two backends:
-
-**Supabase (direct, via JS client):**
-- Login / Signup
-- Read `legacy_access_codes` (persona prompts, avatar, voice_id)
-- Write `legacy_messages` (every chat message)
-- Read/write `user_agents`, `user_legacies`
-
-**Railway (PROMISE backend, via fetch):**
-- `POST /agent/biographer` to start a Biographer
-- `POST /agent/singlestate` to create a Legacy agent
-- `POST /{agentId}/respond` for every chat turn
-- `POST /{agentId}/tts?voice_id=...` for voice playback
-
----
-
-## API Overview
-
-Live API: `https://promise-production.up.railway.app`
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/actuator/health` | Health check |
-| `GET` | `/agent` | List all agents |
-| `POST` | `/agent/singlestate` | Create legacy agent |
-| `POST` | `/agent/biographer` | Create biographer agent |
-| `POST` | `/{agentId}/start` | Start conversation |
-| `POST` | `/{agentId}/respond` | Send message |
-| `GET` | `/{agentId}/conversation` | Get conversation history |
-| `GET` | `/{agentId}/state` | Get current state |
-| `GET` | `/{agentId}/storage` | Get extracted summaries |
-| `POST` | `/{agentId}/tts?voice_id=...` | Generate TTS audio |
-| `DELETE` | `/{agentId}/reset` | Reset conversation |
-| `GET` | `/user/{userId}/agents` | List user's agents |
-| `GET` | `/user/{userId}/conversations` | User's conversations |
-| `GET` | `/user/{userId}/stats` | Multi-user statistics |
-| `GET` | `/logs/stream` | Server-Sent Events log stream |
-
----
-
-## Local Development
-
-### Prerequisites
-- Java 21 (JDK)
-- Maven (or use the included Maven Wrapper `mvnw`)
-- PostgreSQL (local or remote)
-- OpenAI API Key
-- (Optional) ElevenLabs API Key
-
-### Setup
-
-```bash
-# 1. Clone
-git clone https://github.com/riccaden/promise.git
-cd promise
-
-# 2. Create config files
-cp src/main/resources/application.properties.template src/main/resources/application.properties
-cp src/main/resources/openai.properties.template src/main/resources/openai.properties
-
-# 3. Configure database in application.properties
-# spring.datasource.url=jdbc:postgresql://localhost:5432/oblivio
-
-# 4. Set OpenAI key in openai.properties
-# openai.key=sk-...
-
-# 5. Run
-./mvnw spring-boot:run
-
-# 6. Open http://localhost:8080
-```
-
----
-
-## Deployment
-
-Production runs on **Railway** (backend) with **Supabase** (database + auth).
-
-| Service | Platform | Auto-Deploy |
-|---------|----------|:-----------:|
-| Java Backend | Railway | ✓ (on push to `main`) |
-| Database | Supabase PostgreSQL | — |
-| Frontend | Swiss Hosting (Hostpoint) | Manual upload |
-
-Environment variables on Railway:
-```
-SPRING_DATASOURCE_URL
-SPRING_DATASOURCE_USERNAME
-SPRING_DATASOURCE_PASSWORD
-OPENAI_KEY
-ELEVENLABS_API_KEY
-PORT (auto-set by Railway)
-```
+## Recap: What PROMISE Provided vs What Oblivio Added
+
+PROMISE provided the **state-machine framework** — the abstract concept of states, transitions, decisions, actions, plus the LLM glue and persistence via JPA/Hibernate. Oblivio used those building blocks to construct:
+
+- **The Biographer** (21 states, 70 prompts in 8 languages) — [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
+- **The Legacy Chat** (one state + three variants) — same factory, different inputs
+- **Context Compaction** — [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118)
+- **Multi-user support** — `userId` field in [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) + [`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java)
+- **TTS bridge** — [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) + ElevenLabs
+- **CORS for frontend separation** — [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java)
+- **Live log streaming** — [`logging/`](src/main/java/ch/zhaw/statefulconversation/logging/) package (4 new classes)
+- **PostgreSQL migration** — driver swap in [`pom.xml`](pom.xml) + TEXT columns + PgBouncer-compatible Hikari settings
+- **Production deployment** — [`Dockerfile`](Dockerfile), [`railway.json`](railway.json), [`application-prod.properties`](src/main/resources/application-prod.properties), [`openai-prod.properties`](src/main/resources/openai-prod.properties)
+- **The frontend** — 17 HTML pages, 12 JS files (template at [`Website-template/`](Website-template/))
+
+In total: ~30 PROMISE files unchanged, 7 lightly modified, 3 heavily extended, 11 new Java files, plus complete frontend and infrastructure.
 
 ---
 
 ## Author
 
 **Dennis Riccardo Dewiri**
-
 Bachelor's Thesis · [ZHAW School of Management and Law](https://www.zhaw.ch/en/sml/) · Business Informatics · 2026
+
+Built on top of the [PROMISE Framework](https://github.com/zhaw-iwi/promise) from the ZHAW Institute for Applied Information Technology.
 
 ---
 
