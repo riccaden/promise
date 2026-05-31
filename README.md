@@ -148,181 +148,167 @@ Each persona prompt is structured in clearly separated sections:
 
 ## End-to-End Process: How a Persona Comes to Life
 
-This section walks through the complete journey from "user registers" to "loved ones chat with the digital persona". Two perspectives: the **persona owner** (the person being captured) and the **visitor** (someone chatting with the persona).
+This section walks through the complete journey — for each step you'll see **which file is responsible**. Two perspectives: the **persona owner** (the person being captured) and the **visitor** (someone chatting with the persona).
 
 ### Perspective 1: The Persona Owner
 
-```
-1. SIGN UP / LOG IN
-   │
-   │ User visits oblivio.ch, clicks "Sign Up"
-   │ → Supabase Auth creates a new user (auth.users)
-   │ → User receives confirmation email, verifies
-   │ → User can now log in with email + password
-   ▼
+#### Step 1 — Sign Up / Log In
+User visits oblivio.ch, clicks "Sign Up".
 
-2. CHOOSE LANGUAGE
-   │
-   │ One of 8 languages is selected (DE, EN, FR, IT, TR, KO, JA, ZH)
-   │ → Stored in localStorage('oblivio_language')
-   │ → Used for both UI and Biographer prompts
-   ▼
+- **Frontend file:** [`Website/signup.html`](Website/signup.html), [`Website/login.html`](Website/login.html)
+- **Service:** Supabase Auth (built-in)
+- **Stores:** `auth.users` (Supabase, automatic)
+- **Result:** User receives confirmation email and can log in afterwards.
 
-3. BLOCK 0 — PRE-SURVEY
-   │
-   │ Short questionnaire: age, gender, traits, communication style
-   │ → Saved to Supabase table 'questionnaire_answers'
-   │ → Used to personalize the Biographer interview
-   ▼
+#### Step 2 — Choose Language
+One of 8 languages is selected (DE, EN, FR, IT, TR, KO, JA, ZH).
 
-4. BIOGRAPHER INTERVIEW STARTS
-   │
-   │ Frontend calls POST /agent/biographer (Railway backend)
-   │ → Backend creates 21-state agent (10 blocks × 2 + Final)
-   │ → Returns agent ID
-   │ → Frontend saves agent ID in Supabase ('user_agents' table)
-   ▼
+- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (language picker)
+- **i18n engine:** [`Website/js/translations.js`](Website/js/translations.js)
+- **Translation files:** [`Website/js/lang-de.js`](Website/js/lang-de.js) … [`lang-zh.js`](Website/js/lang-zh.js)
+- **Stores:** `localStorage('oblivio_language')`
 
-5. THE 10 BLOCKS — CONVERSATION + CONFIRMATION
-   │
-   │ For each block (1 to 10):
-   │
-   │   a) CONVERSATION PHASE
-   │      → AI asks the block's questions (e.g., "Tell me about your childhood...")
-   │      → User responds in chat-like UI
-   │      → After every message, a Guard checks: "Were all questions asked?"
-   │      → If YES → move to confirmation phase
-   │
-   │   b) CONFIRMATION PHASE
-   │      → AI summarizes what it learned: "From our talk I gathered that..."
-   │      → User confirms ("yes", "perfect") or corrects
-   │      → If confirmed → StaticExtractionAction extracts structured JSON
-   │      → JSON is saved in agent's Storage as 'block1', 'block2', ..., 'block10'
-   │      → Move to next block
-   ▼
+#### Step 3 — Block 0 (Pre-Survey)
+Short questionnaire: age, gender, personality traits, communication style.
 
-6. ALL BLOCKS COMPLETE → FINAL STATE
-   │
-   │ Frontend calls GET /{agentId}/storage
-   │ → Receives all 10 block summaries
-   │ → Saves them to Supabase 'user_legacies' table (legacy_data as JSONB)
-   │ → Generates an 8-character access code (e.g., 'VDSRMACZ')
-   │ → Saves access code to 'legacy_access_codes' table
-   ▼
+- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (questionnaire form)
+- **Stores:** Supabase table `questionnaire_answers` (JSONB column)
+- **Used by:** The Biographer prompts later as context
 
-7. PERSONA PROMPTS ARE CREATED (manual, admin step)
-   │
-   │ For each of the 3 variants, a system prompt is built:
-   │ - full_prompt_active (Variant 2 — persona greets first)
-   │ - full_prompt_passive (Variant 3 — persona waits)
-   │ - full_prompt_analysis (Variant 1 — with personality analysis)
-   │ → Stored in 'legacy_access_codes.legacy_data' as JSONB
-   ▼
+#### Step 4 — Biographer Interview Starts
+Frontend triggers backend to build the 21-state Biographer agent.
 
-8. PERSONA OWNER SHARES ACCESS CODE
-   │
-   │ The owner shares the 8-character code with loved ones
-   │ → Their digital legacy is ready
-```
+- **Frontend file:** [`Website/js/biographer-promise.js`](Website/js/biographer-promise.js) (API client)
+- **Backend endpoint:** `POST /agent/biographer` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
+- **Factory:** [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
+- **Block prompts source:** [`AgentMetaUtility.buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) (~500 lines, all 70 prompts)
+- **DTO:** [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java)
+- **Stores:**
+  - PROMISE tables (`agent`, `state`, ...) — auto-created by Hibernate, populated in Supabase
+  - Supabase `user_agents` table (links the Supabase user to the PROMISE agent ID)
+
+#### Step 5 — The 10 Blocks (Conversation + Confirmation Phases)
+For each of 10 blocks, two states alternate: a conversation state and a confirmation state.
+
+**Conversation phase:**
+- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (chat UI + progress bar)
+- **API call:** `POST /{agentId}/respond` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
+- **State logic:** [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) calls `LMOpenAI.complete()` to generate the assistant message
+- **LLM call:** [`LMOpenAI.complete()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) → OpenAI GPT-4o
+- **Context compaction:** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (after 20 user messages)
+- **Guard check:** [`Transition.decide()`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) calls `LMOpenAI.decide()` → "Have all 11 questions been asked?"
+
+**Confirmation phase (transition fires):**
+- **Action:** [`TransferUtterancesAction.execute()`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java) copies messages into the Confirm state
+- **Confirm summary:** AI summarises what it learned; user accepts or corrects
+- **On confirmation:** [`StaticExtractionAction.execute()`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) extracts structured JSON
+- **Stores:** Agent's `Storage` under key `block1` / `block2` / … / `block10`
+
+#### Step 6 — All Blocks Complete → Final State
+After Block 10 confirmation, the agent transitions to Final.
+
+- **Final state:** [`Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) — `isActive()` returns `false`
+- **Frontend call:** `GET /{agentId}/storage` (retrieves all 10 block JSONs)
+- **Frontend writes to Supabase:** Table `user_legacies` (column `legacy_data` JSONB)
+- **Access code generated:** 8-character random code (e.g., `VDSRMACZ`)
+- **Stores:** Supabase `legacy_access_codes` table — code, nickname, language, user_id
+
+#### Step 7 — Persona Prompts Are Created
+For each of the 3 variants, a complete system prompt is built and stored.
+
+- **Manual step (admin):** SQL UPDATE on `legacy_access_codes.legacy_data` JSONB column
+- **Three keys added:**
+  - `full_prompt_active` (Variant 2 — persona greets first)
+  - `full_prompt_passive` (Variant 3 — persona waits)
+  - `full_prompt_analysis` (Variant 1 — with personality analysis)
+- **Structure of each prompt:** 6–7 sections (IDENTITY, CHAPTERS, ANALYSIS, STYLE, EXAMPLES, SELF_KNOWLEDGE, RULES)
+
+#### Step 8 — Access Code Shared
+The owner shares the 8-character code with loved ones. Persona is now reachable.
+
+---
 
 ### Perspective 2: The Visitor (Loved One)
 
-```
-1. OPEN LEGACY CHAT
-   │
-   │ Visitor goes to oblivio.ch/legacy.html
-   │ Enters the 8-character access code (e.g., 'VDSRMACZ')
-   │ → Frontend queries Supabase 'legacy_access_codes' table
-   │ → Receives: nickname, language, legacy_data, avatar_url, voice_id
-   ▼
+#### Step 1 — Open Legacy Chat
+Visitor goes to oblivio.ch/legacy.html and enters the access code.
 
-2. ENTER VISITOR INFO
-   │
-   │ Visitor enters their name (e.g., 'Maria')
-   │ Selects their relationship to the persona (child, friend, ...)
-   │ Selects their gender (male/female/other)
-   │ → Saved in localStorage('oblivio_visitor_VDSRMACZ')
-   │ → Used to personalize the persona's responses
-   │   (the persona will know "I'm talking to my daughter Maria")
-   ▼
+- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (code input UI)
+- **Frontend queries Supabase:** `SELECT * FROM legacy_access_codes WHERE access_code = ?`
+- **Received fields:** `nickname`, `language`, `legacy_data`, `avatar_url`, `voice_id`
 
-3. CHOOSE VARIANT (1, 2, or 3)
-   │
-   │ Three buttons at the top:
-   │   [Variant 1] [Variant 2] [Variant 3]
-   │   Analysis    Active      Passive
-   │
-   │ Default = Variant 1 (Analysis)
-   │ → Saved in localStorage('oblivio_mode_VDSRMACZ')
-   ▼
+#### Step 2 — Enter Visitor Info
+Visitor enters name, relationship, gender.
 
-4. CHAT SESSION STARTS
-   │
-   │ Frontend builds the system prompt for the chosen variant:
-   │
-   │ a) Loads the right prompt from legacy_data:
-   │    - active → full_prompt_active
-   │    - passive → full_prompt_passive
-   │    - analysis → full_prompt_analysis
-   │
-   │ b) Appends a "Visitor Context" block:
-   │    "You are talking with **Maria**. Maria is your daughter (female)..."
-   │
-   │ c) Sends POST /agent/singlestate to Railway
-   │    → Backend creates a Single-State Agent with this prompt
-   │    → Returns agent ID
-   ▼
+- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (visitor info form)
+- **Stores locally:** `localStorage('oblivio_visitor_<accessCode>')` as JSON
+- **Used later in:** Visitor Context Block (Step 4)
 
-5. STARTER MESSAGE
-   │
-   │ Frontend calls POST /{agentId}/start
-   │
-   │ Variant-specific behavior:
-   │ - Variant 2 (Active) → Persona sends a greeting first
-   │     e.g., "Hey Maria, schön dich zu sehen!"
-   │ - Variant 1 (Analysis) → Persona returns __WAIT__
-   │     → Frontend filters __WAIT__, shows "Type to start chatting"
-   │ - Variant 3 (Passive) → Same as Variant 1, persona waits silently
-   ▼
+#### Step 3 — Choose Variant
+Visitor clicks one of three buttons: Variant 1 (Analysis), Variant 2 (Active), Variant 3 (Passive).
 
-6. CONVERSATION LOOP
-   │
-   │ For every message the visitor types:
-   │
-   │   a) Frontend sends POST /{agentId}/respond to Railway
-   │   b) Backend (PROMISE):
-   │      - Adds visitor's message to conversation history
-   │      - Checks compactIfNeeded() — if >20 messages, summarize older ones
-   │      - Calls OpenAI GPT-4o with system prompt + conversation
-   │      - Receives the persona's response
-   │      - Checks Guard: "Is visitor saying goodbye?"
-   │        → If yes → fire transition to Final state
-   │   c) Frontend receives response
-   │   d) Frontend writes BOTH user message AND persona response to Supabase 'legacy_messages'
-   │      → With scoped visitor_id ('uuid__active', etc.)
-   │   e) Frontend displays the response in chat
-   │   f) Optionally: frontend calls POST /{agentId}/tts for voice playback (ElevenLabs)
-   ▼
+- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (mode toggle buttons, line ~1054)
+- **Stores locally:** `localStorage('oblivio_mode_<accessCode>')` = `'active'` / `'passive'` / `'analysis'`
+- **Default:** Variant 1 (Analysis)
 
-7. VARIANT SWITCH (optional, anytime)
-   │
-   │ Visitor clicks another variant button
-   │
-   │ Frontend:
-   │ - Loads the conversation history of the new variant from Supabase
-   │   (filtered by visitor_id scoped to new mode)
-   │ - Creates a NEW PROMISE agent with the new variant's prompt
-   │ - Includes existing history as context in the new system prompt
-   │ - The persona "remembers" everything from the previous mode
-   ▼
+#### Step 4 — Chat Session Starts
+Frontend constructs the full system prompt and creates a PROMISE agent.
 
-8. SESSION ENDS (or visitor leaves)
-   │
-   │ Conversation is saved in Supabase
-   │ → Visitor can return anytime; chat history persists
-   │ → Different devices show different histories
-   │   (visitor_id is per-browser via localStorage)
-```
+- **Prompt-building function:** [`buildLegacySystemPrompt()` in legacy-chat.js](Website/js/legacy-chat.js#L98)
+  - Loads the appropriate `full_prompt_*` from `legacy_data`
+  - Appends a "Visitor Context Block" (e.g., "You are talking to Maria, your daughter, female...")
+- **Visitor context builder:** [`buildVisitorContext()` in legacy-chat.js](Website/js/legacy-chat.js#L29) (multi-language)
+- **Agent creation:** `POST /agent/singlestate` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
+- **Factory:** [`AgentMetaUtility.createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20)
+
+#### Step 5 — Starter Message
+Frontend triggers the first AI message.
+
+- **Frontend call:** `POST /{agentId}/start` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
+- **Starter prompt logic:** [`createLegacyAgent()` in legacy-chat.js](Website/js/legacy-chat.js#L176) (around line 196)
+  - **Variant 2 (Active):** Real greeting prompt → persona answers with a personalised hello
+  - **Variant 1 & 3 (Analysis/Passive):** Prompt instructs LLM to respond with literally `__WAIT__`
+    - Frontend filters out `__WAIT__` and shows "Type to start chatting"
+
+#### Step 6 — Conversation Loop
+For every visitor message:
+
+**a) Frontend sends message to backend:**
+- **API call:** `POST /{agentId}/respond` from [`legacy-chat.js`](Website/js/legacy-chat.js) (`sendLegacyMessage()`, line ~271)
+- **Endpoint:** [`AgentController.respond()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
+
+**b) Backend processes (PROMISE logic):**
+- **State logic:** [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168)
+- **Acknowledge user message:** Added to `Utterances` collection
+- **Compaction check:** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (after 20 messages)
+- **LLM call:** [`LMOpenAI.complete()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) → GPT-4o
+- **Guard check:** [`Transition.decide()`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) → "Is the visitor saying goodbye?"
+  - If yes: [`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) fires, transitions to Final
+
+**c) Frontend writes to Supabase:**
+- **Function:** `saveMessage()` in [`legacy.html`](Website/legacy.html) (line ~1212)
+- **Table:** `legacy_messages` — fields: `access_code`, `visitor_id` (mode-scoped), `visitor_name`, `user_id`, `role`, `content`
+
+**d) Optional voice playback:**
+- **Frontend call:** `POST /{agentId}/tts?voice_id=...`
+- **Backend endpoint:** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java)
+- **External call:** ElevenLabs API returns MP3 bytes
+- **Browser plays audio** via `new Audio(URL.createObjectURL(blob)).play()`
+
+#### Step 7 — Variant Switch (optional, anytime)
+Visitor clicks another variant button mid-conversation.
+
+- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (mode buttons + `switchMode()` function)
+- **Loads new history:** Filtered by mode-scoped `visitor_id` from `legacy_messages`
+- **New agent created:** Calls `POST /agent/singlestate` with new prompt (and full history as context)
+- **Old conversation preserved:** Stored separately under different `visitor_id` suffix
+
+#### Step 8 — Session Ends
+Conversation is fully persisted in Supabase.
+
+- **Persistence:** `legacy_messages` table holds the full chat history
+- **Return visits:** Frontend's `loadConversationHistory()` rehydrates the chat
+- **Per-device privacy:** `visitor_id` is per-browser via localStorage (different devices → different histories)
 
 ### How the 3 Variants Work Technically
 
