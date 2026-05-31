@@ -73,6 +73,8 @@ Imagine you're building a digital biographer with a single prompt: *"Ask the use
 
 PROMISE solves this by treating the interview as a **finite state machine (FSM)** — a graph of distinct conversation phases. Each phase has its own focused prompt, its own conversation history, and explicit rules for moving to the next phase. The AI never has to "remember everything at once"; it only needs to handle the current state.
 
+> **A note on what PROMISE provides:** PROMISE was built from the start as a multi-state framework. Its primitives (`State`, `Transition`, `Decision`, `Action`, `Agent`) support arbitrary state-machine topologies — chains, branches, cycles, even nested machines. The test bots [`MultiStateInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiStateInteraction.java), [`MultiLayeredInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiLayeredInteraction.java), and [`TwoStatesInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/TwoStatesInteraction.java) demonstrate that the multi-state capability was already there. **Oblivio did not have to add multi-state support — only the specific Biographer topology built on top of it** (which 20 states, what prompts in each, what guards, what actions). The state-machine engine itself is unchanged.
+
 ### The 20 states (+1 end state)
 
 The Biographer chains together **20 states plus one end state** in a strictly linear sequence:
@@ -321,12 +323,14 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 - [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) — factory method [`createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
 - [`controllers/dto/BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) — request body
 
+> **Important clarification:** PROMISE was designed for multi-state agents from day one — its whole purpose is to model conversations as state machines. The framework primitives (State, Transition, Decision, Action, Agent) already support arbitrary chains of states. Test files like [`MultiStateInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiStateInteraction.java) and [`MultiLayeredInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiLayeredInteraction.java) in the PROMISE repo prove this. **What Oblivio added is not the multi-state capability itself, but a specific application of it** — the Biographer is one concrete use case with one specific wiring of those primitives.
+
 **PROMISE adaptations — what was changed and why it works now:**
 
 - **New endpoint `POST /agent/biographer`:**
-  - **Why needed:** PROMISE shipped with only `POST /agent/singlestate` for one-state agents. We needed a fundamentally different agent type (20 states + 1 end state) with different input fields (language, nickname).
+  - **Why needed:** PROMISE shipped with `POST /agent/singlestate` as one ready-made factory endpoint. There was no ready-made factory endpoint for a Biographer-shaped agent. A generic "build any state machine" endpoint would be possible, but a dedicated Biographer endpoint is cleaner because the inputs (language, nickname) and outputs (always 10 themed blocks) are very specific.
   - **What was changed:** Added a new `@PostMapping` handler in `AgentMetaController.java` that accepts the Biographer DTO, validates the type, and delegates to the new factory.
-  - **How it works now:** The frontend explicitly calls a separate endpoint when it wants a Biographer — no overloading, no runtime type-checks. Clear API contract.
+  - **How it works now:** The frontend explicitly calls a separate endpoint when it wants a Biographer — no overloading, no runtime type-checks. Clear API contract. PROMISE's multi-state framework does all the heavy lifting under the hood.
 
 - **New enum value `biographer = 1`:**
   - **Why needed:** `AgentMetaType` had only `singleState = 0`. Without a new constant, the endpoint couldn't validate "is this really a Biographer request?".
@@ -960,7 +964,7 @@ The smaller final image starts faster, uses less memory, and has fewer attack ve
 
 ## Recap: What PROMISE Provided vs What Oblivio Added
 
-PROMISE provided the **state-machine framework** — the abstract concept of states, transitions, decisions, actions, plus the LLM glue and persistence via JPA/Hibernate. Oblivio used those building blocks to construct:
+PROMISE provided the **multi-state framework** — the abstract concept of states, transitions, decisions, actions, plus the LLM glue and persistence via JPA/Hibernate. **Arbitrary multi-state agents are a built-in PROMISE feature**, not something Oblivio had to add. What Oblivio did was use these existing building blocks to construct specific applications:
 
 - **The Biographer** (20 states + 1 end state, 70 prompts in 8 languages) — [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
 - **The Legacy Chat** (one state + three variants) — same factory, different inputs
