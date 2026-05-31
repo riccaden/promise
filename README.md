@@ -278,8 +278,11 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **Backend / Railway:**
 - Not yet — language is recorded locally first, then passed to backend in Step 4.
 
-**PROMISE adaptations:**
-- PROMISE has no built-in language support. Oblivio added [`getLanguageInstruction()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L480) in `AgentMetaUtility.java` which returns a language-specific prefix prepended to every block prompt (e.g. "WICHTIG: Du MUSST auf Türkisch kommunizieren..."). The original German prompts stay, GPT-4o translates at runtime.
+**PROMISE adaptations — what was changed and why it works now:**
+- **Why it was needed:** PROMISE was English-only. It has no concept of "select a target language for this agent". Without changes, every Biographer interview would default to whatever language is hard-coded in the prompts.
+- **What was changed:** A new method [`getLanguageInstruction()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L480) was added in `AgentMetaUtility.java`. The factory accepts a `language` parameter from the DTO. For each of the 70 block prompts, the language instruction is prepended at build time.
+- **How it works now:** The prompts themselves stay written in **German** (one set, 70 strings). At runtime, the language prefix tells GPT-4o: *"The following instructions are in German, but you MUST communicate exclusively in Korean. Translate all questions and answers to Korean."* GPT-4o handles the translation on the fly. This saves us from maintaining 8 × 70 = 560 strings; we only need 70 + 8 (one prefix per language).
+- **Trade-off:** Slightly higher tokens per response (the prefix is ~80 tokens) in exchange for one canonical source of truth. Translation quality is excellent because GPT-4o is multilingual-native.
 
 **Where the data goes:**
 - `localStorage('oblivio_language')` — kept on the user's device only
@@ -318,13 +321,38 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 - [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) — factory method [`createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
 - [`controllers/dto/BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) — request body
 
-**PROMISE adaptations:**
-- **New endpoint:** `POST /agent/biographer` added to `AgentMetaController.java` (PROMISE only had `/agent/singlestate`)
-- **New enum value:** `biographer = 1` added to [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java)
-- **New DTO:** `BiographerAgentCreateDTO` includes `language` and `nickname` fields
-- **New factory method:** `createBiographerAgent()` builds the 21-state chain **backwards** (Final → Block 10 → ... → Block 1) because each transition needs to reference its `subsequentState` at creation time
-- **New helper:** [`buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) — returns a 2D array `prompts[10][7]` with 70 prompts (10 blocks × 7 components each: Conv System Prompt, Conv Starter, Conv Guard, Confirm System Prompt, Confirm Starter, Confirm Guard, Extract Prompt)
-- **New `userId` field** in [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) so the agent is linked to the Supabase user
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **New endpoint `POST /agent/biographer`:**
+  - **Why needed:** PROMISE shipped with only `POST /agent/singlestate` for one-state agents. We needed a fundamentally different agent type (21 states) with different input fields (language, nickname).
+  - **What was changed:** Added a new `@PostMapping` handler in `AgentMetaController.java` that accepts the Biographer DTO, validates the type, and delegates to the new factory.
+  - **How it works now:** The frontend explicitly calls a separate endpoint when it wants a Biographer — no overloading, no runtime type-checks. Clear API contract.
+
+- **New enum value `biographer = 1`:**
+  - **Why needed:** `AgentMetaType` had only `singleState = 0`. Without a new constant, the endpoint couldn't validate "is this really a Biographer request?".
+  - **What was changed:** One line added to [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java).
+  - **How it works now:** The DTO carries `type = 1`, the controller checks `AgentMetaType.biographer.getValue() == data.getType()` and rejects otherwise.
+
+- **New DTO `BiographerAgentCreateDTO`:**
+  - **Why needed:** `SingleStateAgentCreateDTO` doesn't have `language` or `nickname` fields. Forcing them in there would pollute the single-state API.
+  - **What was changed:** Created a new class extending `SingleStateAgentCreateDTO` with two extra fields.
+  - **How it works now:** Frontend sends `{ type: 1, language: 'de', nickname: 'Maria', ... }` — the backend maps it cleanly to a domain object.
+
+- **New factory method `createBiographerAgent()`:**
+  - **Why needed:** Wiring 21 states by hand for each new user would be error-prone. The factory centralises it.
+  - **What was changed:** ~50 lines of new code that loop through blocks 9 → 0, building Confirm then Conv states, wiring guards and actions.
+  - **How it works now:** Call `createBiographerAgent(dto)`, get back a fully-wired Agent with `initialState = Block 1 Conv` and storage attached. Ready to call `.start()`.
+  - **Why backwards:** Each `Transition` constructor requires its `subsequentState` to already exist. Starting at Final means every state has its successor at construction time. See the [Deep Dive section](#deep-dive-the-21-state-biographer-architecture) for the full explanation.
+
+- **New helper `buildBlockPrompts()`:**
+  - **Why needed:** 70 separate prompt strings (10 × 7) had to live somewhere. Inlining them in the factory would make it unreadable.
+  - **What was changed:** A new ~400-line helper method that returns `String[10][7]` filled with all prompts.
+  - **How it works now:** The factory calls `buildBlockPrompts(language, nickname)` once at the start, then references `prompts[i][0..6]` while building each block's states.
+
+- **New `userId` field in `Agent`:**
+  - **Why needed:** PROMISE had no concept of users. We needed to know which Supabase user owns which Biographer.
+  - **What was changed:** One field + getter + setter in `Agent.java`. Hibernate auto-adds the column on first deploy.
+  - **How it works now:** The factory sets `userId` from the DTO. Later, [`UserLogController`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) filters by it (`WHERE user_id = ?`).
 
 **Where the data goes:**
 - **Supabase (PROMISE-managed tables, written by Hibernate automatically):** `agent`, `state`, `prompt`, `transition`, `prompt_transitions`, `utterance`, `utterances`, `storage`, `storage_entry`
@@ -352,12 +380,34 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 - [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) — checks after every message: should this transition fire?
 - [`model/commons/decisions/StaticDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java) — the Guard that asks GPT-4o "Have all questions been asked? true/false"
 
-**PROMISE adaptations:**
-- **Context Compaction (new method):** [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) — after 20 user messages, older messages are summarised via [`LMOpenAI.summariseOffline()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) and replaced with one system message. Cuts token costs from linear to constant.
-- **Trigger:** One added line in [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171) calls `compactIfNeeded()` before each LLM call
-- **New LMOpenAI method:** `summariseOffline()` returns plain text (existing `summarise()` returns JSON, which would confuse subsequent turns)
-- **TEXT columns:** [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) — PROMISE used `VARCHAR(10000)` which crashed on long persona prompts; switched to PostgreSQL `TEXT` (unlimited)
-- **PostgreSQL driver in [`pom.xml`](pom.xml)** instead of MySQL (PROMISE used MySQL originally; Supabase requires PostgreSQL)
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **Context Compaction (new method):**
+  - **Why needed:** In PROMISE, every new message re-sends the **complete** conversation history to GPT-4o. For a 50-message block, that's ~5000 tokens per turn, repeatedly. Cost grows linearly; GPT's 128k context window eventually overflows.
+  - **What was changed:** Added [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (~60 lines). When user-message count exceeds 20, older messages are summarised to 3-5 sentences and replaced with a single system message tagged `[Zusammenfassung des bisherigen Gesprächs]`.
+  - **How it works now:** First check counts user messages; if ≤20, return immediately (almost no overhead). If >20 and not yet compacted (detected via tag), build text from older messages, call `LMOpenAI.summariseOffline()`, delete the originals via JPA orphan-removal, prepend the new system message. The most recent 10 messages stay verbatim so recent context is never lost.
+  - **Effect:** A 60-message block sends ~10 verbatim messages + one summary ≈ 1100 tokens — same as a 10-message block. **Cost stays flat regardless of conversation length.**
+
+- **Compaction trigger in `State.respond()`:**
+  - **Why needed:** The method has to run **before each LLM call**, otherwise the next request still uses the un-compacted history.
+  - **What was changed:** One single line inserted in [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171): `this.utterances.compactIfNeeded();`
+  - **How it works now:** Every state in every agent (Biographer, Legacy, future types) automatically gets context compaction. One place, full coverage, zero per-state configuration.
+
+- **New `summariseOffline()` method in LMOpenAI:**
+  - **Why needed:** PROMISE's existing `summarise()` returns a JSON object (good for structured data). Injecting JSON into a chat as if it were dialogue confuses GPT-4o in subsequent turns ("why is there a JSON object here?").
+  - **What was changed:** Added a new method that skips the JSON-format instruction and returns plain text.
+  - **How it works now:** The compaction method gets back a clean German paragraph that reads naturally when placed at the start of the message list.
+
+- **TEXT columns instead of VARCHAR(10000):**
+  - **Why needed:** Persona prompts in Oblivio reach 15,000–22,000 characters (six sections of detailed personality + behaviour rules). Inserting them into VARCHAR(10000) throws `value too long for type character varying(10000)` and crashes the whole transaction.
+  - **What was changed:** Replaced `@Column(length = 10000)` with `@Column(columnDefinition = "TEXT")` in three Java entity files.
+  - **How it works now:** PostgreSQL's `TEXT` type has no size limit and no performance penalty. Long prompts insert and query cleanly.
+  - **Stolperstein:** Hibernate's `ddl-auto=update` adds new columns automatically but does **not** change existing column types. The first deploy after the change required manual `ALTER TABLE prompt ALTER COLUMN prompt TYPE TEXT;` in Supabase.
+
+- **PostgreSQL driver in `pom.xml`:**
+  - **Why needed:** Supabase exclusively provides PostgreSQL; PROMISE shipped with MySQL Connector. Without the swap, Spring Boot crashes at startup with `Driver org.postgresql.Driver claims to not accept jdbcUrl`.
+  - **What was changed:** Removed `<dependency>mysql-connector-j</dependency>`, added `<dependency>org.postgresql:postgresql</dependency>`.
+  - **How it works now:** JDBC opens connections to `jdbc:postgresql://...supabase.co:5432/postgres` and Hibernate uses the PostgreSQL dialect for SQL generation.
 
 **Where the data goes:**
 - Every message (user + assistant) → Supabase tables `utterance` / `utterances` (PROMISE-managed by Hibernate)
@@ -542,9 +592,18 @@ Default = Variant 1 (Analysis).
 - [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20) — [`createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20) builds a one-state agent with one transition to Final
 - [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) — CORS configuration so the Hostpoint frontend is allowed to call Railway
 
-**PROMISE adaptations:**
-- **CORS configuration (new file):** [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) — PROMISE has no CORS, and browsers block cross-origin POSTs by default. Without this, the frontend on oblivio.ch could not call promise-production.up.railway.app at all.
-- The `createSingleStateAgent()` method is from PROMISE, but Oblivio's `userId` extension means the Legacy agents can also be tracked per user.
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **CORS configuration (new file `WebConfig.java`):**
+  - **Why needed:** PROMISE has no CORS configuration. Without it, browsers enforce the Same-Origin Policy: a JavaScript fetch from `oblivio.ch` to `promise-production.up.railway.app` is blocked outright with `Access-Control-Allow-Origin missing`. The Visitor's browser would see every chat request fail before it even reached the backend.
+  - **What was changed:** Created a new Spring `@Configuration` class with a `WebMvcConfigurer` bean that registers `/**` for cross-origin requests with appropriate methods (GET, POST, PUT, DELETE, OPTIONS) and headers.
+  - **How it works now:** On every request, Spring automatically adds the `Access-Control-Allow-*` headers. The browser sees the headers, accepts the cross-origin response, and the chat just works. A single bean activates this for all endpoints.
+  - **Production trade-off:** Currently `allowedOriginPatterns("*")` for development simplicity. For tight security, would be restricted to `["https://oblivio.ch"]` only.
+
+- **`createSingleStateAgent()` reuse with new `userId` field:**
+  - **Why needed:** PROMISE's `createSingleStateAgent()` factory already builds the right structure for a one-state agent. We just needed to track which Supabase user the agent belongs to.
+  - **What was changed:** No change to the factory's logic; it now also sets `agent.userId` from the DTO (added in Step 4).
+  - **How it works now:** The Legacy agent inherits the multi-user infrastructure built for the Biographer. Same SQL queries (`WHERE user_id = ?`) work for both types of agents.
 
 **Where the data goes:**
 - Supabase PROMISE-tables: new agent + state + utterances rows
@@ -567,8 +626,13 @@ Default = Variant 1 (Analysis).
 - [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — `start()` endpoint
 - [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) — `start()` method, calls `LMOpenAI.complete()` with the starter prompt
 
-**PROMISE adaptations:**
-- The `__WAIT__` token mechanism is an Oblivio invention. PROMISE's `State.start()` always generates a starter message. By passing a starter prompt that forces the LLM to emit only `__WAIT__`, Oblivio gets a valid PROMISE state with a (filtered) starter message — without showing a generic AI greeting to the visitor.
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **The `__WAIT__` token mechanism (an Oblivio invention):**
+  - **Why needed:** PROMISE's `State.start()` always generates a starter message — that's how the framework signals "the conversation has begun". For Variant 2 (Active mode), we want a real greeting. For Variants 1 and 3 (Analysis, Passive), we want the persona to **wait silently** until the visitor types first. But PROMISE doesn't have an "I want to wait" option; without a workaround, the persona would always greet first, ruining the design of Variants 1 and 3.
+  - **What was changed:** No backend code was changed at all. The trick is purely in the **starter prompt** passed to the agent. In passive variants, the starter prompt reads: *"Respond with EXACTLY this text and nothing else: `__WAIT__`. No greeting, no explanation, no question, no emoji. Just the eight characters `__WAIT__` as your complete response."*
+  - **How it works now:** GPT-4o obediently outputs the literal string `__WAIT__`. The backend stores this as a normal assistant message and returns it to the frontend. The frontend detects the `__WAIT__` token, **filters it out** of the chat display, and instead shows a hint like "Type to start the conversation". The agent stays in a valid PROMISE state — `currentState` is still active, `utterances` still has a (filtered) starter — ready to respond when the visitor finally writes.
+  - **Why this is elegant:** No new state types, no new methods, no PROMISE modifications. Three different behaviours from one framework, all controlled by which prompt is loaded from `legacy_data` in Supabase.
 
 **Where the data goes:**
 - The greeting (real or `__WAIT__`) is added to `utterances` in Supabase
@@ -622,8 +686,12 @@ The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PR
 **Backend / Railway:**
 - Same flow as Step 12: a new `POST /agent/singlestate` request creates another agent on Railway.
 
-**PROMISE adaptations:**
-- The agent itself is stock PROMISE. The mode-scoped `visitor_id` is the Oblivio mechanism that keeps the three histories isolated per browser.
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **Mode-scoped `visitor_id` (an Oblivio convention, no backend code change):**
+  - **Why needed:** If the visitor switches from Variant 2 (where they've had a 10-message conversation) to Variant 1 (different persona behavior), should those 10 messages reappear, or should Variant 1 start fresh? Both are valid UX choices. Mixing them in one history makes the persona schizophrenic. Hard-separating them lets the visitor explore each variant cleanly.
+  - **What was changed:** No backend code. The frontend's [`getScopedVisitorId(mode)`](Website-template/js/legacy-chat.js) appends `__active`, `__passive`, or `__analysis` to the base visitor UUID. Every read and write to `legacy_messages` uses the scoped ID.
+  - **How it works now:** Three independent conversation histories per visitor + persona combination. The visitor can freely jump between them; messages don't bleed across modes. Variant switch creates a new PROMISE agent on the backend with the new prompt, but only the conversation history matching the new scope is loaded back.
 
 **Where the data goes:**
 - Supabase `legacy_messages` filter changes (`WHERE visitor_id = '<uuid>__<newmode>'`)
