@@ -44,7 +44,7 @@ Plus two external APIs: **OpenAI GPT-4o** (LLM) and **ElevenLabs** (voice synthe
 
 ### At a Glance
 
-- **21 states** in the Biographer (10 blocks × 2 + Final)
+- **20 states (+1 end state)** in the Biographer (10 blocks × 2 + Final)
 - **15 personas** captured from study participants
 - **70+ Java classes** in the backend
 - **17 HTML pages** in the frontend (sanitised template at [`Website-template/`](Website-template/))
@@ -63,7 +63,7 @@ The remainder of this README is one large guided tour: the complete **end-to-end
 
 ---
 
-## Deep Dive: The 21-State Biographer Architecture
+## Deep Dive: The 20-State (+1 End State) Biographer Architecture
 
 Before walking through the end-to-end process, let's understand the **core engineering decision** that makes Oblivio work: the **state-machine model of a conversation**.
 
@@ -73,9 +73,9 @@ Imagine you're building a digital biographer with a single prompt: *"Ask the use
 
 PROMISE solves this by treating the interview as a **finite state machine (FSM)** — a graph of distinct conversation phases. Each phase has its own focused prompt, its own conversation history, and explicit rules for moving to the next phase. The AI never has to "remember everything at once"; it only needs to handle the current state.
 
-### The 21 states
+### The 20 states (+1 end state)
 
-The Biographer chains together **21 states** in a strictly linear sequence:
+The Biographer chains together **20 states plus one end state** in a strictly linear sequence:
 
 ```
 Block 1 Conv ──► Block 1 Confirm ──► Block 2 Conv ──► Block 2 Confirm ──► ... ──► Block 10 Conv ──► Block 10 Confirm ──► Final
@@ -85,7 +85,7 @@ Block 1 Conv ──► Block 1 Confirm ──► Block 2 Conv ──► Block 2 
    ▼              ▼
 ```
 
-That's 10 blocks × 2 states (Conversation + Confirmation) + 1 Final state = 21 states.
+That's 10 blocks × 2 states (Conversation + Confirmation) = **20 states**, plus one terminal **Final state** that signals "done" = **21 total**.
 
 ### What each state actually does
 
@@ -181,7 +181,7 @@ By starting at the end (`Final`) and building toward the start (`Block 1 Conv`),
 
 ### Token economics of this design
 
-A naive single-prompt biographer with 100 messages would send all 100 messages to GPT-4o on every new turn — token costs explode. The 21-state design saves money in three ways:
+A naive single-prompt biographer with 100 messages would send all 100 messages to GPT-4o on every new turn — token costs explode. The 20-state design (plus the Final state) saves money in three ways:
 
 1. **Per-state utterances:** Each state has its own `Utterances` collection. When the user moves from Block 1 to Block 2, Block 1's conversation history is **not carried over**. Block 2 starts fresh, with only Block 1's *summary* (the extracted JSON) preserved.
 2. **Compact summaries instead of full history:** The block summaries in `Storage` are short JSON objects (~500 chars) rather than 50-message conversation logs (~5000 chars).
@@ -310,7 +310,7 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 ### Step 4 — Biographer Agent is Created
 
-**What happens:** Frontend sends a POST request to the backend asking for a new Biographer. The backend builds a 21-state agent (10 blocks × 2 states + Final) on the fly and returns its ID.
+**What happens:** Frontend sends a POST request to the backend asking for a new Biographer. The backend builds a 20-state agent + 1 end state (10 blocks × 2 + Final) on the fly and returns its ID.
 
 **Frontend files:**
 - [`Website-template/biographer.html`](Website-template/biographer.html) — UI flow
@@ -324,7 +324,7 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **PROMISE adaptations — what was changed and why it works now:**
 
 - **New endpoint `POST /agent/biographer`:**
-  - **Why needed:** PROMISE shipped with only `POST /agent/singlestate` for one-state agents. We needed a fundamentally different agent type (21 states) with different input fields (language, nickname).
+  - **Why needed:** PROMISE shipped with only `POST /agent/singlestate` for one-state agents. We needed a fundamentally different agent type (20 states + 1 end state) with different input fields (language, nickname).
   - **What was changed:** Added a new `@PostMapping` handler in `AgentMetaController.java` that accepts the Biographer DTO, validates the type, and delegates to the new factory.
   - **How it works now:** The frontend explicitly calls a separate endpoint when it wants a Biographer — no overloading, no runtime type-checks. Clear API contract.
 
@@ -339,10 +339,10 @@ The full journey from "user registers" to "loved ones chat with the digital pers
   - **How it works now:** Frontend sends `{ type: 1, language: 'de', nickname: 'Maria', ... }` — the backend maps it cleanly to a domain object.
 
 - **New factory method `createBiographerAgent()`:**
-  - **Why needed:** Wiring 21 states by hand for each new user would be error-prone. The factory centralises it.
+  - **Why needed:** Wiring 21 states (20 + Final) by hand for each new user would be error-prone. The factory centralises it.
   - **What was changed:** ~50 lines of new code that loop through blocks 9 → 0, building Confirm then Conv states, wiring guards and actions.
   - **How it works now:** Call `createBiographerAgent(dto)`, get back a fully-wired Agent with `initialState = Block 1 Conv` and storage attached. Ready to call `.start()`.
-  - **Why backwards:** Each `Transition` constructor requires its `subsequentState` to already exist. Starting at Final means every state has its successor at construction time. See the [Deep Dive section](#deep-dive-the-21-state-biographer-architecture) for the full explanation.
+  - **Why backwards:** Each `Transition` constructor requires its `subsequentState` to already exist. Starting at Final means every state has its successor at construction time. See the [Deep Dive section](#deep-dive-the-20-state-biographer-architecture) for the full explanation.
 
 - **New helper `buildBlockPrompts()`:**
   - **Why needed:** 70 separate prompt strings (10 × 7) had to live somewhere. Inlining them in the factory would make it unreadable.
@@ -813,9 +813,9 @@ This section explains **every modification made to PROMISE** in detail — what 
 - An action that runs `TransferUtterancesAction` between Conv and Confirm
 - An action that runs `StaticExtractionAction` between Confirm and the next block
 
-Doing this 10 times by hand would be error-prone. The factory abstracts it: pass in language + nickname, get back a fully-wired 21-state agent.
+Doing this 10 times by hand would be error-prone. The factory abstracts it: pass in language + nickname, get back a fully-wired 20-state agent (plus the Final end state).
 
-**Plus the backwards-build technique** explained in detail in the [Deep Dive section](#deep-dive-the-21-state-biographer-architecture) above.
+**Plus the backwards-build technique** explained in detail in the [Deep Dive section](#deep-dive-the-20-state-biographer-architecture) above.
 
 ---
 
@@ -941,7 +941,7 @@ The smaller final image starts faster, uses less memory, and has fewer attack ve
 | 4 | Context Compaction | [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) | Linear token cost growth |
 | 5 | Compaction trigger | [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171) | Call before each LLM call |
 | 6 | `summariseOffline()` | [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) | Plain text for compaction |
-| 7 | Biographer factory | [`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) | Build 21-state agent + 70 prompts |
+| 7 | Biographer factory | [`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) | Build 20-state agent + Final + 70 prompts |
 | 8 | `/agent/biographer` endpoint | [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) | New agent type API |
 | 9 | CORS | [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) | Frontend-backend separation |
 | 10 | TTS bridge | [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) | Hide ElevenLabs API key |
@@ -962,7 +962,7 @@ The smaller final image starts faster, uses less memory, and has fewer attack ve
 
 PROMISE provided the **state-machine framework** — the abstract concept of states, transitions, decisions, actions, plus the LLM glue and persistence via JPA/Hibernate. Oblivio used those building blocks to construct:
 
-- **The Biographer** (21 states, 70 prompts in 8 languages) — [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
+- **The Biographer** (20 states + 1 end state, 70 prompts in 8 languages) — [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
 - **The Legacy Chat** (one state + three variants) — same factory, different inputs
 - **Context Compaction** — [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118)
 - **Multi-user support** — `userId` field in [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) + [`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java)
