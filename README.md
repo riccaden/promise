@@ -510,10 +510,12 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 **What happens:** User opens oblivio.ch, clicks Sign Up, enters email and password, verifies via email, then logs in.
 
-**Frontend files:**
-- [`Website-template/signup.html`](Website-template/signup.html) — signup form
-- [`Website-template/login.html`](Website-template/login.html) — login form
-- Both files call the Supabase JS client directly (no backend involved)
+**Frontend files in detail:**
+
+| File | What it specifically does |
+|---|---|
+| [`Website-template/signup.html`](Website-template/signup.html) | Renders the signup form (email + password + password confirmation fields). Inline JavaScript at the bottom of the file initialises the Supabase JS client, hooks the form's `submit` event, and calls `supabase.auth.signUp({ email, password })`. On success, it redirects to `login.html`. On failure (e.g. duplicate email), shows an error toast. |
+| [`Website-template/login.html`](Website-template/login.html) | Renders the login form. Inline JavaScript calls `supabase.auth.signInWithPassword({ email, password })`. On success, Supabase returns a JWT which is automatically stored in the browser by the JS client; the user is redirected to `journey.html` (the dashboard). |
 
 **Backend / Railway:**
 - Not involved in this step. Supabase Auth handles registration entirely on its own.
@@ -522,8 +524,9 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 - None — authentication is handled by Supabase, not by PROMISE. PROMISE had no auth system; Oblivio relies entirely on Supabase Auth.
 
 **Where the data goes:**
-- Supabase table `auth.users` (managed automatically by Supabase)
-- JWT token stored in browser cookie + localStorage
+- Supabase table `auth.users` (managed automatically by Supabase — stores email, hashed password, email-verified flag, timestamps)
+- JWT token stored in browser cookie + localStorage (by the Supabase JS client automatically)
+- No row is created in any Oblivio-specific table at this point — that happens only when the user starts the Biographer (Step 4)
 
 ---
 
@@ -531,10 +534,13 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 **What happens:** User picks one of 8 languages from a dropdown. The whole UI switches plus the Biographer interview is conducted in that language.
 
-**Frontend files:**
-- [`Website-template/biographer.html`](Website-template/biographer.html) — language picker UI
-- [`Website-template/js/translations.js`](Website-template/js/translations.js) — i18n engine
-- [`Website-template/js/lang-de.js`](Website-template/js/lang-de.js), [`lang-en.js`](Website-template/js/lang-en.js), [`lang-fr.js`](Website-template/js/lang-fr.js), [`lang-it.js`](Website-template/js/lang-it.js), [`lang-tr.js`](Website-template/js/lang-tr.js), [`lang-ko.js`](Website-template/js/lang-ko.js), [`lang-ja.js`](Website-template/js/lang-ja.js), [`lang-zh.js`](Website-template/js/lang-zh.js) — translation tables (~400 keys each)
+**Frontend files in detail:**
+
+| File | What it specifically does |
+|---|---|
+| [`Website-template/biographer.html`](Website-template/biographer.html) | Contains the language-picker dropdown near the top, plus all UI elements tagged with `data-i18n="key"` attributes that get filled by translations.js. Saves the user's choice to `localStorage('oblivio_language')` and triggers a full UI refresh. |
+| [`Website-template/js/translations.js`](Website-template/js/translations.js) | The i18n engine. On page load, it reads `localStorage('oblivio_language')`, loads the corresponding `lang-<code>.js` file, then walks the DOM and replaces every `[data-i18n="key"]` element's text with the matching translation. Also re-runs on language change and observes the DOM for dynamically added elements. |
+| [`Website-template/js/lang-de.js`](Website-template/js/lang-de.js) ... [`lang-zh.js`](Website-template/js/lang-zh.js) | One file per language. Each is a JavaScript object with ~400 key-value pairs: `nav_home: 'Startseite'`, `biographer_welcome: '...'`, etc. They all set `window.OBLIVIO_TRANSLATIONS[<code>] = { ... }` so translations.js can pick them up. |
 
 **Backend / Railway:**
 - Not yet — language is recorded locally first, then passed to backend in Step 4.
@@ -573,14 +579,22 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 **What happens:** Frontend sends a POST request to the backend asking for a new Biographer. The backend builds a 20-state agent + 1 end state (10 blocks × 2 + Final) on the fly and returns its ID.
 
-**Frontend files:**
-- [`Website-template/biographer.html`](Website-template/biographer.html) — UI flow
-- [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) — API client that calls `POST /agent/biographer`
+**Frontend files in detail:**
 
-**Backend / Railway:**
-- [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) — the endpoint
-- [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) — factory method [`createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
-- [`controllers/dto/BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) — request body
+| File | What it specifically does |
+|---|---|
+| [`Website-template/biographer.html`](Website-template/biographer.html) | The Biographer UI: progress bar, chat area, input box. After Block 0 completes, it triggers `createBiographer()` from biographer-promise.js. Once the agent ID comes back, it stores it in `localStorage` (so the user can continue later) and writes the link to Supabase `user_agents`. |
+| [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) | The PROMISE API client. Contains `createBiographer(nickname, language, userId)` which `fetch()`-POSTs to `https://promise-production.up.railway.app/agent/biographer` with a JSON body, and helpers like `sendMessage()`, `getState()`, `getStorage()`. Centralises every backend HTTP call so the UI doesn't have URLs and fetch logic scattered around. |
+
+**Backend / Railway files in detail:**
+
+| File | What it specifically does |
+|---|---|
+| [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) | Spring `@RestController`. Exposes `POST /agent/biographer` (added by Oblivio) and `POST /agent/singlestate` (original PROMISE). The biographer handler validates the DTO type, calls the factory, persists the resulting agent via `repository.save()`, and returns an `AgentInfoView` with the new UUID. |
+| [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) | The factory. Its [`createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) method builds all 21 states backwards (Final → Block 10 → … → Block 1), wires every transition with its Guard and Action, creates the `Storage` object, sets `agent.userId`, and calls `agent.start()`. Plus the helper [`buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) returns the 70-prompt 2D array, and [`getLanguageInstruction()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L480) returns the language prefix. |
+| [`controllers/dto/BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) | Java class that maps the JSON request body. Extends `SingleStateAgentCreateDTO`, adds `language` (e.g. "de") and `nickname` (e.g. "Maria") fields. Spring deserialises the incoming JSON into this object automatically. |
+| [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) | The created Agent object lives here. Constructor sets `initialState = currentState = Block 1 Conv`, plus the Oblivio-added `userId`. |
+| [`repositories/AgentRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/AgentRepository.java) | The Spring Data JPA repository. When the controller calls `repository.save(agent)`, Hibernate cascades through all 21 states, all transitions, decisions, actions, plus the storage — inserting ~50 database rows in one transaction. |
 
 > **Important clarification:** PROMISE was designed for multi-state agents from day one — its whole purpose is to model conversations as state machines. The framework primitives (State, Transition, Decision, Action, Agent) already support arbitrary chains of states. Test files like [`MultiStateInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiStateInteraction.java) and [`MultiLayeredInteraction.java`](src/test/java/ch/zhaw/statefulconversation/bots/MultiLayeredInteraction.java) in the PROMISE repo prove this. **What Oblivio added is not the multi-state capability itself, but a specific application of it** — the Biographer is one concrete use case with one specific wiring of those primitives.
 
@@ -630,18 +644,26 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 #### 5a. Conversation Phase
 
-**Frontend files:**
-- [`Website-template/biographer.html`](Website-template/biographer.html) — chat UI, progress bar, voice-input button
-- [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) — sends each message via `POST /{agentId}/respond`
+**Frontend files in detail:**
 
-**Backend / Railway:**
-- [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) — endpoint handler `respond()`
-- [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) — loads agent, delegates to current state
-- [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) — [`respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) method
-- [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java) — adds user message, calls [`compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118)
-- [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) — calls OpenAI GPT-4o to generate the assistant response
-- [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) — checks after every message: should this transition fire?
-- [`model/commons/decisions/StaticDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java) — the Guard that asks GPT-4o "Have all questions been asked? true/false"
+| File | What it specifically does |
+|---|---|
+| [`Website-template/biographer.html`](Website-template/biographer.html) | The chat UI. Listens to the send-button click and Enter key, appends each user message to the chat bubble area, then calls `sendMessage()` from biographer-promise.js. Also renders the progress bar (1/10 to 10/10) by tracking which block the current state belongs to, and provides a voice-input button using the Web Speech API. |
+| [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) | Contains `sendMessage(agentId, content)` which POSTs to `/{agentId}/respond` and returns the assistant's reply text. Also `getState(agentId)` to check which block the agent is in (used to update the progress bar). |
+
+**Backend / Railway files in detail:**
+
+| File | What it specifically does |
+|---|---|
+| [`controllers/AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) | Spring `@RestController`. The `respond()` method receives the agent UUID and the user's message, loads the agent from the database via `AgentRepository.findById()`, calls `agent.respond(userSays)`, persists the modified agent, and returns a `ResponseView` with the assistant text. |
+| [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) | Top-level entity. Its `respond()` method delegates to `currentState.respond()` and catches `TransitionException` — when caught, it updates `currentState` to the transition's target state and re-runs `respond()` recursively. This enables silent multi-step transitions (e.g. through a Confirm-state's transition into the next block's Conv-state). |
+| [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) | The conversation state. Its [`respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) method does the heavy lifting: calls `acknowledge(userSays)` to append the message and check transitions, then `compactIfNeeded()` (Oblivio addition), then `composeTotalPrompt()` to build the system prompt, then `LMOpenAI.complete()` to get GPT-4o's response, then `utterances.appendAssistantSays()` to record it. |
+| [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java) | The conversation history container. `appendUserSays()` and `appendAssistantSays()` add messages. [`compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (Oblivio's addition) summarises older messages when >20 user messages accumulate. Each `Utterance` is its own row in the database, linked back via `@ManyToOne`. |
+| [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) | The OpenAI bridge. `complete()` sends conversation + system prompt to GPT-4o and returns the assistant's text. Used 1+ times per user message. Also exposes `decide()` (for Guards), `extract()` (for JSON extraction), and `summariseOffline()` (Oblivio's addition for compaction). |
+| [`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) | Links two states. Its `decide()` iterates through all `Decision` objects on the transition and AND-combines their boolean results. If true, `action()` runs all `Action` objects sequentially. Stock PROMISE — no Oblivio changes. |
+| [`model/commons/decisions/StaticDecision.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java) | A concrete Decision implementation. Its prompt is fixed at construction time (e.g. "Have all 11 questions been asked?"). When `decide()` runs, it sends this prompt + the conversation history to `LMOpenAI.decide()` which expects a `true`/`false` response from GPT-4o. |
+| [`model/commons/actions/TransferUtterancesAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java) | Action used when transitioning Conv → Confirm. Copies all utterances from the current state into the target Confirm state, so the Confirm state has the conversation context to summarise. |
+| [`repositories/AgentRepository.java`](src/main/java/ch/zhaw/statefulconversation/repositories/AgentRepository.java) | After `agent.respond()` returns, `repository.save(agent)` cascades through every modified entity — the updated `currentState`, the new utterance rows, any storage changes — and writes them all in one Hibernate transaction. |
 
 **PROMISE adaptations — what was changed and why it works now:**
 
