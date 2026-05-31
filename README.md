@@ -40,13 +40,14 @@
 8. [Tech Stack](#tech-stack)
 9. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
 10. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
-11. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
-12. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
-13. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
-14. [API Overview](#api-overview)
-15. [Local Development](#local-development)
-16. [Deployment](#deployment)
-17. [Author](#author)
+11. [Data Flow: From User Input to Supabase](#data-flow-from-user-input-to-supabase) ← **what gets stored where**
+12. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
+13. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
+14. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
+15. [API Overview](#api-overview)
+16. [Local Development](#local-development)
+17. [Deployment](#deployment)
+18. [Author](#author)
 
 ---
 
@@ -488,6 +489,144 @@ FTP-Client uploads to Hostpoint server
         │
         ▼
 Live on https://oblivio.ch
+```
+
+---
+
+## Data Flow: From User Input to Supabase
+
+Whenever a user enters data on oblivio.ch (registration, pre-survey answers, chat messages), it's almost always sent **directly to Supabase** — not stored locally. This section explains exactly what gets stored where.
+
+### What Goes Where
+
+| Data Entered by User | Stored In | Visible to Admin? |
+|---|---|---|
+| Login / Registration | **Supabase** (`auth.users`) | ✓ Dashboard |
+| Pre-Survey answers (Block 0) | **Supabase** (`questionnaire_answers`) | ✓ Dashboard |
+| Biographer conversation messages | **Supabase** (PROMISE tables via backend) | ✓ Dashboard |
+| Block 1–10 summaries | **Supabase** (`user_legacies`) | ✓ Dashboard |
+| Persona access codes | **Supabase** (`legacy_access_codes`) | ✓ Dashboard |
+| Legacy chat messages | **Supabase** (`legacy_messages`) | ✓ Dashboard |
+| Visitor name + relation (in Legacy Chat) | **Supabase** (`legacy_messages.visitor_name`) | ✓ Dashboard |
+| ─────────────── | ─────────────── | ─────────────── |
+| Active language preference | **localStorage** (browser only) | ✗ |
+| Visitor UUID (per browser) | **localStorage** | ✗ |
+| Selected variant (1/2/3) | **localStorage** | ✗ |
+| TTS on/off toggle | **localStorage** | ✗ |
+
+### Why this split?
+
+- **localStorage** holds **UI preferences** that should not follow the user across devices (e.g., a phone session should not inherit a desktop's last-used variant).
+- **Supabase** holds **content** that must be centrally retrievable, multi-device accessible, and visible to the admin (you) via the Dashboard.
+
+### Concrete Example: User Answers Pre-Survey (Block 0)
+
+```
+Browser:  "My age is 28, gender female, traits ..."
+   │
+   ▼
+JavaScript collects answers into a {} object
+   │
+   ▼
+supabase.from('questionnaire_answers').insert({
+    user_id: currentUser.id,
+    answers: { age: 28, gender: 'female', traits: [...] }
+});
+   │
+   ▼
+HTTPS request to https://<project>.supabase.co
+   │
+   ▼
+Supabase persists the row in PostgreSQL  ← centrally, not locally
+   │
+   ▼
+Immediately retrievable in the Supabase Dashboard:
+SELECT * FROM questionnaire_answers WHERE user_id = '...';
+```
+
+### Concrete Example: Legacy Chat Message
+
+When a visitor types a message in the Legacy chat, **two parallel requests** are fired:
+
+```
+Browser: "Hi, how are you?"
+   │
+   ├──► (1) Railway Backend ─► POST /{agentId}/respond
+   │       └─► Returns the persona's AI response
+   │
+   └──► (2) Supabase Directly ─► INSERT INTO legacy_messages
+           └─► Persists the message
+```
+
+The backend handles the conversation logic; Supabase handles the persistence. Two separate concerns.
+
+### Where the Insert Happens in Code
+
+For each writeable table, here is the file and method that performs the insert:
+
+| Insert Target | Source File | Method/Location |
+|---|---|---|
+| `questionnaire_answers` | [`Website/biographer.html`](Website/biographer.html) | After Block 0 submit |
+| `user_agents` | [`Website/biographer.html`](Website/biographer.html) | After Biographer creation |
+| `user_legacies` | [`Website/biographer.html`](Website/biographer.html) | After Block 10 completion |
+| `legacy_access_codes` | [`Website/journey.html`](Website/journey.html) | When generating access code |
+| `legacy_messages` | [`Website/legacy.html`](Website/legacy.html) | `saveMessage()` function (~line 1212) |
+
+### How the Browser Knows the Supabase URL
+
+In [`Website/js/config.js`](Website/js/config.js):
+```javascript
+window.OBLIVIO_CONFIG = {
+    SUPABASE_URL: 'https://<project>.supabase.co',
+    SUPABASE_ANON_KEY: 'eyJhbGc...',  // public anon key
+    PROMISE_API_URL: 'https://promise-production.up.railway.app'
+};
+```
+
+The Anon Key is **deliberately public** — security is enforced via Supabase Row-Level Security (RLS) Policies, not via key secrecy. Each table has policies like *"users can only read rows where `user_id = auth.uid()`"*.
+
+### Retrieving the Data in Supabase
+
+Once stored, you can query any table directly in the Supabase Dashboard:
+
+```sql
+-- See all pre-survey answers
+SELECT user_id, answers->>'age' AS age, answers->>'gender' AS gender, created_at
+FROM questionnaire_answers;
+
+-- See all messages for a specific persona
+SELECT visitor_name, role, content, created_at
+FROM legacy_messages
+WHERE access_code = 'VDSRMACZ'
+ORDER BY created_at;
+
+-- See which user has which biographer agent
+SELECT u.email, ua.agent_id, ua.language, ua.created_at
+FROM user_agents ua
+JOIN auth.users u ON u.id = ua.user_id;
+```
+
+### The Complete Cycle
+
+```
+   User types in browser
+        │
+        ▼
+   JavaScript function (in legacy.html / biographer.html / journey.html)
+        │
+        │ supabase.from('table').insert({...})
+        ▼
+   HTTPS request to Supabase
+        │
+        ▼
+   Supabase stores in PostgreSQL
+        │
+   ┌────┴────┐
+   ▼         ▼
+You at the  Backend on Railway
+Dashboard   (via JDBC for PROMISE tables)
+   │         │
+SELECT *   Hibernate queries
 ```
 
 ---
