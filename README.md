@@ -155,7 +155,7 @@ This section walks through the complete journey — for each step you'll see **w
 #### Step 1 — Sign Up / Log In
 User visits oblivio.ch, clicks "Sign Up".
 
-- **Frontend file:** [`Website/signup.html`](Website/signup.html), [`Website/login.html`](Website/login.html)
+- **Frontend file:** [`Website-template/signup.html`](Website-template/signup.html), [`Website-template/login.html`](Website-template/login.html)
 - **Service:** Supabase Auth (built-in)
 - **Stores:** `auth.users` (Supabase, automatic)
 - **Result:** User receives confirmation email and can log in afterwards.
@@ -163,22 +163,22 @@ User visits oblivio.ch, clicks "Sign Up".
 #### Step 2 — Choose Language
 One of 8 languages is selected (DE, EN, FR, IT, TR, KO, JA, ZH).
 
-- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (language picker)
-- **i18n engine:** [`Website/js/translations.js`](Website/js/translations.js)
-- **Translation files:** [`Website/js/lang-de.js`](Website/js/lang-de.js) … [`lang-zh.js`](Website/js/lang-zh.js)
+- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (language picker)
+- **i18n engine:** [`Website-template/js/translations.js`](Website-template/js/translations.js)
+- **Translation files:** [`Website-template/js/lang-de.js`](Website-template/js/lang-de.js) … [`lang-zh.js`](Website-template/js/lang-zh.js)
 - **Stores:** `localStorage('oblivio_language')`
 
 #### Step 3 — Block 0 (Pre-Survey)
 Short questionnaire: age, gender, personality traits, communication style.
 
-- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (questionnaire form)
+- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (questionnaire form)
 - **Stores:** Supabase table `questionnaire_answers` (JSONB column)
 - **Used by:** The Biographer prompts later as context
 
 #### Step 4 — Biographer Interview Starts
 Frontend triggers backend to build the 21-state Biographer agent.
 
-- **Frontend file:** [`Website/js/biographer-promise.js`](Website/js/biographer-promise.js) (API client)
+- **Frontend file:** [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) (API client)
 - **Backend endpoint:** `POST /agent/biographer` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
 - **Factory:** [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64)
 - **Block prompts source:** [`AgentMetaUtility.buildBlockPrompts()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L143) (~500 lines, all 70 prompts)
@@ -191,7 +191,7 @@ Frontend triggers backend to build the 21-state Biographer agent.
 For each of 10 blocks, two states alternate: a conversation state and a confirmation state.
 
 **Conversation phase:**
-- **Frontend file:** [`Website/biographer.html`](Website/biographer.html) (chat UI + progress bar)
+- **Frontend file:** [`Website-template/biographer.html`](Website-template/biographer.html) (chat UI + progress bar)
 - **API call:** `POST /{agentId}/respond` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
 - **State logic:** [`State.respond()`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L168) calls `LMOpenAI.complete()` to generate the assistant message
 - **LLM call:** [`LMOpenAI.complete()`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) → OpenAI GPT-4o
@@ -233,31 +233,31 @@ The owner shares the 8-character code with loved ones. Persona is now reachable.
 #### Step 1 — Open Legacy Chat
 Visitor goes to oblivio.ch/legacy.html and enters the access code.
 
-- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (code input UI)
+- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (code input UI)
 - **Frontend queries Supabase:** `SELECT * FROM legacy_access_codes WHERE access_code = ?`
 - **Received fields:** `nickname`, `language`, `legacy_data`, `avatar_url`, `voice_id`
 
 #### Step 2 — Enter Visitor Info
 Visitor enters name, relationship, gender.
 
-- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (visitor info form)
+- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (visitor info form)
 - **Stores locally:** `localStorage('oblivio_visitor_<accessCode>')` as JSON
 - **Used later in:** Visitor Context Block (Step 4)
 
 #### Step 3 — Choose Variant
 Visitor clicks one of three buttons: Variant 1 (Analysis), Variant 2 (Active), Variant 3 (Passive).
 
-- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (mode toggle buttons, line ~1054)
+- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (mode toggle buttons, line ~1054)
 - **Stores locally:** `localStorage('oblivio_mode_<accessCode>')` = `'active'` / `'passive'` / `'analysis'`
 - **Default:** Variant 1 (Analysis)
 
 #### Step 4 — Chat Session Starts
 Frontend constructs the full system prompt and creates a PROMISE agent.
 
-- **Prompt-building function:** [`buildLegacySystemPrompt()` in legacy-chat.js](Website/js/legacy-chat.js#L98)
+- **Prompt-building function:** [`buildLegacySystemPrompt()` in legacy-chat.js](Website-template/js/legacy-chat.js#L98)
   - Loads the appropriate `full_prompt_*` from `legacy_data`
   - Appends a "Visitor Context Block" (e.g., "You are talking to Maria, your daughter, female...")
-- **Visitor context builder:** [`buildVisitorContext()` in legacy-chat.js](Website/js/legacy-chat.js#L29) (multi-language)
+- **Visitor context builder:** [`buildVisitorContext()` in legacy-chat.js](Website-template/js/legacy-chat.js#L29) (multi-language)
 - **Agent creation:** `POST /agent/singlestate` in [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java)
 - **Factory:** [`AgentMetaUtility.createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20)
 
@@ -265,7 +265,7 @@ Frontend constructs the full system prompt and creates a PROMISE agent.
 Frontend triggers the first AI message.
 
 - **Frontend call:** `POST /{agentId}/start` in [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
-- **Starter prompt logic:** [`createLegacyAgent()` in legacy-chat.js](Website/js/legacy-chat.js#L176) (around line 196)
+- **Starter prompt logic:** [`createLegacyAgent()` in legacy-chat.js](Website-template/js/legacy-chat.js#L176) (around line 196)
   - **Variant 2 (Active):** Real greeting prompt → persona answers with a personalised hello
   - **Variant 1 & 3 (Analysis/Passive):** Prompt instructs LLM to respond with literally `__WAIT__`
     - Frontend filters out `__WAIT__` and shows "Type to start chatting"
@@ -274,7 +274,7 @@ Frontend triggers the first AI message.
 For every visitor message:
 
 **a) Frontend sends message to backend:**
-- **API call:** `POST /{agentId}/respond` from [`legacy-chat.js`](Website/js/legacy-chat.js) (`sendLegacyMessage()`, line ~271)
+- **API call:** `POST /{agentId}/respond` from [`legacy-chat.js`](Website-template/js/legacy-chat.js) (`sendLegacyMessage()`, line ~271)
 - **Endpoint:** [`AgentController.respond()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java)
 
 **b) Backend processes (PROMISE logic):**
@@ -286,7 +286,7 @@ For every visitor message:
   - If yes: [`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) fires, transitions to Final
 
 **c) Frontend writes to Supabase:**
-- **Function:** `saveMessage()` in [`legacy.html`](Website/legacy.html) (line ~1212)
+- **Function:** `saveMessage()` in [`legacy.html`](Website-template/legacy.html) (line ~1212)
 - **Table:** `legacy_messages` — fields: `access_code`, `visitor_id` (mode-scoped), `visitor_name`, `user_id`, `role`, `content`
 
 **d) Optional voice playback:**
@@ -298,7 +298,7 @@ For every visitor message:
 #### Step 7 — Variant Switch (optional, anytime)
 Visitor clicks another variant button mid-conversation.
 
-- **Frontend file:** [`Website/legacy.html`](Website/legacy.html) (mode buttons + `switchMode()` function)
+- **Frontend file:** [`Website-template/legacy.html`](Website-template/legacy.html) (mode buttons + `switchMode()` function)
 - **Loads new history:** Filtered by mode-scoped `visitor_id` from `legacy_messages`
 - **New agent created:** Calls `POST /agent/singlestate` with new prompt (and full history as context)
 - **Old conversation preserved:** Stored separately under different `visitor_id` suffix
@@ -409,7 +409,7 @@ Three physical components: **Hostpoint** (frontend), **Railway** (Java backend),
 
 This section explains what every file in the repository does, what was adapted, and how it connects to Railway and Supabase.
 
-> **Note:** The **frontend** (`Website/`) is NOT in this repo — it lives on Hostpoint, uploaded via FTP. This repo contains only the **Java backend**.
+> **Note:** A sanitised copy of the **frontend** is available at [`Website-template/`](Website-template/) — the live production frontend (`Website/`) is uploaded to Hostpoint separately and not tracked here. This repo contains the **Java backend** plus the **frontend template**.
 
 ### Root-Level Files
 
@@ -751,15 +751,15 @@ For each writeable table, here is the file and method that performs the insert:
 
 | Insert Target | Source File | Method/Location |
 |---|---|---|
-| `questionnaire_answers` | [`Website/biographer.html`](Website/biographer.html) | After Block 0 submit |
-| `user_agents` | [`Website/biographer.html`](Website/biographer.html) | After Biographer creation |
-| `user_legacies` | [`Website/biographer.html`](Website/biographer.html) | After Block 10 completion |
-| `legacy_access_codes` | [`Website/journey.html`](Website/journey.html) | When generating access code |
-| `legacy_messages` | [`Website/legacy.html`](Website/legacy.html) | `saveMessage()` function (~line 1212) |
+| `questionnaire_answers` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Block 0 submit |
+| `user_agents` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Biographer creation |
+| `user_legacies` | [`Website-template/biographer.html`](Website-template/biographer.html) | After Block 10 completion |
+| `legacy_access_codes` | [`Website-template/journey.html`](Website-template/journey.html) | When generating access code |
+| `legacy_messages` | [`Website-template/legacy.html`](Website-template/legacy.html) | `saveMessage()` function (~line 1212) |
 
 ### How the Browser Knows the Supabase URL
 
-In [`Website/js/config.js`](Website/js/config.js):
+In [`Website-template/js/config.js.template`](Website-template/js/config.js.template):
 ```javascript
 window.OBLIVIO_CONFIG = {
     SUPABASE_URL: 'https://<project>.supabase.co',
@@ -1453,7 +1453,7 @@ Ab da: jeder `git push origin main` löst automatisch ein neues Deployment aus.
 
 ## Website Setup — What the Frontend Needs to Run
 
-The frontend (`Website/` folder) is **not on GitHub** — it lives separately and is uploaded via FTP to Hostpoint. But to recreate Oblivio, you need the same structure.
+The frontend is available as a **sanitised template** at [`Website-template/`](Website-template/) in this repo. The live production version lives separately and is uploaded via FTP to Hostpoint. To recreate Oblivio, fork this template and add your own images, audio, and Supabase credentials.
 
 ### Required Directory Layout
 
