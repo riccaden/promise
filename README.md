@@ -34,20 +34,21 @@
 2. [Why Oblivio?](#why-oblivio)
 3. [What is Oblivio?](#what-is-oblivio)
 4. [Concept](#concept)
-5. [Languages](#languages)
-6. [Key Features](#key-features)
-7. [Architecture](#architecture)
-8. [Tech Stack](#tech-stack)
-9. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
-10. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
-11. [Data Flow: From User Input to Supabase](#data-flow-from-user-input-to-supabase) ← **what gets stored where**
-12. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
-13. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
-14. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
-15. [API Overview](#api-overview)
-16. [Local Development](#local-development)
-17. [Deployment](#deployment)
-18. [Author](#author)
+5. [End-to-End Process: How a Persona Comes to Life](#end-to-end-process-how-a-persona-comes-to-life) ← **full user journey**
+6. [Languages](#languages)
+7. [Key Features](#key-features)
+8. [Architecture](#architecture)
+9. [Tech Stack](#tech-stack)
+10. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
+11. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
+12. [Data Flow: From User Input to Supabase](#data-flow-from-user-input-to-supabase) ← **what gets stored where**
+13. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
+14. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
+15. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
+16. [API Overview](#api-overview)
+17. [Local Development](#local-development)
+18. [Deployment](#deployment)
+19. [Author](#author)
 
 ---
 
@@ -142,6 +143,204 @@ Each persona prompt is structured in clearly separated sections:
 [SECTION:SELF_KNOWLEDGE]  What the persona knows about itself and the platform
 [SECTION:RULES]           Behavioural constraints — no lists, no AI phrases, stay in character
 ```
+
+---
+
+## End-to-End Process: How a Persona Comes to Life
+
+This section walks through the complete journey from "user registers" to "loved ones chat with the digital persona". Two perspectives: the **persona owner** (the person being captured) and the **visitor** (someone chatting with the persona).
+
+### Perspective 1: The Persona Owner
+
+```
+1. SIGN UP / LOG IN
+   │
+   │ User visits oblivio.ch, clicks "Sign Up"
+   │ → Supabase Auth creates a new user (auth.users)
+   │ → User receives confirmation email, verifies
+   │ → User can now log in with email + password
+   ▼
+
+2. CHOOSE LANGUAGE
+   │
+   │ One of 8 languages is selected (DE, EN, FR, IT, TR, KO, JA, ZH)
+   │ → Stored in localStorage('oblivio_language')
+   │ → Used for both UI and Biographer prompts
+   ▼
+
+3. BLOCK 0 — PRE-SURVEY
+   │
+   │ Short questionnaire: age, gender, traits, communication style
+   │ → Saved to Supabase table 'questionnaire_answers'
+   │ → Used to personalize the Biographer interview
+   ▼
+
+4. BIOGRAPHER INTERVIEW STARTS
+   │
+   │ Frontend calls POST /agent/biographer (Railway backend)
+   │ → Backend creates 21-state agent (10 blocks × 2 + Final)
+   │ → Returns agent ID
+   │ → Frontend saves agent ID in Supabase ('user_agents' table)
+   ▼
+
+5. THE 10 BLOCKS — CONVERSATION + CONFIRMATION
+   │
+   │ For each block (1 to 10):
+   │
+   │   a) CONVERSATION PHASE
+   │      → AI asks the block's questions (e.g., "Tell me about your childhood...")
+   │      → User responds in chat-like UI
+   │      → After every message, a Guard checks: "Were all questions asked?"
+   │      → If YES → move to confirmation phase
+   │
+   │   b) CONFIRMATION PHASE
+   │      → AI summarizes what it learned: "From our talk I gathered that..."
+   │      → User confirms ("yes", "perfect") or corrects
+   │      → If confirmed → StaticExtractionAction extracts structured JSON
+   │      → JSON is saved in agent's Storage as 'block1', 'block2', ..., 'block10'
+   │      → Move to next block
+   ▼
+
+6. ALL BLOCKS COMPLETE → FINAL STATE
+   │
+   │ Frontend calls GET /{agentId}/storage
+   │ → Receives all 10 block summaries
+   │ → Saves them to Supabase 'user_legacies' table (legacy_data as JSONB)
+   │ → Generates an 8-character access code (e.g., 'VDSRMACZ')
+   │ → Saves access code to 'legacy_access_codes' table
+   ▼
+
+7. PERSONA PROMPTS ARE CREATED (manual, admin step)
+   │
+   │ For each of the 3 variants, a system prompt is built:
+   │ - full_prompt_active (Variant 2 — persona greets first)
+   │ - full_prompt_passive (Variant 3 — persona waits)
+   │ - full_prompt_analysis (Variant 1 — with personality analysis)
+   │ → Stored in 'legacy_access_codes.legacy_data' as JSONB
+   ▼
+
+8. PERSONA OWNER SHARES ACCESS CODE
+   │
+   │ The owner shares the 8-character code with loved ones
+   │ → Their digital legacy is ready
+```
+
+### Perspective 2: The Visitor (Loved One)
+
+```
+1. OPEN LEGACY CHAT
+   │
+   │ Visitor goes to oblivio.ch/legacy.html
+   │ Enters the 8-character access code (e.g., 'VDSRMACZ')
+   │ → Frontend queries Supabase 'legacy_access_codes' table
+   │ → Receives: nickname, language, legacy_data, avatar_url, voice_id
+   ▼
+
+2. ENTER VISITOR INFO
+   │
+   │ Visitor enters their name (e.g., 'Maria')
+   │ Selects their relationship to the persona (child, friend, ...)
+   │ Selects their gender (male/female/other)
+   │ → Saved in localStorage('oblivio_visitor_VDSRMACZ')
+   │ → Used to personalize the persona's responses
+   │   (the persona will know "I'm talking to my daughter Maria")
+   ▼
+
+3. CHOOSE VARIANT (1, 2, or 3)
+   │
+   │ Three buttons at the top:
+   │   [Variant 1] [Variant 2] [Variant 3]
+   │   Analysis    Active      Passive
+   │
+   │ Default = Variant 1 (Analysis)
+   │ → Saved in localStorage('oblivio_mode_VDSRMACZ')
+   ▼
+
+4. CHAT SESSION STARTS
+   │
+   │ Frontend builds the system prompt for the chosen variant:
+   │
+   │ a) Loads the right prompt from legacy_data:
+   │    - active → full_prompt_active
+   │    - passive → full_prompt_passive
+   │    - analysis → full_prompt_analysis
+   │
+   │ b) Appends a "Visitor Context" block:
+   │    "You are talking with **Maria**. Maria is your daughter (female)..."
+   │
+   │ c) Sends POST /agent/singlestate to Railway
+   │    → Backend creates a Single-State Agent with this prompt
+   │    → Returns agent ID
+   ▼
+
+5. STARTER MESSAGE
+   │
+   │ Frontend calls POST /{agentId}/start
+   │
+   │ Variant-specific behavior:
+   │ - Variant 2 (Active) → Persona sends a greeting first
+   │     e.g., "Hey Maria, schön dich zu sehen!"
+   │ - Variant 1 (Analysis) → Persona returns __WAIT__
+   │     → Frontend filters __WAIT__, shows "Type to start chatting"
+   │ - Variant 3 (Passive) → Same as Variant 1, persona waits silently
+   ▼
+
+6. CONVERSATION LOOP
+   │
+   │ For every message the visitor types:
+   │
+   │   a) Frontend sends POST /{agentId}/respond to Railway
+   │   b) Backend (PROMISE):
+   │      - Adds visitor's message to conversation history
+   │      - Checks compactIfNeeded() — if >20 messages, summarize older ones
+   │      - Calls OpenAI GPT-4o with system prompt + conversation
+   │      - Receives the persona's response
+   │      - Checks Guard: "Is visitor saying goodbye?"
+   │        → If yes → fire transition to Final state
+   │   c) Frontend receives response
+   │   d) Frontend writes BOTH user message AND persona response to Supabase 'legacy_messages'
+   │      → With scoped visitor_id ('uuid__active', etc.)
+   │   e) Frontend displays the response in chat
+   │   f) Optionally: frontend calls POST /{agentId}/tts for voice playback (ElevenLabs)
+   ▼
+
+7. VARIANT SWITCH (optional, anytime)
+   │
+   │ Visitor clicks another variant button
+   │
+   │ Frontend:
+   │ - Loads the conversation history of the new variant from Supabase
+   │   (filtered by visitor_id scoped to new mode)
+   │ - Creates a NEW PROMISE agent with the new variant's prompt
+   │ - Includes existing history as context in the new system prompt
+   │ - The persona "remembers" everything from the previous mode
+   ▼
+
+8. SESSION ENDS (or visitor leaves)
+   │
+   │ Conversation is saved in Supabase
+   │ → Visitor can return anytime; chat history persists
+   │ → Different devices show different histories
+   │   (visitor_id is per-browser via localStorage)
+```
+
+### How the 3 Variants Work Technically
+
+All three variants run on the **same PROMISE mechanism** — a Single-State Agent. They differ only in **which prompt is loaded** and **which starter behavior is used**:
+
+| | Variant 1 (Analysis) | Variant 2 (Active) | Variant 3 (Passive) |
+|---|:-:|:-:|:-:|
+| Persona greets first? | ❌ Waits | ✅ Greets | ❌ Waits |
+| Has personality analysis? | ✅ Yes | ❌ No | ❌ No |
+| Sections in prompt | 6 (incl. ANALYSIS) | 5 (active IDENTITY) | 5 (passive IDENTITY) |
+| Loaded from Supabase | `full_prompt_analysis` | `full_prompt_active` | `full_prompt_passive` |
+| Starter behavior | `__WAIT__` token | Real greeting | `__WAIT__` token |
+| Visitor ID suffix | `__analysis` | `__active` | `__passive` |
+| Token usage | Highest | Medium | Medium |
+
+**The `__WAIT__` trick:** In Variant 1 and 3, the persona must wait. The starter prompt instructs the LLM to respond with literally the text `__WAIT__`. The frontend detects this and filters it out, showing the user a hint like "Type something to start" instead of a generated greeting. The agent stays in a valid PROMISE state, ready to respond when the visitor writes.
+
+**Mode-Switching preserves history:** When a visitor switches variants, the conversation messages don't disappear — they're stored in `legacy_messages` with a mode-scoped `visitor_id` (e.g., `uuid__active`, `uuid__passive`, `uuid__analysis`). Each variant has its own history, but the visitor can freely jump between them. If they switch from Variant 2 (where they had 10 messages) to Variant 1 (empty), they see a fresh conversation. Switching back returns them to the 10 messages.
 
 ---
 
