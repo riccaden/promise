@@ -63,6 +63,267 @@ The remainder of this README is one large guided tour: the complete **end-to-end
 
 ---
 
+## Deep Dive: Inside the PROMISE Framework
+
+Before we look at the 20-state Biographer or the Oblivio additions, this section explains **how PROMISE itself works internally** — what each class does, how they interact, and what happens technically during a conversation. Useful as a mental model before reading the rest.
+
+### The five core primitives
+
+PROMISE models a conversation as a graph of small, focused components. There are five primitive types you need to understand:
+
+#### 1. `Prompt` — the base class
+
+[`model/Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java) is the abstract base that everything inherits from. It holds **one string** — a prompt text — plus optional references to a `Storage` for dynamic prompts (rare in Oblivio). Crucially, it uses JPA's **SINGLE_TABLE inheritance strategy** (`@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`) so that all subclasses — State, Decision, Action — are stored in **one single database table** called `prompt` with a `dtype` discriminator column telling them apart.
+
+Why one table? Because PROMISE wants you to be able to mix and match these freely in a state machine without worrying about separate tables and foreign keys. They are conceptually "things that get sent to an LLM", just used in different ways.
+
+#### 2. `State` — a conversation phase
+
+[`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) extends `Prompt` and represents one phase of a conversation. Each state has:
+
+- **A system prompt** (inherited from `Prompt`) — defines what the AI should do in this phase
+- **A `starterPrompt`** — instructions for the AI's first message when this state is entered
+- **A `summarisePrompt`** — used if `summarise()` is called on the state
+- **A `Utterances` collection** — the messages exchanged while in this state
+- **A list of `Transition` objects** — the possible ways out of this state
+- **Two flags:** `isStarting` (should the AI generate a greeting when entering?), `isOblivious` (should utterances be reset when entering?)
+
+The key methods on `State`:
+
+```java
+public Response start()                                      // generate the first message
+public Response respond(String userSays) throws TransitionException  // handle user message
+public void acknowledge(String userSays) throws TransitionException  // add user msg + check transitions
+public String summarise()                                    // summarise this state's history
+public void reset()                                          // clear utterances
+```
+
+#### 3. `Transition` — the bridge between states
+
+[`model/Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java) is **not** a subclass of `Prompt`. It's a standalone entity that ties three things together:
+
+```java
+public class Transition {
+    @ManyToMany List<Decision> decisions;     // Guards (boolean checks)
+    @ManyToMany List<Action> actions;         // Side effects on transition
+    @ManyToOne  State subsequentState;        // Where the transition leads
+}
+```
+
+The two important methods:
+
+```java
+public boolean decide(Utterances utterances) {
+    // Runs every decision in sequence; AND-logic
+    // If any decision returns false → transition does NOT fire
+    // If all decisions return true → transition fires
+}
+
+public void action(Utterances utterances) {
+    // Runs every action in sequence (sequential, not parallel)
+    // Each action can read/modify utterances or storage
+}
+```
+
+#### 4. `Decision` — a boolean guard
+
+[`model/Decision.java`](src/main/java/ch/zhaw/statefulconversation/model/Decision.java) extends `Prompt`. Its prompt is **a yes/no question**. The decision's role is to consult the LLM with this question against the current conversation, and return `true` or `false`.
+
+PROMISE provides two concrete implementations:
+- **[`StaticDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java)** — a fixed yes/no prompt (used heavily in Oblivio)
+- **[`DynamicDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/DynamicDecision.java)** — prompt is templated with values from `Storage` at runtime
+
+The mechanism for evaluation: `LMOpenAI.decide()` sends the conversation + the decision's prompt + a strict instruction *"answer only true or false"* to GPT-4o, parses the answer with `Boolean.parseBoolean()`, and returns the result.
+
+#### 5. `Action` — a side effect on transition
+
+[`model/Action.java`](src/main/java/ch/zhaw/statefulconversation/model/Action.java) extends `Prompt`. When a transition fires, all its actions execute sequentially. Each action implements `execute(Utterances)`.
+
+The actions that matter for Oblivio's Biographer:
+- **[`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java)** — Sends the conversation + its prompt to the LLM via `LMOpenAI.extract()`, receives JSON, stores it in the agent's `Storage` under a given key (e.g., `"block1"`).
+- **[`TransferUtterancesAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java)** — Copies the current state's utterances into the target state's utterances. Used in the Biographer to pass Conv-state messages into the Confirm-state so it can summarise them.
+- **[`StaticSummarisationAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticSummarisationAction.java)** — Like extraction but for summarisation (less used in Oblivio).
+- **[`RemoveLastUtteranceAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/RemoveLastUtteranceAction.java)** — Removes the last user message (used when re-asking after a misunderstood reply).
+
+### The `Agent` — orchestrator
+
+[`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) is the top-level entity. It owns:
+
+```java
+@Id private UUID id;
+private String name;
+private String description;
+private String userId;                  // Oblivio addition for multi-user
+@OneToOne State initialState;          // Where conversations start
+@OneToOne State currentState;          // Where the conversation currently is
+@ManyToOne Storage storage;            // Key-value storage for extracted data
+```
+
+Key methods:
+
+```java
+public Response start()                                      // delegate to currentState.start()
+public Response respond(String userSays)                     // delegate, handle TransitionException
+public void reset()                                          // back to initialState
+public boolean isActive()                                    // false if currentState is a Final
+```
+
+The clever part is `respond()`:
+
+```java
+public Response respond(String userSays) {
+    try {
+        return this.currentState.respond(userSays);
+    } catch (TransitionException e) {
+        this.currentState = e.getSubsequentState();    // Move to next state
+        if (this.currentState.isStarting()) {
+            return this.start();                       // New state generates a greeting
+        }
+        return this.respond(userSays);                 // Re-process the same message in new state
+    }
+}
+```
+
+If the response triggers a transition, the exception bubbles up. The agent **catches it, updates `currentState`, and re-runs `respond()` in the new state**. This means a single user message can cascade through multiple state transitions in one HTTP request — useful for skipping silent states (like the Confirm-state's transition to next-block Conv).
+
+### `Utterances` — the conversation history
+
+[`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java) is the message log. Each utterance has:
+
+```java
+private String role;        // "user", "assistant", or "system"
+private String content;     // the message text
+private Instant createdDate;
+private String stateName;   // which state this message belongs to
+```
+
+Crucially: **utterances are bound to a specific state's collection**. They don't automatically follow you across states. That's why `TransferUtterancesAction` exists — to explicitly copy them when needed.
+
+PROMISE provides methods like `appendUserSays()`, `appendAssistantSays()`, `removeLastUtterance()`, `reset()`. Oblivio added **`compactIfNeeded()`** for context compaction (covered later).
+
+### `LMOpenAI` — the LLM bridge
+
+[`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) is a **static utility class** that wraps the OpenAI HTTP API. All LLM calls in PROMISE go through it. Its five public methods serve different purposes:
+
+```java
+// 1. Generate a normal assistant response (used by State.respond)
+public static String complete(Utterances utt, String systemPrompt, String stateName)
+
+// 2. Boolean decisions (used by Transition.decide via StaticDecision)
+public static boolean decide(Utterances utt, String prompt)
+
+// 3. Structured JSON extraction (used by StaticExtractionAction)
+public static JsonElement extract(Utterances utt, String prompt)
+
+// 4. JSON summarisation (used by StaticSummarisationAction)
+public static JsonElement summarise(Utterances utt, String prompt)
+
+// 5. Plain-text summarisation — added by Oblivio for context compaction
+public static String summariseOffline(Utterances utt, String prompt)
+```
+
+Each method composes the prompt slightly differently:
+- `complete()` puts the system prompt at the start, then the conversation
+- `decide()` and `extract()` use a **condensed** form: the entire conversation is wrapped in `<conversation>...</conversation>` tags, treated as a single user message, and a reminder is appended ("Answer only true or false", "Return valid JSON")
+- All methods use **GSON** to serialize messages and the **standard HTTP client** to call OpenAI
+
+This abstraction means PROMISE doesn't have to know about OpenAI specifics — everything else in the framework works with Java strings and Java types.
+
+### How a single HTTP request flows through PROMISE
+
+Here is what happens when the frontend calls `POST /{agentId}/respond` with `{ "content": "I love cooking" }`:
+
+```
+1. Spring routes the request to AgentController.respond()
+2. AgentController loads the agent from Supabase via AgentRepository (JPA)
+   - This loads: Agent + currentState + currentState.utterances (EAGER fetch)
+3. Spring deserializes the request body to UtteranceRequest
+4. AgentController calls agent.respond("I love cooking")
+   ↓
+5. Agent.respond() delegates to currentState.respond("I love cooking")
+   ↓
+6. State.respond():
+   a. acknowledge("I love cooking")
+      - Appends utterance to utterances (with role="user")
+      - Calls raiseIfTransit():
+        ↓
+        For each Transition in this.transitions:
+          For each Decision in transition.decisions:
+            - LMOpenAI.decide(utterances, decision.prompt) → HTTP POST to OpenAI
+            - GPT-4o returns "true" or "false"
+            - Boolean.parseBoolean()
+          If all decisions returned true: 
+            transition.action(utterances) → e.g., StaticExtractionAction
+              ↓
+              LMOpenAI.extract() → HTTP POST to OpenAI → JSON response
+              storage.put("block1", json)
+            throw TransitionException(subsequentState)
+   
+   b. (If no transition fired) compactIfNeeded()   ← Oblivio addition
+      - If >20 user messages, summarise older ones via LMOpenAI.summariseOffline()
+   
+   c. composeTotalPrompt() — assembles the final system prompt
+   
+   d. LMOpenAI.complete(utterances, totalPrompt) → HTTP POST to OpenAI
+      → GPT-4o returns the assistant's response text
+   
+   e. utterances.appendAssistantSays(text) — add response to history
+   
+   f. return new Response(this, text)
+   ↓
+7. Agent.respond() catches no exception, returns the Response
+   (If a TransitionException was caught: currentState = subsequentState, recurse)
+8. AgentController saves the modified agent back to Supabase:
+   - repository.save(agent) → Hibernate persists agent + state + utterances + storage
+9. AgentController returns a ResponseView (JSON) to the frontend
+10. Frontend displays the assistant text
+```
+
+Notice how many HTTP calls to OpenAI happen for **one user message**: 1 per Decision (each Guard), 0 or 1 per Action (if it uses LMOpenAI), plus 1 final completion. A simple Biographer block with 2 decisions = 3 OpenAI calls per turn. That's why PROMISE is not "cheap" — it trades extra LLM calls for structural reliability.
+
+### How persistence works (Hibernate / JPA)
+
+PROMISE uses **Hibernate** with `spring.jpa.hibernate.ddl-auto=update`. This means:
+
+- Every class with `@Entity` automatically becomes a database table
+- Hibernate inspects the classes at startup and creates/extends tables as needed
+- Foreign keys are built from `@OneToOne`, `@OneToMany`, `@ManyToOne`, `@ManyToMany` relationships
+- When `repository.save(agent)` is called, Hibernate **cascades** the save to all related entities (states, utterances, storage entries, transitions, decisions, actions)
+
+The cascade is the magic. It means PROMISE never has to write SQL: just modify Java objects, call `save()`, and the entire object graph is persisted. The downside is that very large agents (lots of utterances) can be slow to load/save because Hibernate loads everything eagerly.
+
+In the database, the entity hierarchy ends up as roughly these tables:
+
+| Table | What it stores |
+|---|---|
+| `agent` | Each Agent: id, name, userId, currentState_id, initialState_id, storage_id |
+| `prompt` | All States, Decisions, Actions, Finals (with `dtype` discriminator) |
+| `state` | Inherited from Prompt; adds isStarting, isOblivious |
+| `transition` | Each transition: id, subsequentState_id |
+| `prompt_transitions` | Join table linking states to their transitions |
+| `transition_decisions` | Join table linking transitions to their decisions |
+| `transition_actions` | Join table linking transitions to their actions |
+| `utterances` | Conversation containers |
+| `utterance` | Individual messages: role, content, stateName, utterances_id |
+| `storage` | Key-value containers attached to agents |
+| `storage_entry` | The actual key-value pairs |
+
+All of these live in **the same Supabase PostgreSQL database** as the Oblivio-specific tables (`user_agents`, `legacy_access_codes`, etc.).
+
+### Summary of PROMISE's contribution
+
+PROMISE provides:
+
+1. **A clean state-machine abstraction** — states, transitions, decisions, actions, all as Java entities
+2. **LLM integration** — five methods covering completion, decision, extraction, summarisation
+3. **Persistence by convention** — JPA/Hibernate cascading; no SQL needed
+4. **REST controllers** — `AgentController` and `AgentMetaController` ready to serve agents over HTTP
+5. **Common building blocks** — pre-built actions and decisions in `model/commons/`
+
+This is what Oblivio inherits **for free**. Everything else in the rest of this README is Oblivio sitting on top of this foundation.
+
+---
+
 ## Deep Dive: The 20-State (+1 End State) Biographer Architecture
 
 Before walking through the end-to-end process, let's understand the **core engineering decision** that makes Oblivio work: the **state-machine model of a conversation**.
