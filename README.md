@@ -73,29 +73,9 @@ PROMISE models a conversation as a graph of small, focused components. There are
 
 #### 1. `Prompt` — the base class
 
-[`model/Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java) is the abstract base that everything inherits from. It holds **one string** — a prompt text — plus optional references to a `Storage` for dynamic prompts (not used in Oblivio, see below). Crucially, it uses JPA's **SINGLE_TABLE inheritance strategy** (`@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`) so that all subclasses — State, Decision, Action — are stored in **one single database table** called `prompt` with a `dtype` discriminator column telling them apart.
+[`model/Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java) is the abstract base that everything inherits from. It holds **one string** — a prompt text — that gets sent to the LLM. Crucially, it uses JPA's **SINGLE_TABLE inheritance strategy** (`@Inheritance(strategy = InheritanceType.SINGLE_TABLE)`) so that all subclasses — State, Decision, Action — are stored in **one single database table** called `prompt` with a `dtype` discriminator column telling them apart.
 
 Why one table? Because PROMISE wants you to be able to mix and match these freely in a state machine without worrying about separate tables and foreign keys. They are conceptually "things that get sent to an LLM", just used in different ways.
-
-##### Static vs dynamic prompts — and why Oblivio uses only static ones
-
-PROMISE supports two kinds of prompt classes:
-- **Static** — the prompt text is fixed at construction time (e.g. `StaticDecision("Have all 11 questions been asked?")`)
-- **Dynamic** — the prompt text contains placeholders like `{name}` or `{lastIllness}` that get filled at runtime with values from the agent's `Storage`. Example use cases: a coaching bot that remembers the user's name across many states, or a medical assessment that references symptoms collected in earlier states.
-
-**Oblivio uses only static prompts.** Several reasons:
-
-1. **The 10 Biographer blocks are intentionally independent.** Block 2 (Daily Life) does not reference Block 1 (Tastes). Block 7 (Values) does not reference Block 4 (Memories). Each block has its own focused topic with its own list of questions — no cross-block placeholders are needed. This is by design: independent blocks mean the AI can focus on one theme at a time without confusion.
-
-2. **Block summaries are aggregated AFTER, not DURING the Biographer.** The 10 block summaries are stored in PROMISE's `Storage` as `block1`, `block2`, … `block10`, but they are only **read out at the very end** by the frontend via `GET /{agentId}/storage`. They are not injected back into any prompt during the interview. So dynamic prompts wouldn't gain anything.
-
-3. **Persona prompts are pre-assembled, not templated.** When a Legacy Chat persona is created, the three full prompts (`full_prompt_active`, `full_prompt_passive`, `full_prompt_analysis`) are written as complete strings in Supabase's `legacy_data` JSONB column. The frontend reads the appropriate string and passes it verbatim to the backend. No runtime substitution from PROMISE's `Storage` is needed — the visitor context block is added by the frontend before the agent is even created.
-
-4. **Static prompts are predictable and debuggable.** Dynamic prompts are powerful but add complexity (where does the placeholder value come from? what if it's missing? what format?). Oblivio's design philosophy is "explicit and simple over clever". With static prompts, what you see in the code or in Supabase is exactly what GPT-4o receives.
-
-5. **PROMISE's dynamic prompts shine in different use cases** — e.g. health coaching bots that need to remember "the user's diagnosed condition is X" across many later states. Oblivio's Biographer/Legacy structure has no such need. The example bots in [`src/test/java/.../bots/`](src/test/java/ch/zhaw/statefulconversation/bots/) (TherapySupport, OpenHealthCoaching) demonstrate dynamic prompts in their original element.
-
-So Oblivio uses **only [`StaticDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java)** for guards and **only [`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java)** + **[`TransferUtterancesAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java)** for actions — all from PROMISE's static toolkit.
 
 #### 2. `State` — a conversation phase
 
@@ -149,9 +129,7 @@ public void action(Utterances utterances) {
 
 [`model/Decision.java`](src/main/java/ch/zhaw/statefulconversation/model/Decision.java) extends `Prompt`. Its prompt is **a yes/no question**. The decision's role is to consult the LLM with this question against the current conversation, and return `true` or `false`.
 
-PROMISE provides two concrete implementations:
-- **[`StaticDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java)** — a fixed yes/no prompt (used heavily in Oblivio)
-- **[`DynamicDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/DynamicDecision.java)** — prompt is templated with values from `Storage` at runtime
+PROMISE provides **[`StaticDecision`](src/main/java/ch/zhaw/statefulconversation/model/commons/decisions/StaticDecision.java)** as the implementation Oblivio uses — a fixed yes/no prompt that gets evaluated by the LLM.
 
 The mechanism for evaluation: `LMOpenAI.decide()` sends the conversation + the decision's prompt + a strict instruction *"answer only true or false"* to GPT-4o, parses the answer with `Boolean.parseBoolean()`, and returns the result.
 
