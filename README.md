@@ -387,10 +387,11 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **PROMISE adaptations — what was changed and why it works now:**
 
 - **Context Compaction (new method):**
-  - **Why needed:** In PROMISE, every new message re-sends the **complete** conversation history to GPT-4o. For a 50-message block, that's ~5000 tokens per turn, repeatedly. Cost grows linearly; GPT's 128k context window eventually overflows.
-  - **What was changed:** Added [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (~60 lines). When user-message count exceeds 20, older messages are summarised to 3-5 sentences and replaced with a single system message tagged `[Zusammenfassung des bisherigen Gesprächs]`.
+  - **Why needed:** In PROMISE, every new message re-sends the **complete** conversation history of the current state to GPT-4o. Cost grows linearly with conversation length; GPT-4o's 128k context window eventually overflows on very long chats.
+  - **What was changed:** Added [`Utterances.compactIfNeeded()`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (~60 lines). When the count of user messages in a single state exceeds 20, older messages are summarised to 3-5 sentences and replaced with a single system message tagged `[Zusammenfassung des bisherigen Gesprächs]`.
   - **How it works now:** First check counts user messages; if ≤20, return immediately (almost no overhead). If >20 and not yet compacted (detected via tag), build text from older messages, call `LMOpenAI.summariseOffline()`, delete the originals via JPA orphan-removal, prepend the new system message. The most recent 10 messages stay verbatim so recent context is never lost.
-  - **Effect:** A 60-message block sends ~10 verbatim messages + one summary ≈ 1100 tokens — same as a 10-message block. **Cost stays flat regardless of conversation length.**
+  - **Effect:** A 60-message state sends ~10 verbatim messages + one summary ≈ 1100 tokens — same as a 10-message state. **Cost stays flat regardless of conversation length.**
+  - **When it actually fires in practice:** Compaction is a generic mechanism in `State.respond()` and is therefore active in **every** state of every agent. **But** because each Biographer block is its own state (utterances reset across blocks), a single block rarely hits the 20-message threshold — Biographer blocks are designed to finish in 10–15 turns. The mechanism is therefore mostly relevant for the **Legacy Chat** (Step 14), which is a single state where messages accumulate over the entire conversation. There compaction is critical: a 100-message persona chat would otherwise resend ~10,000 input tokens per turn.
 
 - **Compaction trigger in `State.respond()`:**
   - **Why needed:** The method has to run **before each LLM call**, otherwise the next request still uses the un-compacted history.
@@ -665,10 +666,14 @@ Default = Variant 1 (Analysis).
 - [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) — LLM call
 - [`controllers/TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — calls ElevenLabs API, returns MP3 bytes
 
-**PROMISE adaptations:**
-- **Context Compaction** (same as Step 5a) keeps cost low across long chats
-- **TTS Controller (new file):** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — PROMISE has no audio output. Oblivio added this as a server-side bridge so the ElevenLabs API key stays on Railway (never exposed to the browser)
-- **New DTO:** [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java)
+**PROMISE adaptations — what was changed and why it works now:**
+
+- **Context Compaction is essential here** (introduced in Step 5a):
+  - Unlike the Biographer (where each block is a separate state and rarely reaches 20 messages), the Legacy Chat is a **single state** where every visitor message accumulates. Without compaction, a 100-message persona chat would re-send all 100 messages to GPT-4o on every new turn — tokens (and cost) growing linearly with conversation length.
+  - With compaction, after message 21 the older history is summarised once and replaced. From that point on, only ~10 recent messages plus a short summary are sent — token usage stays roughly constant regardless of how long the chat runs.
+  - **This is the place where compaction actually pays off in production**, far more than in the Biographer.
+
+- **TTS Controller (new file):** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — PROMISE has no audio output. Oblivio added this as a server-side bridge so the ElevenLabs API key stays on Railway (never exposed to the browser). Plus the new DTO [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java).
 
 **Where the data goes:**
 - **Supabase PROMISE-tables (Hibernate):** Each message is stored as a row in `utterance`
