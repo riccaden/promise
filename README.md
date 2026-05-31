@@ -40,12 +40,13 @@
 8. [Tech Stack](#tech-stack)
 9. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
 10. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
-11. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide**
-12. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
-13. [API Overview](#api-overview)
-14. [Local Development](#local-development)
-15. [Deployment](#deployment)
-16. [Author](#author)
+11. [What Was Adapted From PROMISE](#what-was-adapted-from-promise) ← **17-step rebuild guide (English)**
+12. [Anpassungen am PROMISE-Framework (Deutsch)](#anpassungen-am-promise-framework-deutsch) ← **deutsche Version**
+13. [Website Setup — What the Frontend Needs to Run](#website-setup--what-the-frontend-needs-to-run)
+14. [API Overview](#api-overview)
+15. [Local Development](#local-development)
+16. [Deployment](#deployment)
+17. [Author](#author)
 
 ---
 
@@ -938,6 +939,191 @@ From now on: every `git push origin main` triggers a new deployment automaticall
 | **Heavily extended** | 3 files | AgentMetaUtility (+500), Utterances (+60), LMOpenAI (+10) |
 | **Completely new (Java)** | 11 files | WebConfig, TTSController, UserLogController, 4× logging/, 4× DTOs/views |
 | **Completely new (infra)** | 7 files | Dockerfile, railway.json, .railwayignore, .env.example, application-prod, openai-prod, CITATION.cff |
+
+---
+
+## Anpassungen am PROMISE-Framework (Deutsch)
+
+> **Deutsche Version der oben stehenden Anleitung.** Dieselben 17 Schritte, in derselben Reihenfolge — für Leser der Bachelorarbeit.
+
+Oblivio baut auf [PROMISE](https://github.com/zhaw-iwi/promise) auf, einem zustandsbasierten Konversationsframework des Instituts für Informatik der ZHAW. Dieser Abschnitt beschreibt **Schritt für Schritt**, was am Original-PROMISE geändert wurde und **warum**.
+
+### Schritt 1: PROMISE forken und lokale Umgebung einrichten
+
+```bash
+git clone https://github.com/zhaw-iwi/promise.git oblivio-backend
+cd oblivio-backend
+```
+
+Benötigte Werkzeuge: Java 21 (JDK), Maven Wrapper (mitgeliefert), PostgreSQL-Zugang (lokal oder Supabase), OpenAI API-Key, optional ElevenLabs API-Key.
+
+---
+
+### Schritt 2: MySQL durch PostgreSQL in [`pom.xml`](pom.xml) ersetzen
+
+**Warum diese Änderung?**
+PROMISE war ursprünglich für MySQL konfiguriert. Oblivio benötigte eine gehostete Datenbank mit eingebauter Authentifizierung und JWT-Unterstützung — Supabase wurde gewählt, weil es PostgreSQL plus Benutzerverwaltung "out of the box" anbietet. Dadurch entfällt die Notwendigkeit, einen separaten Authentifizierungsdienst zu schreiben. PostgreSQL handhabt zudem JSONB- und TEXT-Spalten besser als MySQL, was für unsere langen Persona-Prompts und strukturierten Block-Zusammenfassungen entscheidend ist.
+
+Konkret wird die MySQL-Dependency entfernt und durch die PostgreSQL-Dependency ersetzt. **Ohne diese Änderung:** Spring Boot würde beim Start mit `Driver org.postgresql.Driver claims to not accept jdbcUrl` abbrechen, weil der PostgreSQL-Treiber nicht im Classpath wäre.
+
+---
+
+### Schritt 3: Datenbank-Spalten auf TEXT migrieren
+
+**Warum diese Änderung?**
+PROMISE limitiert die Prompt-Spalten auf VARCHAR(10000). Die Persona-Prompts in Oblivio sind deutlich länger, weil sie sechs Sektionen enthalten (IDENTITY + CHAPTERS + ANALYSIS + STYLE + EXAMPLES + SELF_KNOWLEDGE + RULES) — ein einzelner Persona-Prompt kann 20.000 Zeichen erreichen. Ohne diese Migration würde der Insert mit `value too long for type character varying(10000)` abbrechen. Der Wechsel auf den TEXT-Typ von PostgreSQL hebt das Grössenlimit vollständig auf, ohne Performance-Nachteile.
+
+Drei Java-Entity-Dateien werden angepasst: [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) — jeweils `@Column(length = 10000)` zu `@Column(columnDefinition = "TEXT")`.
+
+**Wichtiger Stolperstein:** Hibernates `ddl-auto=update`-Modus fügt neue Spalten hinzu, ändert aber **keine** bestehenden Spaltentypen. Wenn die DB bereits mit VARCHAR(10000) lief, müssen die `ALTER TABLE ... TYPE TEXT`-Statements manuell in Supabase ausgeführt werden.
+
+---
+
+### Schritt 4: `userId` zu [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) hinzufügen (Multi-User-Tracking)
+
+**Warum diese Änderung?**
+PROMISE war für einen einzelnen Benutzer konzipiert — jeder Agent in der Datenbank gehört "dem Benutzer". Oblivio ist eine Multi-User-Plattform: Viele Personen führen gleichzeitig ihre eigenen Biographer-Sessions und besitzen ihre eigenen Legacy-Personas. Ohne ein `userId`-Feld gäbe es keine Möglichkeit zu filtern, welche Agents zu welchem User gehören — jeder könnte potenziell die Gespräche aller anderen sehen. Das Hinzufügen dieser Spalte verknüpft jeden Agent über UUID mit einem Supabase-Auth-User.
+
+**Ohne diese Änderung:** Der `/user/{userId}/agents`-Endpoint (Schritt 12) hätte kein Feld zum Filtern — und das Frontend-Dashboard könnte den Usern ihre eigene Biographer-Historie nicht anzeigen.
+
+---
+
+### Schritt 5: Context Compaction in [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java)
+
+**Warum diese Änderung?**
+In PROMISE wird bei jeder neuen User-Nachricht der **gesamte Gesprächsverlauf** erneut an GPT geschickt — die Token-Kosten wachsen linear mit der Gesprächslänge. Ein 50-Nachrichten-Gespräch sendet ~5000 Input-Tokens bei jeder weiteren Nachricht, multipliziert mit jeder zusätzlichen Antwort. Bei GPT-4o-Preisen kann eine lange Biographer-Session schnell mehrere Dollar kosten. Zusätzlich würde das 128k-Token-Kontextfenster von GPT-4o bei sehr langen Gesprächen überlaufen und API-Fehler erzeugen.
+
+Der Compaction-Mechanismus löst beide Probleme: Nach 20 User-Nachrichten werden ältere Nachrichten zu einer einzigen System-Nachricht (3–5 Sätze) zusammengefasst. Die Kosten bleiben unabhängig von der Gesprächslänge weitgehend konstant, während die Essenz der bisherigen Konversation erhalten bleibt. Der Schwellwert von 20 wurde empirisch gewählt — früh genug um Kosten zu kontrollieren, spät genug um natürlichen Kontext zu bewahren.
+
+Die neue Methode `compactIfNeeded()` (~60 Zeilen) zählt User-Nachrichten, überspringt bereits kompaktierte Gespräche, ruft `LMOpenAI.summariseOffline()` zur Zusammenfassung auf und ersetzt die alten Nachrichten durch eine einzige System-Message mit dem Präfix `[Zusammenfassung des bisherigen Gesprächs]`.
+
+---
+
+### Schritt 6: Compaction in [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) auslösen
+
+**Warum diese Änderung?**
+Die `compactIfNeeded()`-Methode aus Schritt 5 läuft nicht von selbst — sie muss zum richtigen Zeitpunkt aufgerufen werden. Der beste Moment ist **direkt vor jedem neuen LLM-Aufruf**, damit der kompaktierte Kontext in der nächsten Anfrage genutzt wird. Indem der Aufruf in `State.respond()` unmittelbar nach `acknowledge()` platziert wird (wo die neue User-Nachricht hinzugefügt wird), profitiert jedes Gespräch in jedem State automatisch davon — Biographer, Legacy und sogar zukünftige Agent-Typen. **Eine Zeile, ein Ort, volle Abdeckung.**
+
+---
+
+### Schritt 7: `summariseOffline()` zu [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) hinzufügen
+
+**Warum diese Änderung?**
+Die bestehende `summarise()`-Methode von PROMISE gibt ein JSON-Objekt zurück (entworfen für strukturierte Datenextraktion). Für die Context Compaction brauchen wir aber einen reinen Text-Paragraphen, der als System-Nachricht eingefügt wird — JSON würde das LLM in den nachfolgenden Turns verwirren. Die neue `summariseOffline()`-Methode überspringt die JSON-Format-Anweisung und gibt einen Plain-String zurück, bereit zur Einbettung in `[Zusammenfassung des bisherigen Gesprächs]`.
+
+---
+
+### Schritt 8: Biographer-Factory in [`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java) bauen
+
+**Warum diese Änderung?**
+PROMISE liefert nur die Bausteine (State, Transition, Decision, Action) — es liefert **keine fertigen Agenten**. Um den Biographer zu erstellen, musste jeder Block von Hand verdrahtet werden: ein Conv-State für die Fragen, ein Confirm-State für die Validierung der Zusammenfassung, Transitions zwischen ihnen mit den richtigen Guards, und eine Extraction-Action zum Speichern der Block-Summary im Storage. Das 10-mal manuell zu tun wäre fehleranfällig, also wurde die Logik in einer einzigen Factory-Methode zentralisiert. Die Factory handhabt auch die Sprachauswahl (8 Sprachen) und die Nickname-Injektion, sodass derselbe Code unterschiedlich personalisierte Biografen pro User erzeugen kann.
+
+**Die Kette wird rückwärts aufgebaut**, weil jede Transition einen `subsequentState` referenzieren muss, der zur Erstellungszeit bereits existieren muss. Bei Final zu beginnen und rückwärts bis Block 1 zu arbeiten ist der einzige praktikable Weg.
+
+Plus drei Hilfsmethoden:
+- `buildBlockPrompts(language, nickname)` — liefert das 2D-Array `prompts[10][7]` mit 70 Prompt-Komponenten
+- `getLanguageInstruction(language)` — Sprach-Präfix für 8 Sprachen (Trick: alle Prompts liegen auf Deutsch vor, GPT übersetzt zur Laufzeit)
+- `getFinalPrompt(language)` und `getFinalStarterPrompt(language, nickname)` — für den Final-State
+
+---
+
+### Schritt 9: `/agent/biographer`-Endpoint hinzufügen
+
+**Warum diese Änderung?**
+PROMISE exponiert nur `POST /agent/singlestate`, das einen einfachen Single-State-Agent erzeugt. Der Biographer ist fundamental anders — er hat 21 States, akzeptiert einen Sprach-Parameter und einen Nickname. Ein eigener Endpoint hält die API sauber: das Frontend ruft einfach `/agent/biographer` mit der gewählten Sprache auf und erhält einen vollständig verdrahteten Agenten zurück. Den `/agent/singlestate`-Endpoint zu überladen würde optionale Felder und Laufzeit-Typ-Prüfungen erfordern, was unsauber wäre.
+
+Plus Erweiterung von [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java) um den Wert `biographer = 1` und Erstellung von [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java).
+
+---
+
+### Schritt 10: CORS-Konfiguration hinzufügen
+
+**Warum diese Änderung?**
+Das Oblivio-Frontend läuft auf `oblivio.ch` (Hostpoint), das Backend auf `promise-production.up.railway.app` (Railway). Das sind zwei verschiedene Domains. Standardmässig erzwingen Browser die Same-Origin-Policy: ein JavaScript-Fetch von einer Origin zu einer anderen wird blockiert, ausser der Server erlaubt es explizit. Ohne CORS-Header vom Backend würde jeder API-Aufruf vom Frontend mit `Access-Control-Allow-Origin missing` fehlschlagen.
+
+Die CORS-Konfiguration sagt dem Browser "ja, dieser Railway-Server akzeptiert Requests von jeder Origin" — eine einzige Spring-Boot-Bean löst das für alle Endpoints auf einmal. Wurde als neue Datei [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) erstellt.
+
+---
+
+### Schritt 11: TTS-Bridge ([`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java))
+
+**Warum diese Änderung?**
+PROMISE ist text-only — es gibt keine Audio-Funktion. Die Legacy-Personas in Oblivio brauchten Stimmen, um emotional real zu wirken (die Stimme einer Grossmutter trägt Erinnerungen so, wie Text es nicht kann). ElevenLabs liefert die Sprachsynthese.
+
+Wir können ElevenLabs aber nicht direkt vom Browser aufrufen, weil das den API-Key im Frontend-Code preisgeben würde, wo ihn jeder kopieren und unsere Rechnung in die Höhe treiben könnte. Das Backend-as-a-Bridge-Pattern hält den Key auf dem Server: das Frontend sendet einfachen Text an unser Backend, und unser Backend ruft ElevenLabs mit dem Key auf und gibt die MP3-Bytes zurück.
+
+---
+
+### Schritt 12: Multi-User-Endpoints ([`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java))
+
+**Warum diese Änderung?**
+Der `AgentController` von PROMISE exponiert Operationen pro-Agent (`/{agentId}/respond` usw.), aber keine Endpoints pro-User. Sobald wir `userId` zur Agent-Entity hinzugefügt haben (Schritt 4), brauchen wir Wege, "zeige mir alle Agenten von User X", "deren komplette Gesprächshistorie" und "ihre Nutzungsstatistik" abzufragen. Die Journey-Dashboard-Seite des Frontends benötigt diese Endpoints, um die User-Übersicht zu rendern.
+
+---
+
+### Schritt 13: Live-Log-Streaming (`logging/`-Paket)
+
+**Warum diese Änderung?**
+Wenn in der Produktion auf Railway etwas schiefgeht, erfordert das Holen von Logs traditionell SSH-Zugang oder das Railway-CLI — beides ist während einer Live-Debugging-Session unbequem. Mit dem Live-Log-Stream öffnen wir `/logs/stream` in irgendeinem Browser und sehen sofort in Echtzeit, was die State Machine gerade tut. Das war besonders hilfreich beim Debugging des Cascading-Transition-Bugs: das Beobachten der nacheinander feuernden Guards zeigte exakt, welche Bedingung falsch war.
+
+Implementiert mit Server-Sent Events, weil sie unidirektional (nur Server → Browser) sind, keine speziellen Client-Bibliotheken benötigen und automatische Wiederverbindungen unterstützen. Vier neue Klassen im `logging/`-Paket: [`LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java), [`SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java), [`LogStreamBroadcaster.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamBroadcaster.java), [`LogStreamController.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamController.java).
+
+---
+
+### Schritt 14: Produktions-Properties hinzufügen
+
+**Warum diese Änderung?**
+PROMISE wird nur mit lokalen Entwicklungs-Properties ausgeliefert — Datenbank-URL, Passwort und API-Key sind hardcoded. Diese auf GitHub zu pushen würde Credentials leaken. Spring Boots "Profiles"-Mechanismus erlaubt unterschiedliche Property-Dateien pro Umgebung: [`application-prod.properties`](src/main/resources/application-prod.properties) wird nur geladen, wenn `SPRING_PROFILES_ACTIVE=prod` gesetzt ist.
+
+Durch die Verwendung von `${ENV_VAR}`-Platzhaltern kommen die tatsächlichen Werte aus den Environment-Variablen von Railway zur Laufzeit — Passwörter verlassen das Repository also nie. Die Einstellung `prepareThreshold=0` am Ende ist essenziell, weil Supabase PgBouncer im Transaction-Pooling-Modus verwendet, das Prepared Statements inkompatibel handhabt.
+
+---
+
+### Schritt 15: Containerisierung für Railway
+
+**Warum diese Änderung?**
+PROMISE hat kein Dockerfile — es ist für lokales Ausführen mit `mvn spring-boot:run` gedacht. Railway benötigt aber ein Image zum Deployen, also packen wir die Anwendung in einen Docker-Container. Der **Multi-Stage-Build** ist bewusst gewählt: Stage 1 enthält das volle JDK und Maven (~700 MB), die nur zum Kompilieren des JARs benötigt werden. Stage 2 enthält nur das JRE und das kompilierte JAR (~200 MB).
+
+Das kleinere finale Image startet schneller auf Railway, verbraucht weniger Speicher und ist sicherer (weniger Angriffsflächen als ein JDK). Die `USER nobody`-Zeile folgt dem Least-Privilege-Prinzip — wenn eine Schwachstelle ausgenutzt wird, hat der Angreifer keine Shell-Privilegien. Der Healthcheck lässt Railway den Container automatisch neu starten, wenn er aufhört zu antworten.
+
+Plus [`railway.json`](railway.json) für die Railway-Konfiguration und [`.railwayignore`](.railwayignore) zum Überspringen unnötiger Dateien beim Build.
+
+---
+
+### Schritt 16: Supabase-Tabellen für das Frontend anlegen
+
+**Warum diese Änderung?**
+Hibernate erstellt automatisch alle PROMISE-bezogenen Tabellen (agent, state, prompt, utterance etc.) beim Backend-Start. Aber das Frontend spricht **direkt mit Supabase** über den JavaScript-Client (umgeht das Backend) für Dinge wie Login, Persona-Lookup und Nachrichten-Persistierung. Diese Tabellen haben keine entsprechenden Java-Entities, also weiss Hibernate nichts von ihnen — sie müssen manuell erstellt werden.
+
+Die Aufteilung der Verantwortlichkeit ist Absicht: sie lässt das Frontend unabhängig vom Backend operieren für lese-intensive Operationen, was Latenz und Last auf Railway reduziert. Folgende Tabellen werden via [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) erstellt: `user_agents`, `user_legacies`, `legacy_access_codes`, `legacy_messages`, `questionnaire_answers`.
+
+---
+
+### Schritt 17: Deployment auf Railway
+
+**Warum Railway?**
+Railway wurde gewählt, weil es nahtlos mit GitHub integriert: jeder Push auf `main` löst automatisch einen frischen Build und Rolling-Deployment aus — keine separaten CI/CD-Skripte, kein manuelles SSH, keine Downtime. Alternativen wie AWS oder Google Cloud hätten deutlich mehr Setup erfordert. Railway handhabt auch SSL/HTTPS, automatische Neustarts bei Fehlern und Docker-Builds "out of the box". Die Kombination aus "git push = live in 3 Minuten" war essenziell, um während der Bachelorarbeit schnell iterieren zu können.
+
+Konkrete Schritte:
+1. Code auf GitHub pushen
+2. Auf Railway: "New Project" → "Deploy from GitHub" → Fork auswählen
+3. Environment-Variablen im Railway-Dashboard setzen (SPRING_DATASOURCE_URL, OPENAI_KEY, ELEVENLABS_API_KEY etc.)
+4. Railway baut automatisch das Dockerfile und startet den Container
+5. Public-Domain in den Railway-Einstellungen generieren → fertig
+
+Ab da: jeder `git push origin main` löst automatisch ein neues Deployment aus.
+
+---
+
+### Zusammenfassung: Geänderte vs. Neue Dateien
+
+| Kategorie | Anzahl | Beispiele |
+|---|---|---|
+| **Unverändert von PROMISE** | ~30 Dateien | Agent, Transition, Storage, alle `commons/*`, alle `repositories/*` |
+| **Leicht modifiziert** | 7 Dateien | Prompt, State, Utterance (TEXT), Agent (userId), AgentMetaController (+Endpoint), AgentMetaType, State (+compactIfNeeded Aufruf) |
+| **Stark erweitert** | 3 Dateien | AgentMetaUtility (+500), Utterances (+60), LMOpenAI (+10) |
+| **Komplett neu (Java)** | 11 Dateien | WebConfig, TTSController, UserLogController, 4× logging/, 4× DTOs/Views |
+| **Komplett neu (Infra)** | 7 Dateien | Dockerfile, railway.json, .railwayignore, .env.example, application-prod, openai-prod, CITATION.cff |
 
 ---
 
