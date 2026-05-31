@@ -13,9 +13,11 @@
 [![Railway](https://img.shields.io/badge/Railway-Deployed-0B0D0E?logo=railway&logoColor=white)](https://railway.app/)
 [![ElevenLabs](https://img.shields.io/badge/ElevenLabs-TTS-000000?logo=data:image/svg+xml;base64,PHN2Zy8+&logoColor=white)](https://elevenlabs.io/)
 
-[![Personas](https://img.shields.io/badge/Personas-11-orange)](#personas)
+[![Personas](https://img.shields.io/badge/Personas-15-orange)](#concept)
 [![Languages](https://img.shields.io/badge/Languages-8-blue)](#languages)
 [![Variants](https://img.shields.io/badge/Conversation_Variants-3-green)](#concept)
+[![Blocks](https://img.shields.io/badge/Biographer_Blocks-10-purple)](#concept)
+[![States](https://img.shields.io/badge/PROMISE_States-21-yellow)](#what-was-adapted-from-promise)
 [![License](https://img.shields.io/badge/License-Academic-lightgrey)](#author)
 
 ---
@@ -28,20 +30,45 @@
 
 ## Table of Contents
 
-1. [Why Oblivio?](#why-oblivio)
-2. [What is Oblivio?](#what-is-oblivio)
-3. [Concept](#concept)
-4. [Languages](#languages)
-5. [Key Features](#key-features)
-6. [Architecture](#architecture)
-7. [Tech Stack](#tech-stack)
-8. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
-9. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
-10. [What Was Adapted From PROMISE](#what-was-adapted-from-promise)
-11. [API Overview](#api-overview)
-12. [Local Development](#local-development)
-13. [Deployment](#deployment)
-14. [Author](#author)
+1. [Project Status](#project-status)
+2. [Why Oblivio?](#why-oblivio)
+3. [What is Oblivio?](#what-is-oblivio)
+4. [Concept](#concept)
+5. [Languages](#languages)
+6. [Key Features](#key-features)
+7. [Architecture](#architecture)
+8. [Tech Stack](#tech-stack)
+9. [Repository Walkthrough](#repository-walkthrough) ← **start here if you want to navigate the code**
+10. [How GitHub → Railway → Supabase works](#how-github--railway--supabase-works)
+11. [What Was Adapted From PROMISE](#what-was-adapted-from-promise)
+12. [API Overview](#api-overview)
+13. [Local Development](#local-development)
+14. [Deployment](#deployment)
+15. [Author](#author)
+
+---
+
+## Project Status
+
+> **Status:** Active research project — Bachelor's thesis in progress.
+> **Live platform:** [oblivio.ch](https://oblivio.ch)
+> **API endpoint:** [promise-production.up.railway.app](https://promise-production.up.railway.app)
+> **Study participants:** 15 personas captured across 4 native languages
+> **Last updated:** May 2026
+
+### At a Glance
+
+| Metric | Value |
+|---|---|
+| Biographer thematic blocks | 10 |
+| PROMISE states per Biographer | 21 (10 × 2 + Final) |
+| Conversation variants per persona | 3 |
+| Supported languages | 8 |
+| Study participants → personas | 15 |
+| Java classes (backend) | 70+ |
+| Frontend HTML pages | 16 |
+| Translation keys per language | ~400 |
+| Context-compaction threshold | 20 user messages |
 
 ---
 
@@ -88,13 +115,17 @@ Each block consists of a **conversation phase** and a **confirmation phase**. At
 
 From the collected summaries, a system prompt is generated that creates an **interactive AI persona**. Loved ones can speak with this persona — it responds in the style, with the values, and with the memories of the captured person.
 
+In total, **15 personas** were created from study participants across **4 native languages** (German, Italian, Japanese, Korean), each available in three conversation variants.
+
 **Three conversation variants:**
 
 | Variant | Name | Description |
 |:-------:|------|-------------|
-| 1 | **Analysis** | Persona waits, with personality analysis embedded |
+| 1 | **Analysis** | Persona waits, with personality analysis embedded (radar chart, communication DNA, life pattern) |
 | 2 | **Active** | Persona greets first and leads the conversation |
 | 3 | **Passive** | Persona waits silently, responds only when spoken to |
+
+Visitors can switch between variants at any time during a conversation; the message history is preserved across mode switches.
 
 ### Prompt Architecture
 
