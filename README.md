@@ -63,6 +63,177 @@ The remainder of this README is one large guided tour: the complete **end-to-end
 
 ---
 
+## Deep Dive: The 21-State Biographer Architecture
+
+Before walking through the end-to-end process, let's understand the **core engineering decision** that makes Oblivio work: the **state-machine model of a conversation**.
+
+### Why a state machine at all?
+
+Imagine you're building a digital biographer with a single prompt: *"Ask the user about their childhood, then about their daily life, then about their values, then summarise everything."* This works for a minute — until the AI forgets where it is, skips topics, mixes themes, or "wraps up" too early.
+
+PROMISE solves this by treating the interview as a **finite state machine (FSM)** — a graph of distinct conversation phases. Each phase has its own focused prompt, its own conversation history, and explicit rules for moving to the next phase. The AI never has to "remember everything at once"; it only needs to handle the current state.
+
+### The 21 states
+
+The Biographer chains together **21 states** in a strictly linear sequence:
+
+```
+Block 1 Conv ──► Block 1 Confirm ──► Block 2 Conv ──► Block 2 Confirm ──► ... ──► Block 10 Conv ──► Block 10 Confirm ──► Final
+   │ q1..q11      │ extract block1
+   │ guard:       │ guard:
+   │ "all asked?" │ "user confirmed?"
+   ▼              ▼
+```
+
+That's 10 blocks × 2 states (Conversation + Confirmation) + 1 Final state = 21 states.
+
+### What each state actually does
+
+Every block has **two states**, paired:
+
+| State Type | Purpose | Active Prompt | Transition Guard |
+|---|---|---|---|
+| **Conv state** | Run the questions for this block (3–11 questions depending on block) | Block-specific system prompt with question list + style rules | "Has the biographer asked all questions explicitly?" |
+| **Confirm state** | Summarise what was learned, ask for confirmation | "Summarise the conversation, ask if the user confirms" | "Did the user confirm or accept the summary?" |
+
+Plus one **Final state** at the end:
+- Doesn't ask anything new; just signals "Biographer done"
+- `isActive()` returns `false` → conversation is closed
+
+### Why two states per block (and not one)?
+
+Splitting Conversation and Confirmation is intentional:
+
+- **Separation of concerns:** The Conv state focuses on *asking*. The Confirm state focuses on *summarising and validating*. Mixing both would dilute the AI's focus.
+- **Data extraction happens only after explicit user consent:** The summary is shown to the user, and only after they confirm does a `StaticExtractionAction` create the structured JSON. No silent extraction behind the scenes.
+- **Recovery:** If the user disagrees with the summary, the Confirm state stays active and the AI revises. The system never moves on with bad data.
+
+### The 7 prompt components per block
+
+Each block is fully defined by **7 prompt strings**, stored in a 2D array `prompts[10][7]`:
+
+```java
+String[][] prompts = new String[10][7];
+prompts[blockIndex][0] = "Conv System Prompt";   // persona, questions, rules
+prompts[blockIndex][1] = "Conv Starter Prompt";  // opening message
+prompts[blockIndex][2] = "Conv Guard";           // "all questions asked?"
+prompts[blockIndex][3] = "Confirm System Prompt";// "summarise, ask consent"
+prompts[blockIndex][4] = "Confirm Starter";      // opening summary message
+prompts[blockIndex][5] = "Confirm Guard";        // "user confirmed?"
+prompts[blockIndex][6] = "Extract Prompt";       // JSON extraction template
+```
+
+That's **70 prompts in total** — 10 blocks × 7 components. Each in 8 languages would mean 560 strings, but Oblivio uses a clever trick: prompts are written in German, and a language prefix is prepended at runtime ([`getLanguageInstruction()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L480)) telling GPT-4o to translate everything to the target language. **Result: 70 strings instead of 560.**
+
+### How transitions actually fire
+
+After every user message, the current state's `respond()` method runs this sequence:
+
+```
+1. Append user message to utterances
+2. Call compactIfNeeded() (Oblivio addition — token cost optimization)
+3. For each transition out of this state:
+     a. For each Decision (Guard) in the transition:
+          - Send conversation + Guard prompt to GPT-4o
+          - Parse response as boolean (true/false)
+     b. If ALL guards return true: fire transition
+4. If a transition fires:
+     a. Run all Actions on the transition (sequentially)
+     b. Throw TransitionException
+     c. Caller (Agent.respond) catches it, sets currentState = subsequentState
+5. Otherwise: generate normal assistant response via LMOpenAI.complete()
+```
+
+The Guard is an LLM-evaluated boolean question. PROMISE asks GPT-4o for a `true`/`false` answer, parses it with Java's `Boolean.parseBoolean()`, and decides accordingly. The two Actions used in the Biographer:
+
+- **[`TransferUtterancesAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/TransferUtterancesAction.java)** — fires on Conv → Confirm transition. Copies the conversation messages into the Confirm state so it can summarise them.
+- **[`StaticExtractionAction`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java)** — fires on Confirm → next-block-Conv transition. Calls GPT-4o with an extraction prompt, gets back structured JSON, and stores it in the agent's `Storage` under the key `block1` / `block2` / ... / `block10`.
+
+### Why the chain is built backwards
+
+This is one of the most counterintuitive parts of the code. Look at the factory method:
+
+```java
+State current = new Final("Biografie abgeschlossen", ...);
+
+for (int i = 9; i >= 0; i--) {   // ← descending loop
+    State nextState = current;
+
+    // Build Confirm state first, with transition pointing to nextState
+    Decision confirmGuard = new StaticDecision(prompts[i][5]);
+    Action extract = new StaticExtractionAction(prompts[i][6], storage, "block" + (i + 1));
+    Transition confirmTransition = new Transition(confirmGuard, extract, nextState);
+    State confirmState = new State(prompts[i][3], ..., confirmTransition);
+
+    // Build Conv state, with transition pointing to the Confirm state we just built
+    Decision convGuard = new StaticDecision(prompts[i][2]);
+    Action transfer = new TransferUtterancesAction(confirmState);
+    Transition convTransition = new Transition(convGuard, transfer, confirmState);
+    State convState = new State(prompts[i][0], ..., convTransition);
+
+    current = convState;
+}
+```
+
+**Why backwards?** Because in PROMISE, every `Transition` is constructed with a reference to its `subsequentState`. The successor state must exist *before* you can build the transition that points to it. If we tried to build Block 1 first, we'd have no Block 2 state to point to yet.
+
+By starting at the end (`Final`) and building toward the start (`Block 1 Conv`), every newly created state already has its successor in hand. After the loop, the variable `current` holds **Block 1 Conv** — the entry point of the entire chain. That gets passed to the `Agent` constructor as `initialState`, and the agent is ready to start.
+
+### Token economics of this design
+
+A naive single-prompt biographer with 100 messages would send all 100 messages to GPT-4o on every new turn — token costs explode. The 21-state design saves money in three ways:
+
+1. **Per-state utterances:** Each state has its own `Utterances` collection. When the user moves from Block 1 to Block 2, Block 1's conversation history is **not carried over**. Block 2 starts fresh, with only Block 1's *summary* (the extracted JSON) preserved.
+2. **Compact summaries instead of full history:** The block summaries in `Storage` are short JSON objects (~500 chars) rather than 50-message conversation logs (~5000 chars).
+3. **Context compaction** (Oblivio addition): even within a single block, after 20 user messages the older parts are summarised. See Step 5 below.
+
+For a full 10-block interview, total token cost ends up roughly **8–12× lower** than a naïve single-prompt approach with the same content depth.
+
+### State-machine diagram
+
+Putting it all together visually:
+
+```
+                   ┌─────────────────────┐
+            START  │  Block 1 Conv       │ ── q1..q11
+                   │  utterances: []     │
+                   └─────────┬───────────┘
+                             │ Guard: "all questions asked?"
+                             │ Action: TransferUtterancesAction
+                             ▼
+                   ┌─────────────────────┐
+                   │  Block 1 Confirm    │ ── summarise + ask consent
+                   │  utterances: copy   │
+                   └─────────┬───────────┘
+                             │ Guard: "user confirmed?"
+                             │ Action: StaticExtractionAction
+                             │         → storage[block1] = JSON
+                             ▼
+                   ┌─────────────────────┐
+                   │  Block 2 Conv       │ ── fresh utterances
+                   │  utterances: []     │
+                   └─────────┬───────────┘
+                             │
+                             ▼
+                          ... 8 more blocks ...
+                             │
+                             ▼
+                   ┌─────────────────────┐
+                   │  Block 10 Confirm   │
+                   └─────────┬───────────┘
+                             │ Guard: "user confirmed?"
+                             │ Action: StaticExtractionAction
+                             ▼
+                   ┌─────────────────────┐
+                   │  Final              │ ── isActive() = false
+                   │  Storage: 10 blocks │ ── ready for retrieval
+                   └─────────────────────┘
+```
+
+After the Final state is reached, the frontend fetches `GET /{agentId}/storage` and gets all 10 block JSONs as one response.
+
+---
+
 ## End-to-End Process
 
 The full journey from "user registers" to "loved ones chat with the digital persona", in **two perspectives**:
@@ -477,6 +648,245 @@ The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PR
 **Where the data goes:**
 - Everything stays in Supabase. On return, the frontend reads `legacy_messages` filtered by `access_code` and `visitor_id` (mode-scoped) and rebuilds the chat history exactly.
 - Different devices show **different histories** because `visitor_id` is per-browser via `localStorage`.
+
+---
+
+## PROMISE Adaptations: What Was Changed and Why
+
+This section explains **every modification made to PROMISE** in detail — what was changed, why it was necessary, and what would break without it.
+
+### Adaptation 1: Database driver swap (MySQL → PostgreSQL)
+
+**File:** [`pom.xml`](pom.xml)
+
+**Before:** PROMISE shipped with the MySQL Connector dependency.
+
+**After:** Replaced with `org.postgresql:postgresql`.
+
+**Why:** Supabase only offers PostgreSQL. Without this swap, Spring Boot would crash on startup with `Driver org.postgresql.Driver claims to not accept jdbcUrl`. PostgreSQL is also a stronger fit for our use case because of native JSONB support (used heavily for `legacy_data`, `legacy_messages`, etc.).
+
+---
+
+### Adaptation 2: Database column types — VARCHAR(10000) → TEXT
+
+**Files:**
+- [`model/Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java) — `prompt` column
+- [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java) — `starterPrompt`, `summarisePrompt`
+- [`model/Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) — `content`
+
+**Before:** `@Column(length = 10000)` (VARCHAR with hard cap at 10000 characters)
+
+**After:** `@Column(columnDefinition = "TEXT")` (PostgreSQL TEXT, no size limit)
+
+**Why:** Persona prompts (full IDENTITY + CHAPTERS + ANALYSIS + STYLE + EXAMPLES + SELF_KNOWLEDGE + RULES) routinely exceed 15,000 characters — the longest seen is around 22,000. Inserting these would crash with `value too long for type character varying(10000)`. PostgreSQL TEXT has no length limit and no performance penalty.
+
+**Stolperstein:** Hibernate's `ddl-auto=update` mode **does not change existing column types** even if the Java annotation changes. If a database was previously running with VARCHAR(10000), you must manually run `ALTER TABLE prompt ALTER COLUMN prompt TYPE TEXT` etc. in Supabase.
+
+---
+
+### Adaptation 3: Multi-user support — `userId` on Agent
+
+**File:** [`model/Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java)
+
+**Added:** A `private String userId` field with getter and setter.
+
+**Why:** PROMISE was designed for single-user scenarios. All agents lived in one shared table with no user attribution. Oblivio is multi-user — different people simultaneously running their own Biographer sessions. Without `userId`, there is no way to filter "show me only my agents" via SQL, and the journey-dashboard page can't render a per-user history. This field is populated automatically in `AgentMetaUtility` when an agent is created with a `userId` in the DTO.
+
+**Consequence:** A new `UserLogController` was created to expose `/user/{userId}/agents`, `/user/{userId}/conversations`, and `/user/{userId}/stats`.
+
+---
+
+### Adaptation 4: Context Compaction — `Utterances.compactIfNeeded()`
+
+**File:** [`model/Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) (~60 new lines)
+
+**What it does:** Counts user messages in the conversation. If more than 20, it takes everything except the last 10 messages, sends them to GPT-4o with a prompt like *"Summarise this conversation in 3-5 sentences"*, and replaces the old messages with one single system message containing the summary (prefixed with `[Zusammenfassung des bisherigen Gesprächs]`). On subsequent compaction checks, the prefix tells the function to skip — no double-compaction.
+
+**Why:** Without compaction, every new message resends the **entire** conversation to GPT-4o. A 50-message conversation sends ~5000 input tokens *on every turn*. At GPT-4o pricing, a single long legacy chat could cost several dollars. Beyond cost, GPT-4o's 128k context window eventually overflows on very long chats. Compaction keeps cost roughly **constant** regardless of conversation length, while preserving the gist of older messages.
+
+**Threshold values:**
+- `USER_MESSAGE_COMPACT_THRESHOLD = 20` — empirically chosen: early enough to control cost, late enough to preserve natural context
+- `MESSAGES_TO_KEEP = 10` — the most recent N messages stay verbatim
+
+---
+
+### Adaptation 5: One-line trigger in `State.respond()`
+
+**File:** [`model/State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171)
+
+**Added:** A single call `this.utterances.compactIfNeeded();` right after `acknowledge()`.
+
+**Why:** Compaction must run **before the next LLM call**, so the compacted utterances are sent to GPT-4o on the next turn instead of the full history. Placing it in `State.respond()` means every conversation in every state automatically benefits — Biographer, Legacy chat, even future agent types. **One line, one place, full coverage.**
+
+---
+
+### Adaptation 6: Plain-text summary method — `LMOpenAI.summariseOffline()`
+
+**File:** [`spi/LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java)
+
+**Added:** A new method `summariseOffline()` (~10 lines).
+
+**Why:** PROMISE's existing `summarise()` method returns a JSON object — useful for structured data extraction, but useless for compaction because injecting JSON into the conversation history would confuse the LLM in subsequent turns. The new method skips the "return JSON" instruction and returns a plain-text string, ready to be wrapped in `[Zusammenfassung des bisherigen Gesprächs]` and prepended to the message list.
+
+---
+
+### Adaptation 7: Biographer factory — `createBiographerAgent()`
+
+**File:** [`controllers/AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) (~50 lines for the factory + ~400 lines of block prompts)
+
+**Added:** Two new public methods, three helpers, and 70 prompt strings (10 blocks × 7 components).
+
+**Why:** PROMISE provides only **bricks** — State, Transition, Decision, Action. It does not provide the **wiring**. To build the Biographer, every block needs:
+- A Conv state with the right system prompt and starter prompt
+- A Confirm state with the right system prompt and starter prompt
+- A Guard prompt for Conv→Confirm transition
+- A Guard prompt for Confirm→next-block transition
+- An Extract prompt for the JSON summary
+- An action that runs `TransferUtterancesAction` between Conv and Confirm
+- An action that runs `StaticExtractionAction` between Confirm and the next block
+
+Doing this 10 times by hand would be error-prone. The factory abstracts it: pass in language + nickname, get back a fully-wired 21-state agent.
+
+**Plus the backwards-build technique** explained in detail in the [Deep Dive section](#deep-dive-the-21-state-biographer-architecture) above.
+
+---
+
+### Adaptation 8: New REST endpoint — `POST /agent/biographer`
+
+**File:** [`controllers/AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) (~25 new lines)
+
+**Added:** A new `@PostMapping("agent/biographer")` handler.
+
+**Why:** PROMISE exposes only `POST /agent/singlestate`, which builds a single-state agent. The Biographer needs its own endpoint because:
+- It accepts different DTO fields (`language`, `nickname`)
+- It must validate the type as `AgentMetaType.biographer = 1` (a new enum value)
+- It delegates to a different factory method
+
+Sharing `/agent/singlestate` would require overloading it with optional fields and runtime type-checks, which is messy.
+
+**Plus:**
+- New enum value `biographer = 1` in [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java)
+- New DTO [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) with `language` and `nickname` fields
+
+---
+
+### Adaptation 9: CORS configuration
+
+**File:** [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) (new file, ~30 lines)
+
+**Added:** A `@Configuration` class that defines CORS mappings on `/**`.
+
+**Why:** The Oblivio frontend lives on `oblivio.ch` (Hostpoint). The backend lives on `promise-production.up.railway.app` (Railway). Browsers enforce the **Same-Origin Policy**: by default, JavaScript on one origin cannot fetch from another origin. Without CORS headers from the backend, every API call from the frontend fails with `Access-Control-Allow-Origin missing`.
+
+The configuration tells the browser: "Yes, this Railway server accepts cross-origin requests from any origin." A single Spring Boot bean activates this for all endpoints.
+
+---
+
+### Adaptation 10: TTS bridge — `TTSController.java`
+
+**File:** [`controllers/TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) (new file, ~100 lines)
+
+**Added:** A new controller exposing `POST /{agentID}/tts?voice_id=...` that proxies requests to ElevenLabs.
+
+**Why:** PROMISE is text-only — there is no audio. Oblivio needed personas to speak with real voices (especially important for legacy chats — a grandmother's voice carries memory the way text cannot). ElevenLabs provides voice synthesis.
+
+**Why through the backend (instead of directly from frontend)?** Because direct frontend calls would expose the ElevenLabs API key in the browser code, where anyone could copy it and run up our bill. The backend-as-bridge pattern keeps the key safe on Railway: frontend sends plain text, backend signs the request with the secret key, frontend receives MP3 bytes.
+
+**Plus:** A new DTO [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java).
+
+---
+
+### Adaptation 11: Multi-user endpoints — `UserLogController.java`
+
+**File:** [`controllers/UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) (new file)
+
+**Added:** Three new endpoints:
+- `GET /user/{userId}/agents` — list of all agents for a user
+- `GET /user/{userId}/conversations` — all conversation messages
+- `GET /user/{userId}/stats` — usage statistics
+
+**Why:** PROMISE's `AgentController` is per-agent (`/{agentId}/respond` etc.) but has no per-user endpoints. Once we added `userId` (Adaptation 3), we need ways to query "show me everything for user X". The frontend journey-dashboard page calls these endpoints to render the user's biographer history and active personas.
+
+**Plus:** New DTOs [`UserAgentView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserAgentView.java) and [`UserConversationView.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/UserConversationView.java).
+
+---
+
+### Adaptation 12: Live log streaming — `logging/` package
+
+**Files (4 new classes in a new package):**
+- [`logging/LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java) — DTO
+- [`logging/SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java) — custom Logback appender
+- [`logging/LogStreamBroadcaster.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamBroadcaster.java) — broadcaster to SSE subscribers
+- [`logging/LogStreamController.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogStreamController.java) — `GET /logs/stream` endpoint
+
+**Why:** When something goes wrong in production on Railway, traditional ways of getting logs require either SSH access or the Railway CLI — neither is convenient during a live debugging session. With the live log stream, opening `/logs/stream` in any browser immediately shows in real-time what the state machine is doing. This was especially helpful while debugging the cascading-transition bug: watching guards fire in sequence revealed exactly which condition was misfiring.
+
+**Why SSE (Server-Sent Events) and not WebSockets?** SSE is unidirectional (server → browser only), requires no special client libraries, and survives automatic reconnects. For log streaming we never need to push *from* the browser, so SSE is the simpler choice.
+
+---
+
+### Adaptation 13: Production properties
+
+**Files:**
+- [`src/main/resources/application-prod.properties`](src/main/resources/application-prod.properties) (new)
+- [`src/main/resources/openai-prod.properties`](src/main/resources/openai-prod.properties) (new)
+
+**Why:** PROMISE ships with only local-development properties — database URL, password, API key are hard-coded. Pushing those to GitHub would leak credentials. Spring Boot's "profiles" mechanism allows different property files per environment: `application-prod.properties` is loaded only when `SPRING_PROFILES_ACTIVE=prod` is set. By using `${ENV_VAR}` placeholders, actual values come from Railway's environment variables at runtime — keeping passwords out of the repository entirely.
+
+**Special setting `prepareThreshold=0`:** Essential because Supabase uses PgBouncer in transaction-pooling mode, which is incompatible with PostgreSQL's prepared statements. Without this setting, queries would intermittently fail with `prepared statement does not exist`.
+
+---
+
+### Adaptation 14: Containerization for Railway
+
+**Files (all new):**
+- [`Dockerfile`](Dockerfile) — multi-stage build
+- [`railway.json`](railway.json) — Railway deployment config
+- [`.railwayignore`](.railwayignore) — files excluded from build
+
+**Why:** PROMISE has no Dockerfile — it's meant for local `mvn spring-boot:run`. Railway needs an image to deploy. The **multi-stage build** is deliberate:
+
+- **Stage 1:** Includes the full JDK and Maven Wrapper (~700 MB) — needed only to compile the JAR
+- **Stage 2:** Includes just the JRE and the compiled JAR (~200 MB) — what actually runs in production
+
+The smaller final image starts faster, uses less memory, and has fewer attack vectors than a JDK. The `USER nobody` line follows the principle of least privilege — if a vulnerability is exploited, the attacker has no shell privileges. The healthcheck lets Railway automatically restart the container if it stops responding.
+
+---
+
+### Adaptation 15: Logback configuration update
+
+**File:** [`src/main/resources/logback-spring.xml`](src/main/resources/logback-spring.xml)
+
+**Added:** Registration of the new `SseLogAppender` from Adaptation 12.
+
+**Why:** The custom appender (`logging/SseLogAppender.java`) must be told to Logback or it won't actually receive log events. This is the connection point between PROMISE's logging system (Logback) and the new SSE infrastructure.
+
+---
+
+### Summary Table: All PROMISE Adaptations
+
+| # | What | File | Why |
+|:--:|---|---|---|
+| 1 | MySQL → PostgreSQL | [`pom.xml`](pom.xml) | Supabase requires PostgreSQL |
+| 2 | VARCHAR → TEXT | [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) | Persona prompts >10k chars |
+| 3 | `userId` field | [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) | Multi-user support |
+| 4 | Context Compaction | [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) | Linear token cost growth |
+| 5 | Compaction trigger | [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171) | Call before each LLM call |
+| 6 | `summariseOffline()` | [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) | Plain text for compaction |
+| 7 | Biographer factory | [`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) | Build 21-state agent + 70 prompts |
+| 8 | `/agent/biographer` endpoint | [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java) | New agent type API |
+| 9 | CORS | [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) | Frontend-backend separation |
+| 10 | TTS bridge | [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) | Hide ElevenLabs API key |
+| 11 | Multi-user endpoints | [`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) | Per-user data queries |
+| 12 | Live log streaming | [`logging/`](src/main/java/ch/zhaw/statefulconversation/logging/) (4 files) | Production debugging |
+| 13 | Production properties | [`application-prod.properties`](src/main/resources/application-prod.properties), [`openai-prod.properties`](src/main/resources/openai-prod.properties) | Credentials via env vars |
+| 14 | Containerization | [`Dockerfile`](Dockerfile), [`railway.json`](railway.json), [`.railwayignore`](.railwayignore) | Railway deployment |
+| 15 | Logback config | [`logback-spring.xml`](src/main/resources/logback-spring.xml) | Register SSE appender |
+
+**Lines of code added:** ~1,000 (mostly in `AgentMetaUtility.java` for the 70 block prompts)
+**Lines of code modified:** ~10 (one-line additions in `State.respond()`, `Agent.java`, `AgentMetaController.java`)
+**New Java files:** 11
+**Configuration / infrastructure files added:** 7
 
 ---
 
