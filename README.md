@@ -87,7 +87,7 @@ Oblivio changes this. It uses conversational AI to not only **record** a life st
 
 Oblivio is a web application for digitally preserving life stories. People tell their story through a guided AI interview (**Biographer Agent**) — from which an interactive digital persona (**Legacy Agent**) is created that loved ones can talk to in the future.
 
-Built as a bachelor's thesis at [ZHAW](https://www.zhaw.ch), powered by the [PROMISE Framework](https://github.com/2024-ZHAW-PM4) for state-based conversational AI.
+Built as a bachelor's thesis at [ZHAW](https://www.zhaw.ch), powered by the [PROMISE Framework](https://github.com/zhaw-iwi/promise) for state-based conversational AI.
 
 ---
 
@@ -493,14 +493,14 @@ Live on https://oblivio.ch
 
 ## What Was Adapted From PROMISE
 
-Oblivio is built on top of [PROMISE](https://github.com/2024-ZHAW-PM4), a state-machine framework for LLM conversations developed at ZHAW. This section is a **step-by-step guide** to recreate Oblivio from a fresh PROMISE clone — with concrete before/after code comparisons.
+Oblivio is built on top of [PROMISE](https://github.com/zhaw-iwi/promise), a state-machine framework for LLM conversations developed at ZHAW. This section is a **step-by-step guide** to recreate Oblivio from a fresh PROMISE clone — with concrete before/after code comparisons.
 
 ---
 
 ### Step 1: Fork PROMISE and Set Up Local Environment
 
 ```bash
-git clone https://github.com/2024-ZHAW-PM4/promise.git oblivio-backend
+git clone https://github.com/zhaw-iwi/promise.git oblivio-backend
 cd oblivio-backend
 ```
 

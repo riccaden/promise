@@ -121,7 +121,7 @@ Oblivio besteht aus **drei physisch getrennten Hosting-Komponenten** und **zwei 
 
 ## 4. PROMISE-Framework — eine Einführung
 
-PROMISE ist ein Open-Source-Framework, das an der ZHAW entwickelt wurde (https://github.com/2024-ZHAW-PM4). Es löst ein zentrales Problem beim Bau von KI-Konversationen: **Wie strukturiert man ein Gespräch, das mehrere Phasen hat, Daten extrahieren soll und nicht aus dem Ruder läuft?**
+PROMISE ist ein Open-Source-Framework, das an der ZHAW entwickelt wurde (https://github.com/zhaw-iwi/promise). Es löst ein zentrales Problem beim Bau von KI-Konversationen: **Wie strukturiert man ein Gespräch, das mehrere Phasen hat, Daten extrahieren soll und nicht aus dem Ruder läuft?**
 
 ### 4.1 Das Grundproblem ohne PROMISE
 
@@ -1133,7 +1133,7 @@ CREATE TABLE legacy_messages (
 ### Phase 1: Vorbereitung
 - GitHub, Railway, Supabase, Hostpoint, OpenAI, ElevenLabs Accounts
 - Java 21, Maven Wrapper, Git, SQL-Client
-- PROMISE forken: `git clone https://github.com/2024-ZHAW-PM4/promise.git`
+- PROMISE forken: `git clone https://github.com/zhaw-iwi/promise.git`
 
 ### Phase 2: Supabase einrichten
 1. Projekt erstellen, Connection-String holen
