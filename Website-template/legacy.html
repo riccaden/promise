@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="page-id" content="legacy">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vermächtnis – Oblivio</title>
+    <meta name="description" content="Experience a loved one's legacy through an AI conversation powered by their life story.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://oblivio.ch/legacy.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Vermächtnis erleben - Oblivio">
+    <meta property="og:description" content="Experience a loved one's legacy through an AI conversation.">
+    <meta property="og:image" content="https://oblivio.ch/images/og-image.jpg">
+    <meta property="og:url" content="https://oblivio.ch/legacy.html">
+    <meta property="og:type" content="website">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f8f4ed;
+            --charcoal: #1a1a1a;
+            --moss: #4a5942;
+            --rust: #a84832;
+            --gold: #d4af37;
+            --shadow: rgba(26, 26, 26, 0.15);
+        }
+
+        .skip-link{position:absolute;top:-40px;left:0;background:var(--rust);color:var(--cream);padding:8px 16px;z-index:10000;font-size:14px;text-decoration:none;transition:top 0.3s;}.skip-link:focus{top:0;}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection {
+            background-color: var(--rust);
+            color: var(--cream);
+        }
+
+        /* Grain texture overlay (same as index.html) */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
+
+        /* Navigation */
+        nav {
+            background-color: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            color: var(--charcoal);
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .back-link {
+            color: var(--moss);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--rust);
+        }
+
+        .lang-select {
+            background-color: var(--cream);
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            padding: 6px 24px 6px 10px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--moss);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 2px center;
+            background-size: 18px;
+        }
+
+        .lang-select:hover {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:1002;}.hamburger span{display:block;width:24px;height:2px;background:var(--charcoal);margin:5px 0;transition:all 0.3s;}.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}.hamburger.active span:nth-child(2){opacity:0;}.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}.mobile-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(248,244,237,0.98);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:32px;}.mobile-overlay.active{display:flex;}.mobile-overlay a{font-family:'Crimson Pro',serif;font-size:20px;color:var(--charcoal);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:12px 0;transition:color 0.3s;}.mobile-overlay a:hover{color:var(--rust);}.mobile-overlay .lang-select{margin-top:16px;}
+
+        /* Floating orbs background */
+        .floating-orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            animation: floatOrb 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: var(--gold);
+            top: 10%;
+            left: -5%;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: var(--moss);
+            top: 50%;
+            right: -5%;
+            animation-delay: -7s;
+        }
+
+        .orb-3 {
+            width: 250px;
+            height: 250px;
+            background: var(--rust);
+            bottom: 10%;
+            left: 30%;
+            animation-delay: -14s;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -20px) scale(1.05); }
+            50% { transform: translate(-20px, 15px) scale(0.95); }
+            75% { transform: translate(15px, 25px) scale(1.02); }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.1); }
+            50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.2); }
+        }
+
+        /* Code Entry Section */
+        .code-entry-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .code-entry-card {
+            text-align: center;
+            padding: 60px 50px;
+            max-width: 520px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(212, 175, 55, 0.05);
+            animation: fadeInUp 0.8s ease-out;
+            position: relative;
+        }
+
+        /* Decorative quote mark above card */
+        .code-entry-card::before {
+            content: '\201C';
+            position: absolute;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'DM Serif Display', serif;
+            font-size: 120px;
+            color: var(--gold);
+            opacity: 0.25;
+            line-height: 1;
+            pointer-events: none;
+        }
+
+        /* Gold accent line at top of card */
+        .code-entry-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            border-radius: 2px;
+        }
+
+        .code-entry-card h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 40px;
+            margin-bottom: 12px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -1px;
+            margin-top: 10px;
+        }
+
+        .code-entry-card p {
+            font-size: 17px;
+            color: var(--moss);
+            font-weight: 300;
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .code-input-wrapper {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .code-input {
+            flex: 1;
+            padding: 18px 20px;
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            letter-spacing: 6px;
+            text-align: center;
+            text-transform: uppercase;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            border-radius: 12px;
+            background-color: rgba(248, 244, 237, 0.7);
+            color: var(--charcoal);
+            transition: all 0.3s;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            background-color: rgba(248, 244, 237, 1);
+        }
+
+        .code-input::placeholder {
+            letter-spacing: 2px;
+            font-size: 16px;
+            color: #aaa;
+        }
+
+        .connect-btn {
+            padding: 16px 40px;
+            background: linear-gradient(135deg, var(--rust), #c25540);
+            color: var(--cream);
+            border: none;
+            border-radius: 30px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .connect-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .connect-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(168, 72, 50, 0.3);
+        }
+
+        .connect-btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .visitor-field {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .visitor-label {
+            display: block;
+            font-family: 'Crimson Pro', serif;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--charcoal);
+            margin-bottom: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .visitor-input {
+            width: 100%;
+            padding: 14px 16px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            border-radius: 12px;
+            background-color: rgba(248, 244, 237, 0.7);
+            color: var(--charcoal);
+            transition: all 0.3s;
+        }
+
+        .visitor-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            background-color: rgba(248, 244, 237, 1);
+        }
+
+        select.visitor-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%231a1a1a' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        /* Mode Toggle — top center of screen, only visible in chat */
+        .mode-toggle {
+            position: fixed;
+            top: 78px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            background: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 999px;
+            padding: 4px;
+            z-index: 999;
+            box-shadow: 0 6px 20px rgba(26, 26, 26, 0.08);
+        }
+        .mode-toggle.visible { display: flex; }
+        .mode-toggle button {
+            border: none;
+            background: transparent;
+            padding: 8px 18px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--charcoal);
+            transition: all 0.25s;
+            letter-spacing: 0.2px;
+        }
+        .mode-toggle button.active {
+            background: linear-gradient(135deg, var(--rust), #c25540);
+            color: var(--cream);
+            box-shadow: 0 2px 8px rgba(168, 72, 50, 0.25);
+        }
+        .mode-toggle button:not(.active):hover {
+            background: rgba(168, 72, 50, 0.08);
+        }
+        @media (max-width: 768px) {
+            .mode-toggle {
+                top: 70px;
+                padding: 3px;
+            }
+            .mode-toggle button {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+        }
+
+        /* Empty hint shown in passive mode when chat has no messages yet */
+        .empty-hint {
+            position: relative;
+            text-align: center;
+            font-style: italic;
+            color: rgba(26, 26, 26, 0.55);
+            padding: 80px 24px;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 520px;
+            margin: 0 auto;
+            min-height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .empty-hint .hint-text {
+            position: relative;
+            z-index: 2;
+        }
+        .empty-hint .hint-stars {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .empty-hint .hint-stars span {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--gold);
+            opacity: 0;
+            box-shadow: 0 0 4px rgba(212, 175, 55, 0.5);
+            animation: hintStarFloat 6s ease-in-out infinite;
+        }
+
+        @keyframes hintStarFloat {
+            0%   { opacity: 0;    transform: translate(0, 0) scale(0.5); }
+            20%  { opacity: 0.7;  transform: translate(4px, -6px) scale(1); }
+            50%  { opacity: 0.95; transform: translate(-3px, -14px) scale(1.05); }
+            80%  { opacity: 0.6;  transform: translate(6px, -20px) scale(0.9); }
+            100% { opacity: 0;    transform: translate(0, -28px) scale(0.5); }
+        }
+
+        .code-error {
+            color: var(--rust);
+            font-size: 14px;
+            margin-top: 16px;
+            min-height: 20px;
+        }
+
+        .code-loading {
+            color: var(--moss);
+            font-size: 14px;
+            margin-top: 16px;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .chat-header {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+
+        /* Large avatar in chat header */
+        .chat-avatar-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--moss), var(--gold));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-family: 'DM Serif Display', serif;
+            font-size: 36px;
+            color: var(--cream);
+            box-shadow: 0 4px 20px rgba(74, 89, 66, 0.25);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        .chat-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 38px;
+            margin-bottom: 8px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+
+        .chat-header p {
+            font-size: 16px;
+            color: var(--moss);
+            font-weight: 300;
+            font-style: italic;
+        }
+
+        /* Thin gold divider below header */
+        .chat-header::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 20px auto 0;
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .message.legacy {
+            align-self: flex-start;
+            max-width: 70%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+            max-width: 70%;
+        }
+
+        .message-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Serif Display', serif;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .message.legacy .message-avatar {
+            background: linear-gradient(135deg, var(--moss), var(--gold));
+            color: var(--cream);
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--rust), var(--gold));
+            color: var(--cream);
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 16px 22px;
+            border-radius: 18px;
+            font-size: 16px;
+            line-height: 1.7;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.legacy .message-content {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, var(--moss), #5a6b50);
+            color: var(--cream);
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: transparent;
+            border-top: none;
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 16px 24px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            border: 2px solid rgba(26, 26, 26, 0.08);
+            border-radius: 28px;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            color: var(--charcoal);
+            transition: all 0.3s;
+        }
+
+        .input-area input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.08);
+            background-color: rgba(255, 255, 255, 0.95);
+        }
+
+        .input-area input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--rust), #c25540);
+            color: var(--cream);
+            border: none;
+            border-radius: 28px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 72, 50, 0.25);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            padding: 15px 22px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+            border-radius: 18px;
+            width: fit-content;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: var(--moss);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-screen.hidden {
+            display: none;
+        }
+
+        .loading-text {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            color: var(--charcoal);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger{display:block;}
+            nav {
+                padding: 15px 20px;
+            }
+
+            .code-entry-card {
+                padding: 40px 24px;
+            }
+
+            .code-entry-card::before {
+                font-size: 80px;
+                top: -35px;
+            }
+
+            .code-entry-card h1 {
+                font-size: 30px;
+            }
+
+            .code-input {
+                font-size: 20px;
+                letter-spacing: 4px;
+            }
+
+            .chat-avatar-large {
+                width: 60px;
+                height: 60px;
+                font-size: 28px;
+            }
+
+            .chat-header h1 {
+                font-size: 28px;
+            }
+
+            .message.legacy,
+            .message.user {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 15px;
+            }
+
+            /* Move floating toggles to top-right on mobile so they don't cover the send button */
+            .music-toggle {
+                bottom: auto;
+                top: 75px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+            }
+            .music-toggle .audio-icon { width: 18px; height: 18px; }
+
+            .voice-toggle {
+                bottom: auto;
+                top: 75px;
+                right: 70px;
+                width: 44px;
+                height: 44px;
+            }
+            .voice-toggle .voice-icon { width: 18px; height: 18px; }
+
+            .orb-1 { width: 250px; height: 250px; }
+            .orb-2 { width: 200px; height: 200px; }
+            .orb-3 { width: 150px; height: 150px; }
+        }
+
+        /* Music Toggle — bottom right, hidden until chat starts */
+        .music-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--rust), var(--gold));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(168, 72, 50, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .music-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(168, 72, 50, 0.5);
+        }
+        .music-toggle.playing {
+            animation: musicPulse 2s ease-in-out infinite;
+        }
+        .music-toggle .audio-icon { width: 24px; height: 24px; fill: var(--cream); }
+        @keyframes musicPulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(168, 72, 50, 0.4); }
+            50% { box-shadow: 0 8px 32px rgba(168, 72, 50, 0.7); }
+        }
+
+        /* Voice Toggle — above music button */
+        .voice-toggle {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--moss), var(--rust));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(74, 95, 77, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .voice-toggle.visible { display: flex; }
+        .voice-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(74, 95, 77, 0.5);
+        }
+        .voice-toggle.speaking {
+            animation: voicePulse 2s ease-in-out infinite;
+        }
+        .voice-toggle .voice-icon { width: 24px; height: 24px; fill: var(--cream); }
+        @keyframes voicePulse {
+            0%, 100% { box-shadow: 0 8px 24px rgba(74, 95, 77, 0.4); }
+            50% { box-shadow: 0 8px 32px rgba(74, 95, 77, 0.8); }
+        }
+
+        /* Voice Input Button (Microphone) in input area */
+        .voice-btn {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            background-color: var(--cream);
+            color: var(--charcoal);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .voice-btn:hover:not(:disabled) {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+        .voice-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .voice-btn.recording {
+            background-color: var(--rust);
+            color: var(--cream);
+            border-color: var(--rust);
+            animation: pulse-mic 1.2s ease-in-out infinite;
+        }
+        @keyframes pulse-mic {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(163, 88, 72, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(163, 88, 72, 0); }
+        }
+        .voice-unsupported { display: none; }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+
+    <!-- Floating orbs background -->
+    <div class="floating-orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen hidden" id="loadingScreen">
+        <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Navigation -->
+    <nav aria-label="Hauptnavigation">
+        <a href="index.html" class="logo">Oblivio</a>
+        <button class="hamburger" aria-label="Menü öffnen" onclick="document.querySelector('.hamburger').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active');document.body.style.overflow=document.querySelector('.mobile-overlay').classList.contains('active')?'hidden':''"><span></span><span></span><span></span></button>
+        <div class="nav-right">
+            <a href="index.html" class="back-link" data-i18n="nav_home">Home</a>
+            <select class="lang-select" id="languageSelector" aria-label="Sprache wählen">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option><option value="tr">Türkçe</option>
+                <option value="ko">한국어</option>
+            </select>
+        </div>
+    </nav>
+
+    <div class="mobile-overlay">
+        <a href="index.html" data-i18n="nav_home">Home</a>
+        <a href="features.html" data-i18n="nav_tech_link">Technologie</a>
+        <a href="about.html" data-i18n="nav_about_link">Über Oblivio</a>
+        <select class="lang-select" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="de">Deutsch</option><option value="en">English</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select>
+    </div>
+
+    <!-- Phase 1: Code Entry -->
+    <div class="code-entry-section" id="codeEntrySection">
+        <div class="code-entry-card">
+            <h1 data-i18n="legacy_title">Ein Vermächtnis erleben</h1>
+            <p data-i18n="legacy_subtitle">Gib den Zugangscode ein, um mit dem Vermächtnis zu sprechen.</p>
+            <div class="code-input-wrapper">
+                <input
+                    type="text"
+                    class="code-input"
+                    id="codeInput"
+                    maxlength="8"
+                    data-i18n="legacy_code_placeholder"
+                    placeholder="Zugangscode"
+                    autocomplete="off"
+                    spellcheck="false"
+                >
+            </div>
+            <button class="connect-btn" id="connectBtn" data-i18n="legacy_connect_btn">Verbinden</button>
+            <div class="code-error" id="codeError"></div>
+        </div>
+    </div>
+
+    <!-- Phase 1.5: Visitor Info -->
+    <div class="code-entry-section" id="visitorInfoSection" style="display:none;">
+        <div class="code-entry-card">
+            <h1 id="visitorInfoTitle" data-i18n="legacy_visitor_title">Bevor wir beginnen</h1>
+            <p id="visitorInfoSubtitle" data-i18n="legacy_visitor_subtitle">Damit das Gespräch persönlicher wird.</p>
+
+            <div class="visitor-field">
+                <label class="visitor-label" id="visitorNameLabel" for="visitorNameInput" data-i18n="legacy_visitor_name_label">Wie soll dich die Persona nennen?</label>
+                <input type="text" class="visitor-input" id="visitorNameInput" maxlength="40" data-i18n="legacy_visitor_name_placeholder" placeholder="Dein Name" autocomplete="off">
+            </div>
+
+            <div class="visitor-field">
+                <label class="visitor-label" id="visitorRelationLabel" for="visitorRelationSelect" data-i18n="legacy_visitor_relation_label">In welcher Beziehung stehst du zur Persona?</label>
+                <select class="visitor-input" id="visitorRelationSelect">
+                    <option value="" data-i18n="legacy_visitor_relation_placeholder">Bitte wählen...</option>
+                    <option value="spouse" data-i18n="legacy_visitor_rel_spouse">Ehepartner/in</option>
+                    <option value="child" data-i18n="legacy_visitor_rel_child">Kind</option>
+                    <option value="parent" data-i18n="legacy_visitor_rel_parent">Elternteil</option>
+                    <option value="sibling" data-i18n="legacy_visitor_rel_sibling">Geschwister</option>
+                    <option value="grandchild" data-i18n="legacy_visitor_rel_grandchild">Enkelkind</option>
+                    <option value="friend" data-i18n="legacy_visitor_rel_friend">Freund/in</option>
+                    <option value="relative" data-i18n="legacy_visitor_rel_relative">Verwandte/r</option>
+                    <option value="other" data-i18n="legacy_visitor_rel_other">Andere</option>
+                </select>
+            </div>
+
+            <div class="visitor-field">
+                <label class="visitor-label" data-i18n="legacy_visitor_gender_label">Geschlecht</label>
+                <select class="visitor-input" id="visitorGenderSelect">
+                    <option value="" data-i18n="legacy_visitor_gender_placeholder">Bitte wählen...</option>
+                    <option value="male" data-i18n="legacy_visitor_gender_male">Männlich</option>
+                    <option value="female" data-i18n="legacy_visitor_gender_female">Weiblich</option>
+                    <option value="other" data-i18n="legacy_visitor_gender_other">Divers</option>
+                </select>
+            </div>
+
+            <button class="connect-btn" id="startChatBtn" data-i18n="legacy_visitor_start">Gespräch beginnen</button>
+            <div class="code-error" id="visitorError"></div>
+        </div>
+    </div>
+
+    <!-- Mode Toggle (top center, visible only in chat) -->
+    <div class="mode-toggle" id="modeToggle" role="tablist">
+        <button id="modeAnalysisBtn" class="active" type="button" data-i18n="legacy_mode_analysis">Variante 1</button>
+        <button id="modeActiveBtn" type="button" data-i18n="legacy_mode_active">Variante 2</button>
+        <button id="modePassiveBtn" type="button" data-i18n="legacy_mode_passive">Variante 3</button>
+    </div>
+
+    <!-- Phase 2: Chat Interface -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <div class="chat-avatar-large" id="chatAvatarLarge"></div>
+            <h1 id="chatTitle"></h1>
+            <p id="chatSubtitle">Ein Gespräch mit einem Vermächtnis</p>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <button class="voice-btn" id="voiceBtn" disabled title="Spracheingabe">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </button>
+            <input
+                type="text"
+                id="messageInput"
+                data-i18n="legacy_input_placeholder"
+                placeholder="Schreibe eine Nachricht..."
+                disabled
+            >
+            <button class="send-btn" id="sendBtn" disabled data-i18n="bio_send">Senden</button>
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="backgroundMusic" loop>
+        <source src="audio/background.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Voice Audio (ElevenLabs TTS) -->
+    <audio id="voiceAudio"></audio>
+
+    <!-- Voice Toggle Button -->
+    <button class="voice-toggle" id="voiceToggle" title="Stimme an/aus">
+        <svg class="voice-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+            <path id="voicePath" d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+        </svg>
+    </button>
+
+    <!-- Music Toggle Button -->
+    <button class="music-toggle" id="musicToggle" title="Musik an/aus">
+        <svg class="audio-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+            <g id="soundWaves">
+                <line x1="19" y1="8" x2="22" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="19" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+        </svg>
+    </button>
+
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Configuration -->
+    <script src="js/config.js"></script>
+
+    <!-- Legacy Chat API -->
+    <script src="js/legacy-chat.js"></script>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // STATE
+        // ============================================
+        let legacyAgentId = null;
+        let legacyNickname = null;
+        let legacyAvatarUrl = null;
+        let legacyVoiceId = null;
+        let isConversationActive = false;
+        let currentAccessCode = null;
+        let visitorName = null;
+        let isVoiceEnabled = true;
+        let isCurrentlySpeaking = false;
+
+        // Re-render dynamic chat strings (chat subtitle + empty hint)
+        // when the UI language is switched via the top-right dropdown.
+        // These strings contain {name} placeholders and therefore can't
+        // use the plain data-i18n mechanism.
+        function refreshDynamicChatTexts() {
+            if (legacyNickname) {
+                const subtitleEl = document.getElementById('chatSubtitle');
+                if (subtitleEl) {
+                    subtitleEl.textContent = (t('legacy_chat_subtitle') || 'Ein Gespräch mit einem Vermächtnis').replace('{name}', legacyNickname);
+                }
+                const hint = document.getElementById('emptyHint');
+                if (hint) {
+                    const hintText = hint.querySelector('.hint-text');
+                    if (hintText) {
+                        const tpl = t('legacy_passive_hint') || 'Schreibe {name} eine Nachricht, um das Gespräch zu beginnen…';
+                        hintText.textContent = tpl.replace('{name}', legacyNickname);
+                    }
+                }
+            }
+        }
+
+        // Wrap the global setLanguage so our dynamic chat strings refresh too.
+        if (typeof window.setLanguage === 'function' && !window._setLanguageWrappedForLegacy) {
+            const _originalSetLanguage = window.setLanguage;
+            window.setLanguage = function(lang) {
+                const result = _originalSetLanguage(lang);
+                // applyTranslations runs async inside setLanguage → defer a tick
+                setTimeout(refreshDynamicChatTexts, 50);
+                return result;
+            };
+            window._setLanguageWrappedForLegacy = true;
+        }
+
+        // Visitor ID — persistent per browser
+        function getVisitorId() {
+            let id = localStorage.getItem('oblivio_visitor_id');
+            if (!id) {
+                id = crypto.randomUUID();
+                localStorage.setItem('oblivio_visitor_id', id);
+            }
+            return id;
+        }
+        const visitorId = getVisitorId();
+
+        // ============================================
+        // MESSAGE PERSISTENCE
+        // ============================================
+        // Each conversation mode (active/passive) has its own history,
+        // achieved by suffixing the visitor_id with the mode. No DB change needed.
+        function getScopedVisitorId(mode) {
+            return visitorId + '__' + (mode || currentMode || 'active');
+        }
+
+        let currentUserId = null;
+        let currentUserEmail = null;
+
+        async function saveMessage(accessCode, role, content) {
+            try {
+                const row = {
+                    access_code: accessCode,
+                    visitor_id: getScopedVisitorId(),
+                    role: role,
+                    content: content
+                };
+                if (visitorInfo && visitorInfo.name) {
+                    row.visitor_name = visitorInfo.name;
+                }
+                if (currentUserId) {
+                    row.user_id = currentUserId;
+                }
+                await supabaseClient.from('legacy_messages').insert(row);
+            } catch (err) {
+                console.warn('Failed to save message:', err);
+            }
+        }
+
+        async function loadConversationHistory(accessCode, mode) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('legacy_messages')
+                    .select('role, content, created_at')
+                    .eq('access_code', accessCode)
+                    .eq('visitor_id', getScopedVisitorId(mode))
+                    .order('created_at', { ascending: true });
+
+                if (error) throw error;
+                return data || [];
+            } catch (err) {
+                console.warn('Failed to load conversation history:', err);
+                return [];
+            }
+        }
+
+        // Auth check — require login to use legacy chat
+        async function requireAuth() {
+            try {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+                if (!user) {
+                    // Not logged in — redirect to login, then back here
+                    localStorage.setItem('oblivio_redirect', 'legacy.html');
+                    window.location.href = 'login.html';
+                    return;
+                }
+                // Set visitor name and user ID from profile
+                currentUserId = user.id;
+                currentUserEmail = user.email;
+                if (user.user_metadata && user.user_metadata.full_name) {
+                    visitorName = user.user_metadata.full_name;
+                }
+            } catch (err) {
+                console.warn('Auth check failed:', err);
+                localStorage.setItem('oblivio_redirect', 'legacy.html');
+                window.location.href = 'login.html';
+            }
+        }
+        requireAuth();
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const codeEntrySection = document.getElementById('codeEntrySection');
+        const visitorInfoSection = document.getElementById('visitorInfoSection');
+        const chatContainer = document.getElementById('chatContainer');
+        const codeInput = document.getElementById('codeInput');
+        const connectBtn = document.getElementById('connectBtn');
+        const codeError = document.getElementById('codeError');
+        const chatTitle = document.getElementById('chatTitle');
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const visitorNameInput = document.getElementById('visitorNameInput');
+        const visitorRelationSelect = document.getElementById('visitorRelationSelect');
+        const visitorGenderSelect = document.getElementById('visitorGenderSelect');
+        const visitorError = document.getElementById('visitorError');
+        const startChatBtn = document.getElementById('startChatBtn');
+
+        // Holds the validated code data between phases
+        let pendingCodeData = null;
+        let visitorInfo = null;
+
+        // Conversation mode: 'active' (persona greets) or 'passive' (visitor writes first)
+        let currentMode = 'active';
+        const modeToggle = document.getElementById('modeToggle');
+        const modeActiveBtn = document.getElementById('modeActiveBtn');
+        const modePassiveBtn = document.getElementById('modePassiveBtn');
+
+        // ============================================
+        // CODE ENTRY
+        // ============================================
+
+        // Auto-uppercase as user types
+        codeInput.addEventListener('input', () => {
+            codeInput.value = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            codeError.textContent = '';
+        });
+
+        // Enter key to connect
+        codeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleConnect();
+        });
+
+        connectBtn.addEventListener('click', handleConnect);
+
+        // ============================================
+        // VISITOR INFO HELPERS
+        // ============================================
+        function getStoredVisitorInfo(code) {
+            try {
+                const raw = localStorage.getItem('oblivio_visitor_' + code);
+                return raw ? JSON.parse(raw) : null;
+            } catch { return null; }
+        }
+
+        function storeVisitorInfo(code, info) {
+            try {
+                localStorage.setItem('oblivio_visitor_' + code, JSON.stringify(info));
+            } catch {}
+        }
+
+        function showVisitorInfoForm(nickname, language) {
+            // Localize labels with the actual nickname
+            const nameLabelTpl = t('legacy_visitor_name_label') || 'Wie soll dich {name} nennen?';
+            const relLabelTpl = t('legacy_visitor_relation_label') || 'In welcher Beziehung stehst du zu {name}?';
+            document.getElementById('visitorNameLabel').textContent = nameLabelTpl.replace('{name}', nickname);
+            document.getElementById('visitorRelationLabel').textContent = relLabelTpl.replace('{name}', nickname);
+
+            codeEntrySection.style.display = 'none';
+            visitorInfoSection.style.display = 'flex';
+            visitorNameInput.focus();
+        }
+
+        async function handleConnect() {
+            const code = codeInput.value.trim();
+            if (code.length < 4) {
+                codeError.textContent = t('legacy_invalid_code') || 'Ungültiger Code. Bitte versuche es erneut.';
+                return;
+            }
+
+            // Disable UI
+            connectBtn.disabled = true;
+            codeInput.disabled = true;
+            codeError.textContent = '';
+            codeError.className = 'code-loading';
+            codeError.textContent = t('legacy_loading') || 'Verbindung wird hergestellt...';
+
+            try {
+                // Validate code in Supabase — legacy_data is stored directly on the access code
+                const { data: codeData, error: codeErr } = await supabaseClient
+                    .from('legacy_access_codes')
+                    .select('nickname, language, is_active, legacy_data, user_id, avatar_url, voice_id')
+                    .eq('access_code', code)
+                    .single();
+
+                if (codeErr || !codeData) {
+                    throw new Error('invalid_code');
+                }
+
+                if (!codeData.is_active) {
+                    throw new Error('invalid_code');
+                }
+
+                let legacyData = codeData.legacy_data;
+
+                // Fallback: if legacy_data is not on the code, try user_legacies
+                if (!legacyData && codeData.user_id) {
+                    const { data: legacyRow } = await supabaseClient
+                        .from('user_legacies')
+                        .select('legacy_data')
+                        .eq('user_id', codeData.user_id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (legacyRow && legacyRow.legacy_data) {
+                        legacyData = legacyRow.legacy_data;
+                    }
+                }
+
+                if (!legacyData) {
+                    throw new Error('no_legacy_data');
+                }
+
+                // Stash the validated data and proceed to visitor info phase
+                pendingCodeData = {
+                    code,
+                    nickname: codeData.nickname,
+                    language: codeData.language || 'de',
+                    legacyData,
+                    avatarUrl: codeData.avatar_url || null,
+                    voiceId: codeData.voice_id || null
+                };
+
+                // Check if we already have visitor info for this code (returning visitor)
+                const stored = getStoredVisitorInfo(code);
+                if (stored && stored.name && stored.relation && stored.gender) {
+                    visitorInfo = stored;
+                    await startSession();
+                } else {
+                    showVisitorInfoForm(pendingCodeData.nickname, pendingCodeData.language);
+                }
+            } catch (err) {
+                console.error('Connect error:', err);
+                codeError.className = 'code-error';
+                if (err.message === 'invalid_code') {
+                    codeError.textContent = t('legacy_invalid_code') || 'Ungültiger Code. Bitte versuche es erneut.';
+                } else if (err.message === 'no_legacy_data') {
+                    codeError.textContent = t('legacy_no_data') || 'Keine Vermächtnisdaten gefunden.';
+                } else {
+                    codeError.textContent = (t('legacy_error') || 'Ein Fehler ist aufgetreten.') + ' (' + err.message + ')';
+                }
+                connectBtn.disabled = false;
+                codeInput.disabled = false;
+            }
+        }
+
+        // ============================================
+        // VISITOR INFO SUBMIT → START SESSION
+        // ============================================
+        startChatBtn.addEventListener('click', handleVisitorSubmit);
+
+        function handleVisitorSubmit() {
+            const name = visitorNameInput.value.trim();
+            const relation = visitorRelationSelect.value;
+            const gender = visitorGenderSelect.value;
+
+            if (!name || !relation || !gender) {
+                visitorError.textContent = t('legacy_visitor_required') || 'Bitte fülle alle Felder aus.';
+                return;
+            }
+
+            visitorInfo = { name, relation, gender };
+            storeVisitorInfo(pendingCodeData.code, visitorInfo);
+            startSession();
+        }
+
+        // Load saved mode for this code (default: analysis)
+        function loadModeForCode(code) {
+            try {
+                const saved = localStorage.getItem('oblivio_mode_' + code);
+                if (saved === 'passive') return 'passive';
+                if (saved === 'active') return 'active';
+                return 'analysis';
+            } catch { return 'analysis'; }
+        }
+
+        function saveModeForCode(code, mode) {
+            try { localStorage.setItem('oblivio_mode_' + code, mode); } catch {}
+        }
+
+        function updateModeToggleUI() {
+            const analysisBtn = document.getElementById('modeAnalysisBtn');
+            modeActiveBtn.classList.toggle('active', currentMode === 'active');
+            modePassiveBtn.classList.toggle('active', currentMode === 'passive');
+            if (analysisBtn) analysisBtn.classList.toggle('active', currentMode === 'analysis');
+        }
+
+        async function startSession() {
+            const { code, nickname, language, legacyData, avatarUrl, voiceId } = pendingCodeData;
+
+            legacyNickname = nickname;
+            legacyAvatarUrl = avatarUrl;
+            legacyVoiceId = voiceId;
+            currentAccessCode = code;
+            currentMode = loadModeForCode(code);
+            updateModeToggleUI();
+
+            startChatBtn.disabled = true;
+            visitorError.className = 'code-loading';
+            visitorError.textContent = t('legacy_loading') || 'Verbindung wird hergestellt...';
+
+            try {
+                // Load previous conversation history (scoped per mode)
+                const history = await loadConversationHistory(code, currentMode);
+                console.log('Loaded', history.length, 'previous messages for mode:', currentMode);
+
+                // Create single-state agent via PROMISE (with history + visitor info + mode)
+                console.log('Creating legacy agent for', nickname, 'in', language, 'visitor:', visitorInfo, 'mode:', currentMode);
+                legacyAgentId = await LegacyAPI.createAgent(nickname, legacyData, language, history, visitorInfo, currentMode);
+                console.log('Agent created:', legacyAgentId);
+
+                // Start the conversation (always required to put PROMISE agent in active state)
+                const startResult = await LegacyAPI.startConversation(legacyAgentId);
+                isConversationActive = startResult.active;
+
+                // In passive mode we ALWAYS discard the start response — the LLM cannot
+                // be reliably forced to stay silent, so we ignore whatever it produced.
+                if (currentMode === 'passive' || currentMode === 'analysis') {
+                    // Render previous conversation but always show the hint at the end
+                    // so it's clear that the visitor — not the persona — has the next turn.
+                    showChatView(nickname, null, history);
+                    showEmptyHint();
+                } else {
+                    // Filter out __WAIT__ if LLM produced it despite active mode
+                    const greeting = (startResult.text && !startResult.text.includes('__WAIT__')) ? startResult.text : null;
+                    showChatView(nickname, greeting, history);
+                    if (greeting) await saveMessage(code, 'legacy', greeting);
+                }
+            } catch (err) {
+                console.error('Session start error:', err);
+                visitorError.className = 'code-error';
+                visitorError.textContent = (t('legacy_error') || 'Ein Fehler ist aufgetreten.') + ' (' + err.message + ')';
+                startChatBtn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // EMPTY HINT (passive mode, no messages yet)
+        // ============================================
+        function showEmptyHint() {
+            removeEmptyHint();
+            const hint = document.createElement('div');
+            hint.className = 'empty-hint';
+            hint.id = 'emptyHint';
+
+            // Animated star field background — many tiny floating dots
+            const stars = document.createElement('div');
+            stars.className = 'hint-stars';
+            const palette = ['var(--gold)', 'var(--rust)', 'var(--moss)'];
+            for (let i = 0; i < 45; i++) {
+                const dot = document.createElement('span');
+                dot.style.top  = Math.random() * 100 + '%';
+                dot.style.left = Math.random() * 100 + '%';
+                const size = 2 + Math.random() * 2.5; // 2–4.5px
+                dot.style.width  = size + 'px';
+                dot.style.height = size + 'px';
+                dot.style.background = palette[i % palette.length];
+                dot.style.animationDelay    = (Math.random() * 6).toFixed(2) + 's';
+                dot.style.animationDuration = (5 + Math.random() * 4).toFixed(2) + 's';
+                stars.appendChild(dot);
+            }
+            hint.appendChild(stars);
+
+            // Hint text
+            const text = document.createElement('div');
+            text.className = 'hint-text';
+            const tpl = t('legacy_passive_hint') || 'Schreibe {name} eine Nachricht, um das Gespräch zu beginnen…';
+            text.textContent = tpl.replace('{name}', legacyNickname || '');
+            hint.appendChild(text);
+
+            messagesArea.appendChild(hint);
+        }
+
+        function removeEmptyHint() {
+            const hint = document.getElementById('emptyHint');
+            if (hint) hint.remove();
+        }
+
+        // ============================================
+        // MODE TOGGLE — switch active/passive mid-session
+        // ============================================
+        modeActiveBtn.addEventListener('click', () => switchMode('active'));
+        modePassiveBtn.addEventListener('click', () => switchMode('passive'));
+        document.getElementById('modeAnalysisBtn').addEventListener('click', () => switchMode('analysis'));
+
+        async function switchMode(newMode) {
+            if (newMode === currentMode) return;
+            const confirmMsg = t('legacy_mode_switch_confirm') || 'Modus wechseln? Das Gespräch wird neu gestartet.';
+            if (!confirm(confirmMsg)) return;
+
+            currentMode = newMode;
+            saveModeForCode(currentAccessCode, newMode);
+            updateModeToggleUI();
+
+            // Clear visible messages and recreate agent in new mode
+            messagesArea.innerHTML = '';
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            voiceBtn.disabled = true;
+
+            try {
+                // Load history scoped to the NEW mode (each mode has its own conversation)
+                const history = await loadConversationHistory(currentAccessCode, currentMode);
+                legacyAgentId = await LegacyAPI.createAgent(
+                    legacyNickname,
+                    pendingCodeData.legacyData,
+                    pendingCodeData.language,
+                    history,
+                    visitorInfo,
+                    currentMode
+                );
+                const startResult = await LegacyAPI.startConversation(legacyAgentId);
+                isConversationActive = startResult.active;
+
+                // Re-render previous history of the new mode
+                if (history && history.length > 0) {
+                    history.filter(msg => !msg.content || !msg.content.includes('__WAIT__')).forEach(msg => addMessage(msg.content, msg.role === 'user' ? 'user' : 'legacy', legacyNickname));
+                }
+
+                if (currentMode === 'passive' || currentMode === 'analysis') {
+                    // Always discard the start response in passive/analysis mode and show the hint
+                    showEmptyHint();
+                } else {
+                    const greeting = (startResult.text && !startResult.text.includes('__WAIT__')) ? startResult.text : null;
+                    if (greeting) {
+                        addMessage(greeting, 'legacy', legacyNickname);
+                        await saveMessage(currentAccessCode, 'legacy', greeting);
+                    }
+                }
+
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                voiceBtn.disabled = false;
+                messageInput.focus();
+            } catch (err) {
+                console.error('Mode switch error:', err);
+                addMessage(t('legacy_error') || 'Ein Fehler ist aufgetreten.', 'legacy', legacyNickname);
+            }
+        }
+
+        // ============================================
+        // CHAT VIEW
+        // ============================================
+
+        function showChatView(nickname, greetingText, history) {
+            // Hide entry phases, show chat
+            codeEntrySection.style.display = 'none';
+            visitorInfoSection.style.display = 'none';
+            chatContainer.style.display = 'flex';
+
+            // Show top-center mode toggle
+            modeToggle.classList.add('visible');
+
+            // Set avatar (photo or initial), title and subtitle with nickname
+            const avatarLarge = document.getElementById('chatAvatarLarge');
+            if (legacyAvatarUrl) {
+                avatarLarge.textContent = '';
+                avatarLarge.style.backgroundImage = 'url(' + legacyAvatarUrl + ')';
+                avatarLarge.style.backgroundSize = 'cover';
+                avatarLarge.style.backgroundPosition = 'center';
+            } else {
+                avatarLarge.textContent = nickname ? nickname.charAt(0).toUpperCase() : 'O';
+            }
+            chatTitle.textContent = nickname;
+            document.getElementById('chatSubtitle').textContent = (t('legacy_chat_subtitle') || 'Ein Gespräch mit einem Vermächtnis').replace('{name}', nickname);
+
+            // Show previous conversation history (filter out __WAIT__ artifacts)
+            if (history && history.length > 0) {
+                history.forEach(msg => {
+                    if (msg.content && msg.content.includes('__WAIT__')) return;
+                    addMessage(msg.content, msg.role === 'user' ? 'user' : 'legacy', nickname);
+                });
+            }
+
+            // Show new greeting message (skipped in passive mode)
+            if (greetingText) {
+                addMessage(greetingText, 'legacy', nickname);
+            }
+
+            // Show voice toggle if persona has a voice
+            if (legacyVoiceId) {
+                voiceToggle.classList.add('visible');
+                if (greetingText) speakText(greetingText);
+            }
+
+            // Show music button and start music
+            musicToggle.style.display = 'flex';
+            initializeMusic();
+
+            // Enable input
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            voiceBtn.disabled = false;
+            messageInput.focus();
+        }
+
+        function addMessage(text, type, nickname) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ' + type;
+
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar';
+
+            if (type === 'legacy' && legacyAvatarUrl) {
+                avatarDiv.style.backgroundImage = 'url(' + legacyAvatarUrl + ')';
+                avatarDiv.style.backgroundSize = 'cover';
+                avatarDiv.style.backgroundPosition = 'center';
+            } else if (type === 'legacy') {
+                avatarDiv.textContent = nickname ? nickname.charAt(0).toUpperCase() : 'O';
+            } else {
+                if (visitorName) {
+                    avatarDiv.textContent = visitorName.charAt(0).toUpperCase();
+                } else {
+                    avatarDiv.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="width:22px;height:22px;fill:var(--cream)"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>';
+                }
+            }
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = text;
+
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator active';
+            indicator.id = 'typingIndicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            messagesArea.appendChild(indicator);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) indicator.remove();
+        }
+
+        // ============================================
+        // SEND MESSAGE
+        // ============================================
+
+        async function handleSendMessage() {
+            const userMessage = messageInput.value.trim();
+            if (!userMessage || !legacyAgentId || !isConversationActive) return;
+
+            // Remove the empty hint as soon as the visitor writes something
+            removeEmptyHint();
+
+            // Show user message
+            addMessage(userMessage, 'user');
+            messageInput.value = '';
+
+            // Save user message to Supabase
+            saveMessage(currentAccessCode, 'user', userMessage);
+
+            // Disable input while waiting
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            voiceBtn.disabled = true;
+            showTypingIndicator();
+
+            try {
+                const result = await LegacyAPI.sendMessage(legacyAgentId, userMessage);
+                hideTypingIndicator();
+
+                // Show response
+                addMessage(result.text, 'legacy', legacyNickname);
+                isConversationActive = result.active;
+
+                // Save legacy response to Supabase
+                saveMessage(currentAccessCode, 'legacy', result.text);
+
+                // Speak the response
+                if (legacyVoiceId) speakText(result.text);
+
+                if (!result.active) {
+                    // Conversation ended
+                    messageInput.disabled = true;
+                    sendBtn.disabled = true;
+                    voiceBtn.disabled = true;
+                    messageInput.placeholder = t('legacy_ended') || 'Das Gespräch wurde beendet.';
+                } else {
+                    // Re-enable input
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
+                    voiceBtn.disabled = false;
+                    messageInput.focus();
+                }
+            } catch (err) {
+                console.error('Send message error:', err);
+                hideTypingIndicator();
+                addMessage(t('legacy_send_error') || 'Nachricht konnte nicht gesendet werden. Bitte versuche es erneut.', 'legacy', legacyNickname);
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                voiceBtn.disabled = false;
+            }
+        }
+
+        // ============================================
+        // SPEECH RECOGNITION (Microphone Input)
+        // ============================================
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isRecording = false;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            function getSpeechLang() {
+                const lang = localStorage.getItem('oblivio_language') || 'de';
+                const map = { de: 'de-CH', en: 'en-US', fr: 'fr-FR', it: 'it-IT', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN' };
+                return map[lang] || 'de-CH';
+            }
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                messageInput.value = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    alert('Mikrofonzugriff verweigert. Bitte erlaube den Zugriff in den Browser-Einstellungen.');
+                }
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                if (isRecording) stopRecording();
+            };
+
+            function startRecording() {
+                try {
+                    messageInput.value = '';
+                    recognition.lang = getSpeechLang();
+                    recognition.start();
+                    isRecording = true;
+                    voiceBtn.classList.add('recording');
+                    messageInput.placeholder = 'Sprich jetzt...';
+                } catch (err) {
+                    console.error('Could not start speech recognition:', err);
+                    isRecording = false;
+                    voiceBtn.classList.remove('recording');
+                }
+            }
+
+            function stopRecording() {
+                try { recognition.stop(); } catch(e) {}
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                messageInput.placeholder = t('legacy_input_placeholder') || 'Schreibe eine Nachricht...';
+            }
+
+            voiceBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    stopRecording();
+                } else {
+                    startRecording();
+                }
+            });
+        } else {
+            voiceBtn.classList.add('voice-unsupported');
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+
+        sendBtn.addEventListener('click', handleSendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSendMessage();
+        });
+
+        // ============================================
+        // ELEVENLABS TEXT-TO-SPEECH
+        // ============================================
+        const voiceAudio = document.getElementById('voiceAudio');
+        const voiceToggle = document.getElementById('voiceToggle');
+        const voicePath = document.getElementById('voicePath');
+
+        async function speakText(text) {
+            if (!isVoiceEnabled || !legacyVoiceId || !legacyAgentId) return;
+
+            try {
+                isCurrentlySpeaking = true;
+                voiceToggle.classList.add('speaking');
+
+                const promiseUrl = window.OBLIVIO_CONFIG?.PROMISE_API_URL || 'http://localhost:8080';
+                const response = await fetch(`${promiseUrl}/${legacyAgentId}/tts?voice_id=${encodeURIComponent(legacyVoiceId)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 503) console.log('ElevenLabs API key not configured');
+                    else console.warn('TTS error:', response.status);
+                    return;
+                }
+
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+                voiceAudio.src = audioUrl;
+                await voiceAudio.play();
+
+                voiceAudio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    isCurrentlySpeaking = false;
+                    voiceToggle.classList.remove('speaking');
+                };
+            } catch (err) {
+                console.error('TTS error:', err);
+                isCurrentlySpeaking = false;
+                voiceToggle.classList.remove('speaking');
+            }
+        }
+
+        function toggleVoice() {
+            if (isVoiceEnabled) {
+                isVoiceEnabled = false;
+                voicePath.style.opacity = '0.35';
+                voiceToggle.classList.remove('speaking');
+                localStorage.setItem('oblivio_voice_enabled', 'false');
+                if (isCurrentlySpeaking) {
+                    voiceAudio.pause();
+                    voiceAudio.currentTime = 0;
+                    isCurrentlySpeaking = false;
+                }
+            } else {
+                isVoiceEnabled = true;
+                voicePath.style.opacity = '1';
+                localStorage.setItem('oblivio_voice_enabled', 'true');
+            }
+        }
+
+        voiceToggle.addEventListener('click', toggleVoice);
+
+        // Initialize voice state from localStorage
+        (function initVoice() {
+            if (localStorage.getItem('oblivio_voice_enabled') === 'false') {
+                isVoiceEnabled = false;
+                voicePath.style.opacity = '0.35';
+            }
+        })();
+
+        // ============================================
+        // BACKGROUND MUSIC
+        // ============================================
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const soundWaves = document.getElementById('soundWaves');
+        let isMusicPlaying = false;
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicToggle.classList.remove('playing');
+                soundWaves.style.opacity = '0.3';
+                localStorage.setItem('oblivio_music_enabled', 'false');
+                isMusicPlaying = false;
+            } else {
+                backgroundMusic.play().catch(err => console.log('Music play prevented:', err));
+                musicToggle.classList.add('playing');
+                soundWaves.style.opacity = '1';
+                localStorage.setItem('oblivio_music_enabled', 'true');
+                isMusicPlaying = true;
+            }
+        }
+
+        function initializeMusic() {
+            backgroundMusic.volume = 0.3;
+            const musicEnabled = localStorage.getItem('oblivio_music_enabled');
+            if (musicEnabled === 'false') {
+                musicToggle.classList.remove('playing');
+                soundWaves.style.opacity = '0.3';
+                isMusicPlaying = false;
+            } else {
+                backgroundMusic.play().then(() => {
+                    musicToggle.classList.add('playing');
+                    soundWaves.style.opacity = '1';
+                    isMusicPlaying = true;
+                }).catch(err => {
+                    console.log('Music autoplay prevented:', err);
+                    musicToggle.classList.remove('playing');
+                    soundWaves.style.opacity = '0.3';
+                    isMusicPlaying = false;
+                });
+            }
+        }
+
+        musicToggle.addEventListener('click', toggleMusic);
+        // Music starts only when chat opens (not on code entry)
+
+        // ============================================
+        // CHECK URL PARAM FOR CODE
+        // ============================================
+        function checkUrlCode() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('code');
+            if (code) {
+                codeInput.value = code.toUpperCase().replace(/[^A-Z0-9]/g, '');
+            }
+        }
+
+        checkUrlCode();
+
+        // ============================================
+        // ERROR HANDLING
+        // ============================================
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error || event.message || 'Unknown error');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason || 'Unknown reason');
+        });
+    </script>
+</body>
+</html>

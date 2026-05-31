@@ -1,0 +1,2975 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="page-id" content="biographer">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biographer – Oblivio</title>
+    <meta name="description" content="Start your legacy journey with Oblivio's AI Biographer – document your life story through guided conversations.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://oblivio.ch/biographer.html">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="apple-touch-icon" href="images/logo.png">
+
+    <!-- Open Graph / Social Media Preview -->
+    <meta property="og:title" content="Biographer - Oblivio">
+    <meta property="og:description" content="Share your life story and preserve your legacy for future generations.">
+    <meta property="og:image" content="https://oblivio.ch/images/og-image.jpg">
+    <meta property="og:url" content="https://oblivio.ch/biographer.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Biographer - Oblivio">
+    <meta name="twitter:description" content="Share your life story and preserve your legacy for future generations.">
+    <meta name="twitter:image" content="https://oblivio.ch/images/og-image.jpg">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f8f4ed;
+            --charcoal: #1a1a1a;
+            --moss: #4a5942;
+            --rust: #a84832;
+            --gold: #d4af37;
+            --shadow: rgba(26, 26, 26, 0.15);
+        }
+
+        .skip-link{position:absolute;top:-40px;left:0;background:var(--rust);color:var(--cream);padding:8px 16px;z-index:10000;font-size:14px;text-decoration:none;transition:top 0.3s;}.skip-link:focus{top:0;}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Pro', serif;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            line-height: 1.7;
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        ::selection {
+            background-color: var(--rust);
+            color: var(--cream);
+        }
+
+        /* Navigation */
+        nav {
+            background-color: rgba(248, 244, 237, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(26, 26, 26, 0.08);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+            color: var(--charcoal);
+            font-weight: 400;
+            text-decoration: none;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .back-link, .logout-btn {
+            color: var(--moss);
+            text-decoration: none;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            font-weight: 400;
+            transition: color 0.3s;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+        }
+
+        .back-link:hover, .logout-btn:hover {
+            color: var(--rust);
+        }
+
+        /* Language Switcher */
+        .lang-select {
+            background-color: var(--cream);
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            padding: 6px 24px 6px 10px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--moss);
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            appearance: none;
+            background-image: url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 2px center;
+            background-size: 18px;
+        }
+
+        .lang-select:hover {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .lang-select:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:1002;}.hamburger span{display:block;width:24px;height:2px;background:var(--charcoal);margin:5px 0;transition:all 0.3s;}.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}.hamburger.active span:nth-child(2){opacity:0;}.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}.mobile-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(248,244,237,0.98);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:32px;}.mobile-overlay.active{display:flex;}.mobile-overlay a{font-family:'Crimson Pro',serif;font-size:20px;color:var(--charcoal);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:12px 0;transition:color 0.3s;}.mobile-overlay a:hover{color:var(--rust);}.mobile-overlay .lang-select{margin-top:16px;}
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            text-align: center;
+            padding: 30px 20px;
+        }
+
+        .chat-header h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 42px;
+            margin-bottom: 10px;
+            color: var(--charcoal);
+            font-weight: 400;
+            letter-spacing: -1px;
+        }
+
+        .chat-header p {
+            font-size: 17px;
+            color: var(--moss);
+            font-weight: 300;
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.biographer {
+            align-self: flex-start;
+            max-width: 70%;
+        }
+
+        .message.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+            max-width: 70%;
+        }
+
+        .message-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'DM Serif Display', serif;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message.biographer .message-avatar {
+            background: linear-gradient(135deg, var(--moss), var(--gold));
+            color: var(--cream);
+        }
+
+        /* Remove background for image avatars */
+        .message.biographer .message-avatar:has(img) {
+            background: transparent;
+            padding: 0;
+        }
+
+        /* Ensure logo fills the avatar completely */
+        .message.biographer .message-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, var(--rust), var(--gold));
+            color: var(--cream);
+        }
+
+        .message-content {
+            flex: 1;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .message.biographer .message-content {
+            background: white;
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            box-shadow: 0 2px 10px var(--shadow);
+        }
+
+        .message.user .message-content {
+            background: var(--moss);
+            color: var(--cream);
+        }
+
+        /* Progress Bar */
+        #progress-container {
+            padding: 4px 20px 6px;
+            background: transparent;
+        }
+
+        #progress-label {
+            font-size: 0.72rem;
+            color: #8a8a8a;
+            margin-bottom: 4px;
+            font-family: 'Crimson Pro', serif;
+            letter-spacing: 0.03em;
+        }
+
+        #progress-bar-bg {
+            height: 3px;
+            background: #e0dcd4;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        #progress-bar-fill {
+            height: 100%;
+            background: var(--moss);
+            border-radius: 2px;
+            transition: width 0.7s ease;
+            width: 10%;
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: transparent;
+            border-top: none;
+            display: flex;
+            gap: 15px;
+        }
+
+        .input-area input {
+            flex: 1;
+            padding: 15px 20px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            border-radius: 25px;
+            background-color: var(--cream);
+            color: var(--charcoal);
+            transition: border-color 0.3s;
+        }
+
+        .input-area input:focus {
+            outline: none;
+            border-color: var(--rust);
+        }
+
+        .input-area input:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .send-btn {
+            padding: 15px 30px;
+            background-color: var(--rust);
+            color: var(--cream);
+            border: none;
+            border-radius: 25px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px var(--shadow);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Voice Input Button */
+        .voice-btn {
+            width: 48px;
+            height: 48px;
+            min-width: 48px;
+            border-radius: 50%;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            background-color: var(--cream);
+            color: var(--charcoal);
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .voice-btn:hover:not(:disabled) {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        .voice-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .voice-btn.recording {
+            background-color: var(--rust);
+            color: var(--cream);
+            border-color: var(--rust);
+            animation: pulse-mic 1.2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-mic {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(163, 88, 72, 0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(163, 88, 72, 0); }
+        }
+
+        .voice-unsupported { display: none; }
+
+        /* Choice Buttons for Questionnaire */
+        .choice-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 6px 0 12px 52px;
+        }
+
+        .choice-btn {
+            padding: 8px 18px;
+            border-radius: 20px;
+            border: 1.5px solid var(--moss, #5a6e4a);
+            background: transparent;
+            color: var(--ink, #1a1a1a);
+            cursor: pointer;
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.9rem;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .choice-btn:hover {
+            background: var(--moss, #5a6e4a);
+            color: var(--cream, #f5f1e8);
+        }
+
+        .choice-btn.selected {
+            background: var(--moss, #5a6e4a);
+            color: var(--cream, #f5f1e8);
+        }
+
+        .choice-btn-confirm {
+            background: var(--rust, #c0392b);
+            color: var(--cream, #f5f1e8);
+            border-color: var(--rust, #c0392b);
+            font-weight: 600;
+        }
+
+        .choice-btn-confirm:hover {
+            background: #a93226;
+            border-color: #a93226;
+            color: var(--cream, #f5f1e8);
+        }
+
+        /* Questionnaire Section Headers */
+        .questionnaire-section-header {
+            margin: 18px 0 8px 52px;
+            padding: 8px 16px;
+            font-family: 'DM Serif Display', serif;
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            color: var(--moss, #5a6e4a);
+            border-left: 3px solid var(--moss, #5a6e4a);
+            opacity: 0.85;
+        }
+
+        /* Likert / Frequency Slider */
+        .likert-slider-wrap {
+            width: 100%;
+            padding: 8px 0 4px;
+        }
+
+        .likert-slider-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .likert-slider-labels span {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.75rem;
+            color: var(--moss, #5a6e4a);
+            max-width: 45%;
+            line-height: 1.3;
+        }
+
+        .likert-slider-labels span:last-child {
+            text-align: right;
+        }
+
+        .likert-slider-track {
+            position: relative;
+            width: 100%;
+            margin-bottom: 8px;
+        }
+
+        .likert-slider-track input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, rgba(90,110,74,0.15), rgba(90,110,74,0.4));
+            outline: none;
+            cursor: pointer;
+        }
+
+        .likert-slider-track input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--moss, #5a6e4a);
+            border: 3px solid var(--cream, #f5f1e8);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.15s;
+        }
+
+        .likert-slider-track input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .likert-slider-track input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--moss, #5a6e4a);
+            border: 3px solid var(--cream, #f5f1e8);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+
+        .likert-slider-ticks {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 2px;
+            margin-bottom: 6px;
+        }
+
+        .likert-slider-ticks span {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.8rem;
+            color: var(--charcoal, #1a1a1a);
+            opacity: 0.5;
+            width: 20px;
+            text-align: center;
+        }
+
+        .likert-slider-ticks span.active {
+            opacity: 1;
+            font-weight: 600;
+            color: var(--moss, #5a6e4a);
+        }
+
+        .likert-current-label {
+            text-align: center;
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.9rem;
+            color: var(--moss, #5a6e4a);
+            font-weight: 600;
+            min-height: 1.4em;
+            margin-bottom: 10px;
+        }
+
+        .likert-confirm-btn {
+            display: block;
+            margin: 0 auto;
+            padding: 10px 32px;
+            border-radius: 20px;
+            border: none;
+            background: var(--rust, #c0392b);
+            color: var(--cream, #f5f1e8);
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .likert-confirm-btn:hover {
+            background: #a93226;
+        }
+
+        @media (max-width: 600px) {
+            .questionnaire-section-header {
+                margin-left: 0;
+                font-size: 0.8rem;
+            }
+            .likert-slider-labels span {
+                font-size: 0.7rem;
+            }
+            .likert-slider-track input[type="range"]::-webkit-slider-thumb {
+                width: 28px;
+                height: 28px;
+            }
+            .likert-slider-track input[type="range"]::-moz-range-thumb {
+                width: 28px;
+                height: 28px;
+            }
+        }
+
+        /* Biography Complete Card */
+        .biography-complete-card {
+            text-align: center;
+            padding: 40px 24px;
+            margin: 24px auto;
+            max-width: 420px;
+            background: white;
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+
+        .biography-complete-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            background: var(--moss, #5a6e4a);
+            color: var(--cream, #f5f1e8);
+            font-size: 1.6rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .biography-complete-title {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.3rem;
+            color: var(--charcoal, #1a1a1a);
+            margin: 0 0 12px;
+        }
+
+        .biography-complete-text {
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.95rem;
+            color: #555;
+            line-height: 1.6;
+            margin: 0 0 24px;
+        }
+
+        .biography-complete-btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 24px;
+            background: var(--rust, #c0392b);
+            color: var(--cream, #f5f1e8);
+            font-family: 'Crimson Pro', serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .biography-complete-btn:hover {
+            background: #a93226;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            padding: 15px 20px;
+            background: white;
+            border: 1px solid rgba(26, 26, 26, 0.08);
+            border-radius: 15px;
+            width: fit-content;
+        }
+
+        .typing-indicator.active {
+            display: block;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background-color: var(--moss);
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-screen.hidden {
+            display: none;
+        }
+
+        .loading-text {
+            font-family: 'DM Serif Display', serif;
+            font-size: 24px;
+            color: var(--charcoal);
+        }
+
+        /* Music Toggle Button */
+        .music-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--rust), var(--gold));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(168, 72, 50, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .music-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(168, 72, 50, 0.5);
+        }
+
+        .music-toggle.playing {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 8px 24px rgba(168, 72, 50, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(168, 72, 50, 0.7);
+            }
+        }
+
+        /* Audio Icon */
+        .audio-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--cream);
+        }
+
+        /* Voice Toggle Button */
+        .voice-toggle {
+            position: fixed;
+            bottom: 110px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--moss), var(--rust));
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(74, 95, 77, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .voice-toggle:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(74, 95, 77, 0.5);
+        }
+
+        .voice-toggle.active {
+            animation: voicePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes voicePulse {
+            0%, 100% {
+                box-shadow: 0 8px 24px rgba(74, 95, 77, 0.4);
+            }
+            50% {
+                box-shadow: 0 8px 32px rgba(74, 95, 77, 0.8);
+            }
+        }
+
+        .voice-icon {
+            width: 24px;
+            height: 24px;
+            fill: var(--cream);
+        }
+
+        /* Language Selection Modal */
+        .language-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(26, 26, 26, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(8px);
+        }
+
+        .language-modal.hidden {
+            display: none;
+        }
+
+        .language-modal-content {
+            background-color: var(--cream);
+            padding: 50px;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalFadeIn 0.4s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .language-modal h2 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 36px;
+            color: var(--charcoal);
+            margin-bottom: 15px;
+        }
+
+        .language-modal p {
+            font-size: 18px;
+            color: var(--moss);
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        .language-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .language-option {
+            padding: 20px;
+            background-color: white;
+            border: 2px solid rgba(26, 26, 26, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Crimson Pro', serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--charcoal);
+        }
+
+        .language-option:hover {
+            border-color: var(--rust);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .language-option.selected {
+            background-color: var(--rust);
+            color: var(--cream);
+            border-color: var(--rust);
+        }
+
+        .language-option-flag {
+            font-family: 'DM Serif Display', serif;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 10px;
+            color: var(--rust);
+            letter-spacing: 2px;
+            opacity: 0.6;
+        }
+
+        .confirm-language-btn {
+            padding: 15px 40px;
+            background-color: var(--rust);
+            color: var(--cream);
+            border: none;
+            border-radius: 25px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin-top: 20px;
+        }
+
+        .confirm-language-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--shadow);
+        }
+
+        .confirm-language-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hamburger{display:block;}
+            nav {
+                padding: 15px 20px;
+            }
+
+            .chat-header h1 {
+                font-size: 32px;
+            }
+
+            .message.biographer,
+            .message.user {
+                max-width: 85%;
+            }
+
+            .input-area {
+                padding: 15px;
+            }
+
+            /* Move floating toggles to top-right on mobile so they don't cover the send button */
+            .music-toggle {
+                bottom: auto;
+                top: 75px;
+                right: 16px;
+                width: 44px;
+                height: 44px;
+            }
+            .music-toggle .audio-icon { width: 18px; height: 18px; }
+
+            .voice-toggle {
+                bottom: auto;
+                top: 75px;
+                right: 70px;
+                width: 44px;
+                height: 44px;
+            }
+            .voice-toggle .voice-icon { width: 18px; height: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">Loading...</div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="backgroundMusic" loop>
+        <source src="audio/background.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <!-- Voice Audio (for ElevenLabs TTS) -->
+    <audio id="voiceAudio"></audio>
+
+    <!-- Voice Toggle Button (ElevenLabs TTS) -->
+    <button class="voice-toggle active" id="voiceToggle" title="Toggle voice narration">
+        <svg class="voice-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3z"/>
+            <path id="voicePath" d="M14 8.23v2.06c1.08.27 2 1.18 2 2.21s-.92 1.94-2 2.21v2.06c2.12-.27 4-1.88 4-4.27s-1.88-4-4-4.27zM16.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+        </svg>
+    </button>
+
+    <!-- Music Toggle Button -->
+    <button class="music-toggle playing" id="musicToggle" title="Toggle background music">
+        <svg class="audio-icon" id="audioIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <!-- Music note -->
+            <path d="M12 3v10.55A4 4 0 1 0 14 17V7h4V3h-6z"/>
+            <!-- Small vibration lines (toggled via JS) -->
+            <g id="soundWaves">
+                <line x1="19" y1="8" x2="22" y2="8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="19" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="19" y1="16" x2="22" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </g>
+        </svg>
+    </button>
+
+    <!-- Consent Modal -->
+    <div class="language-modal hidden" id="consentModal">
+        <div class="language-modal-content" style="max-width: 520px; padding: 40px 40px 24px 40px; text-align: center; color: #1a1a1a;">
+            <h2 id="consentTitle" style="font-size: 1.25rem; font-weight: 500; letter-spacing: 0.04em; margin-bottom: 8px; text-transform: uppercase; color: #1a1a1a;">Datenschutz & Einwilligung</h2>
+            <div style="width: 40px; height: 1px; background: rgba(26,26,26,0.3); margin: 0 auto 24px;"></div>
+            <p id="consentDesc" style="margin-bottom: 20px; line-height: 1.7; font-size: 0.95rem; color: #1a1a1a;">
+                Dieser Fragebogen erfasst deinen individuellen Schreibstil und deine Persönlichkeit.
+                Deine Antworten dienen dazu, ein KI-Modell zu trainieren, das deinen Kommunikationsstil nachbilden kann.
+            </p>
+            <div style="margin-bottom: 28px; text-align: center;">
+                <p id="consentHint1" style="font-size: 0.85rem; color: #444; margin-bottom: 6px; line-height: 1.6;">Alle Daten werden ausschliesslich für Forschungszwecke verwendet.</p>
+                <p id="consentHint2" style="font-size: 0.85rem; color: #444; line-height: 1.6;">Du kannst Pseudonyme oder Fake-Namen verwenden.</p>
+            </div>
+            <p id="consentQuestion" style="margin-bottom: 28px; font-size: 0.9rem; font-style: italic; color: #333; line-height: 1.6;">
+                Ich bin damit einverstanden, dass meine Antworten für Forschungszwecke (Bachelorarbeit) verwendet werden.
+            </p>
+            <div style="display: flex; gap: 12px; justify-content: center;">
+                <button id="consentJaBtn" class="confirm-language-btn" style="background: var(--rust, #c0392b); width: auto; padding: 12px 36px; font-size: 0.9rem; letter-spacing: 0.05em; color: #fff;">
+                    Ja
+                </button>
+                <button id="consentNeinBtn" class="confirm-language-btn" style="background: #1a1a1a; width: auto; padding: 12px 36px; color: #ffffff; border: none; font-size: 0.9rem; letter-spacing: 0.05em;">
+                    Nein
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Selection Modal -->
+    <div class="language-modal hidden" id="languageModal">
+        <div class="language-modal-content">
+            <h2 data-i18n="lang_modal_title">Choose Your Language</h2>
+            <p data-i18n="lang_modal_subtitle">Select the language for your conversation with the Biographer</p>
+            <div class="language-options">
+                <div class="language-option" data-lang="en">
+                    <span class="language-option-flag">EN</span>
+                    English
+                </div>
+                <div class="language-option" data-lang="de">
+                    <span class="language-option-flag">DE</span>
+                    Deutsch
+                </div>
+                <div class="language-option" data-lang="fr">
+                    <span class="language-option-flag">FR</span>
+                    Français
+                </div>
+                <div class="language-option" data-lang="it">
+                    <span class="language-option-flag">IT</span>
+                    Italiano
+                </div>
+                <div class="language-option" data-lang="tr">
+                    <span class="language-option-flag">TR</span>
+                    Türkçe
+                </div>
+                <div class="language-option" data-lang="ko">
+                    <span class="language-option-flag">KO</span>
+                    한국어
+                </div>
+                <div class="language-option" data-lang="ja">
+                    <span class="language-option-flag">JA</span>
+                    日本語
+                </div>
+                <div class="language-option" data-lang="zh">
+                    <span class="language-option-flag">ZH</span>
+                    中文
+                </div>
+            </div>
+            <button class="confirm-language-btn" id="confirmLanguageBtn" data-i18n="lang_modal_continue" disabled>Continue</button>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav aria-label="Hauptnavigation">
+        <a href="index.html" class="logo">Oblivio</a>
+        <button class="hamburger" aria-label="Menü öffnen" onclick="document.querySelector('.hamburger').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active');document.body.style.overflow=document.querySelector('.mobile-overlay').classList.contains('active')?'hidden':''"><span></span><span></span><span></span></button>
+        <div class="nav-right">
+            <a href="journey.html" class="back-link" data-i18n="nav_back">← Back</a>
+            <button class="logout-btn" id="logoutBtn" data-i18n="nav_logout">Logout</button>
+            <select class="lang-select" id="languageSelector" aria-label="Sprache wählen">
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="it">Italiano</option><option value="tr">Türkçe</option>
+                <option value="ko">한국어</option>
+            </select>
+        </div>
+    </nav>
+
+    <div class="mobile-overlay">
+        <a href="index.html" data-i18n="nav_home">Home</a>
+        <a href="features.html" data-i18n="nav_tech_link">Technologie</a>
+        <a href="about.html" data-i18n="nav_about_link">Über Oblivio</a>
+        <a href="journey.html" data-i18n="nav_start_link">Starten</a>
+        <select class="lang-select" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="de">Deutsch</option><option value="en">English</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="main-content">
+        <div class="chat-header">
+            <h1 data-i18n="bio_title">The Biographer</h1>
+            <p data-i18n="bio_subtitle">Let's preserve your story together</p>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <!-- Messages will be added here dynamically -->
+        </div>
+
+        <!-- Progress Bar -->
+        <div id="progress-container" style="display:none;">
+            <div id="progress-label">Block 1 von 10</div>
+            <div id="progress-bar-bg">
+                <div id="progress-bar-fill"></div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <button class="voice-btn" id="voiceBtn" disabled title="Spracheingabe">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="23"/>
+                    <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+            </button>
+            <input
+                type="text"
+                id="messageInput"
+                data-i18n="bio_input_placeholder"
+                placeholder="Type your answer here..."
+                disabled
+            >
+            <button class="send-btn" id="sendBtn" disabled data-i18n="bio_send">Send</button>
+        </div>
+    </div>
+
+    <!-- Translations -->
+    <script src="js/translations.js"></script>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Configuration -->
+    <script src="js/config.js"></script>
+
+    <!-- PROMISE API Integration -->
+    <script src="js/biographer-promise.js"></script>
+
+    <script>
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        // Initialize Supabase client
+        const { createClient } = window.supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================
+        // STATE
+        // ============================================
+        let currentUser = null;
+        let currentAgentId = null;
+        let conversationHistory = [];
+        let isConversationActive = true;
+        let selectedBiographerLanguage = null;
+        let currentStateName = null; // Tracks current PROMISE state for conversation logging
+
+        // ============================================
+        // PROGRESS BAR
+        // ============================================
+        // Backend always sends German state names (regardless of user language)
+        // Conv: "Block 1 - Ice-Breaker"
+        // Confirm: "Block 1 - Ice-Breaker - Bestätigung"
+        const BLOCK_MAP = {
+            'Block 1 - Ice-Breaker': 1,
+            'Block 2 - Alltag & Lebenswelt': 2,
+            'Block 3 - Kommunikationsstil': 3,
+            'Block 4 - Erinnerungen': 4,
+            'Block 5 - Emotionen & Beziehungsmuster': 5,
+            'Block 6 - Beziehungen & Fremdbild': 6,
+            'Block 7 - Werte & Überzeugungen': 7,
+            'Block 8 - Macken & Widersprüche': 8,
+            'Block 9 - Vermächtnis & Zukunft': 9,
+            'Block 10 - Abschluss': 10,
+        };
+
+        function updateProgressBar(stateName) {
+            if (!stateName) return;
+            // Strip " - Bestätigung" suffix so Confirm states map to the same block
+            const baseName = stateName.replace(' - Bestätigung', '');
+            const block = BLOCK_MAP[baseName];
+            if (!block) return;
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-label').textContent = 'Block ' + block + ' / 10';
+            document.getElementById('progress-bar-fill').style.width = (block * 10) + '%';
+            localStorage.setItem('oblivio_bio_current_block', block);
+        }
+
+        function restoreProgressBar() {
+            const saved = localStorage.getItem('oblivio_bio_current_block');
+            if (!saved) return;
+            const block = parseInt(saved, 10);
+            if (!block || block < 1 || block > 10) return;
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-label').textContent = 'Block ' + block + ' / 10';
+            document.getElementById('progress-bar-fill').style.width = (block * 10) + '%';
+        }
+
+        // Questionnaire state
+        let questionnaireAnswers = {};
+        let currentQuestionIdx = 0;
+        let multiSelectBuffer = [];
+        let questionnaireLanguage = 'de';
+
+        // ============================================
+        // CONSENT TRANSLATIONS
+        // ============================================
+        const CONSENT_TEXTS = {
+            de: {
+                title: 'Datenschutz & Einwilligung',
+                desc: 'Dieser Fragebogen erfasst deinen individuellen Schreibstil und deine Persönlichkeit. Deine Antworten dienen dazu, ein KI-Modell zu trainieren, das deinen Kommunikationsstil nachbilden kann.',
+                hint1: 'Alle Daten werden ausschliesslich für Forschungszwecke verwendet.',
+                hint2: 'Du kannst Pseudonyme oder Fake-Namen verwenden.',
+                question: 'Ich bin damit einverstanden, dass meine Antworten für Forschungszwecke (Bachelorarbeit) verwendet werden.',
+                yes: 'Ja', no: 'Nein',
+                refusal: 'Du hast die Teilnahme abgelehnt. Du wirst zur Hauptseite weitergeleitet.',
+                alreadyRefused: 'Du hast die Teilnahme bereits abgelehnt. Du wirst zur Hauptseite weitergeleitet.'
+            },
+            en: {
+                title: 'Privacy & Consent',
+                desc: 'This questionnaire captures your individual writing style and personality. Your answers are used to train an AI model that can replicate your communication style.',
+                hint1: 'All data is used exclusively for research purposes.',
+                hint2: 'You may use pseudonyms or fake names.',
+                question: 'I agree that my answers may be used for research purposes (Bachelor\'s thesis).',
+                yes: 'Yes', no: 'No',
+                refusal: 'You have declined participation. You will be redirected to the main page.',
+                alreadyRefused: 'You have already declined participation. You will be redirected.'
+            },
+            it: {
+                title: 'Privacy & Consenso',
+                desc: 'Questo questionario registra il tuo stile di scrittura individuale e la tua personalità. Le tue risposte vengono utilizzate per addestrare un modello AI che può replicare il tuo stile di comunicazione.',
+                hint1: 'Tutti i dati vengono utilizzati esclusivamente per scopi di ricerca.',
+                hint2: 'Puoi usare pseudonimi o nomi falsi.',
+                question: 'Sono d\'accordo che le mie risposte vengano utilizzate per scopi di ricerca (tesi di laurea).',
+                yes: 'Sì', no: 'No',
+                refusal: 'Hai rifiutato la partecipazione. Verrai reindirizzato alla pagina principale.',
+                alreadyRefused: 'Hai già rifiutato la partecipazione. Verrai reindirizzato.'
+            },
+            ko: {
+                title: '개인정보 및 동의',
+                desc: '이 설문지는 귀하의 개인적인 글쓰기 스타일과 성격을 파악합니다. 귀하의 답변은 귀하의 의사소통 스타일을 재현할 수 있는 AI 모델을 훈련하는 데 사용됩니다.',
+                hint1: '모든 데이터는 연구 목적으로만 사용됩니다.',
+                hint2: '가명이나 가짜 이름을 사용할 수 있습니다.',
+                question: '제 답변이 연구 목적(학사 논문)으로 사용되는 것에 동의합니다.',
+                yes: '예', no: '아니오',
+                refusal: '참여를 거부하셨습니다. 메인 페이지로 이동합니다.',
+                alreadyRefused: '이미 참여를 거부하셨습니다. 이동합니다.'
+            },
+            fr: {
+                title: 'Protection des données & consentement',
+                desc: 'Ce questionnaire enregistre ton style d\'écriture individuel et ta personnalité. Tes réponses servent à entraîner un modèle d\'IA capable de reproduire ton style de communication.',
+                hint1: 'Toutes les données sont utilisées exclusivement à des fins de recherche.',
+                hint2: 'Tu peux utiliser des pseudonymes ou de faux noms.',
+                question: 'J\'accepte que mes réponses soient utilisées à des fins de recherche (travail de bachelor).',
+                yes: 'Oui', no: 'Non',
+                refusal: 'Tu as refusé la participation. Tu seras redirigé vers la page principale.',
+                alreadyRefused: 'Tu as déjà refusé la participation. Tu seras redirigé.'
+            },
+            ja: {
+                title: 'プライバシーと同意',
+                desc: 'このアンケートは、あなた個人の文章スタイルと個性を記録します。あなたの回答は、あなたのコミュニケーションスタイルを再現できるAIモデルのトレーニングに使用されます。',
+                hint1: 'すべてのデータは研究目的にのみ使用されます。',
+                hint2: '仮名や偽名を使用しても構いません。',
+                question: '私の回答が研究目的（学士論文）に使用されることに同意します。',
+                yes: 'はい', no: 'いいえ',
+                refusal: '参加を辞退されました。メインページにリダイレクトされます。',
+                alreadyRefused: 'すでに参加を辞退されています。リダイレクトされます。'
+            },
+            zh: {
+                title: '隐私与知情同意',
+                desc: '本问卷记录你个人的写作风格和个性特征。你的回答将用于训练一个能够模拟你沟通风格的AI模型。',
+                hint1: '所有数据仅用于研究目的。',
+                hint2: '你可以使用化名或假名。',
+                question: '我同意我的回答被用于研究目的（学士论文）。',
+                yes: '是', no: '否',
+                refusal: '你已拒绝参与。你将被重定向到主页。',
+                alreadyRefused: '你已经拒绝了参与。你将被重定向。'
+            }
+        };
+
+        function applyConsentLanguage(lang) {
+            const t = CONSENT_TEXTS[lang] || CONSENT_TEXTS['de'];
+            document.getElementById('consentTitle').textContent = t.title;
+            document.getElementById('consentDesc').textContent = t.desc;
+            document.getElementById('consentHint1').textContent = t.hint1;
+            document.getElementById('consentHint2').textContent = t.hint2;
+            document.getElementById('consentQuestion').textContent = t.question;
+            document.getElementById('consentJaBtn').textContent = t.yes;
+            document.getElementById('consentNeinBtn').textContent = t.no;
+        }
+
+        // ============================================
+        // QUESTIONNAIRE TRANSLATIONS
+        // ============================================
+        const QUESTIONNAIRE_I18N = {
+            de: {
+                greeting: 'Willkommen! Bevor wir mit dem Gespräch beginnen, möchte ich Sie kurz besser kennenlernen.',
+                thanks: 'Vielen Dank für Ihre Antworten! Ich richte jetzt alles für Sie ein, das dauert einen kurzen Moment...',
+                placeholder: 'Ihre Antwort...',
+                confirm: 'Weiter →',
+                section_a: 'Sektion A: Persönliches Profil',
+                section_b: 'Sektion B: Motivation und Kontext',
+                section_c: 'Sektion C: Vorerfahrungen und Erwartungen',
+                section_d: 'Sektion D: Selbstbild-Baseline',
+                likert_labels: ['Stimme überhaupt nicht zu', 'Stimme eher nicht zu', 'Neutral', 'Stimme eher zu', 'Stimme voll und ganz zu'],
+                likert_labels_comfort: ['Sehr beunruhigend', 'Eher beunruhigend', 'Neutral', 'Eher beruhigend', 'Sehr beruhigend'],
+                frequency_labels: ['Nie', 'Seltener als monatlich', 'Mehrmals monatlich', 'Mehrmals wöchentlich', 'Täglich oder häufiger'],
+                questions: [
+                    // Sektion A: Persönliches Profil
+                    { key: 'nickname', text: 'Wie ist Ihr Vorname oder Spitzname?', type: 'text', section: 'a' },
+                    { key: 'age_group', text: 'Schön Sie kennenzulernen, {name}! In welche Altersgruppe fallen Sie?', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: 'In welchem Jahr sind Sie geboren? (optional)', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: 'Welches Geschlecht / welche Pronomen verwenden Sie?', type: 'single', section: 'a',
+                      options: ['Männlich', 'Weiblich', 'Divers', 'Keine Angabe'] },
+                    { key: 'family_status', text: 'Wie ist Ihr Familienstand?', type: 'single', section: 'a',
+                      options: ['Ledig', 'In Partnerschaft', 'Verheiratet', 'Geschieden', 'Verwitwet', 'Keine Angabe'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: 'Wie heisst Ihr Partner / Ihre Partnerin?',
+                        2: 'Wie heisst Ihr Ehepartner / Ihre Ehepartnerin?',
+                        3: 'Möchten Sie den Namen Ihres ehemaligen Partners / Ihrer ehemaligen Partnerin teilen?',
+                        4: 'Möchten Sie den Namen Ihres verstorbenen Partners / Ihrer verstorbenen Partnerin teilen?'
+                    }},
+                    { key: 'has_children', text: 'Haben Sie Kinder?', type: 'single', section: 'a',
+                      options: ['Ja', 'Nein', 'Keine Angabe'] },
+                    { key: 'children_names', text: 'Wie heissen Ihre Kinder?', type: 'text', section: 'a', showIf: 'has_children' },
+                    // Sektion B: Motivation und Kontext
+                    { key: 'motivation', text: 'Was hat Sie motiviert, hier mitzumachen?', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: 'Es ist mir wichtig, Erinnerungen für künftige Generationen zu bewahren.', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: 'Ich habe mich bereits intensiv mit meinem digitalen Nachlass beschäftigt.', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: 'Die Idee, dass meine Persönlichkeit nach meinem Tod weiterlebt, finde ich…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: 'Es ist mir wichtig, dass meine Kinder/Enkel meine Lebensgeschichte kennen.', type: 'likert', section: 'b' },
+                    // Sektion C: Vorerfahrungen und Erwartungen
+                    { key: 'ai_usage', text: 'Wie oft nutzen Sie KI-basierte Tools (z. B. ChatGPT)?', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: 'Haben Sie Erfahrung mit digitalen Erinnerungsdiensten (z. B. digitale Testamente, Erinnerungs-Apps)?', type: 'single', section: 'c',
+                      options: ['Ja', 'Nein', 'Unsicher'] },
+                    { key: 'tech_affinity', text: 'Ich bezeichne mich als technikaffin.', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'Ich erwarte, dass der KI-Biograf meine Persönlichkeit gut erfassen kann.', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'Ich glaube, dass KI emotionale Tiefe erfassen kann.', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: 'Ich bin besorgt über den Datenschutz meiner persönlichen Informationen.', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: 'Ich stehe dem Konzept eines digitalen Vermächtnisses offen gegenüber.', type: 'likert', section: 'c' },
+                    // Sektion D: Selbstbild-Baseline
+                    { key: 'self_describe', text: 'Ich kann meine Persönlichkeit gut in Worte fassen.', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: 'Mein Leben hat eine klare «Geschichte» mit einem roten Faden.', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: 'Meine aktuelle Stimmung ist positiv.', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: 'Ich habe eine klare Vorstellung davon, wie ich auf andere wirke.', type: 'likert', section: 'd' }
+                ]
+            },
+            en: {
+                greeting: 'Welcome! Before we begin the conversation, I\'d like to get to know you a little better.',
+                thanks: 'Thank you for your answers! I\'m setting everything up for you, just a moment...',
+                placeholder: 'Your answer...',
+                confirm: 'Next →',
+                section_a: 'Section A: Personal Profile',
+                section_b: 'Section B: Motivation and Context',
+                section_c: 'Section C: Prior Experience and Expectations',
+                section_d: 'Section D: Self-Image Baseline',
+                likert_labels: ['Strongly disagree', 'Somewhat disagree', 'Neutral', 'Somewhat agree', 'Strongly agree'],
+                likert_labels_comfort: ['Very unsettling', 'Somewhat unsettling', 'Neutral', 'Somewhat comforting', 'Very comforting'],
+                frequency_labels: ['Never', 'Less than monthly', 'Several times a month', 'Several times a week', 'Daily or more'],
+                questions: [
+                    // Section A: Personal Profile
+                    { key: 'nickname', text: 'What is your first name or nickname?', type: 'text', section: 'a' },
+                    { key: 'age_group', text: 'Nice to meet you, {name}! Which age group do you belong to?', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: 'What year were you born? (optional)', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: 'What is your gender / which pronouns do you use?', type: 'single', section: 'a',
+                      options: ['Male', 'Female', 'Non-binary', 'Prefer not to say'] },
+                    { key: 'family_status', text: 'What is your marital status?', type: 'single', section: 'a',
+                      options: ['Single', 'In a relationship', 'Married', 'Divorced', 'Widowed', 'Prefer not to say'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: 'What is your partner\'s name?',
+                        2: 'What is your spouse\'s name?',
+                        3: 'Would you like to share your former partner\'s name?',
+                        4: 'Would you like to share your late partner\'s name?'
+                    }},
+                    { key: 'has_children', text: 'Do you have children?', type: 'single', section: 'a',
+                      options: ['Yes', 'No', 'Prefer not to say'] },
+                    { key: 'children_names', text: 'What are your children\'s names?', type: 'text', section: 'a', showIf: 'has_children' },
+                    // Section B: Motivation and Context
+                    { key: 'motivation', text: 'What motivated you to participate?', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: 'It is important to me to preserve memories for future generations.', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: 'I have already dealt intensively with my digital legacy.', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: 'The idea that my personality lives on after my death makes me feel…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: 'It is important to me that my children/grandchildren know my life story.', type: 'likert', section: 'b' },
+                    // Section C: Prior Experience and Expectations
+                    { key: 'ai_usage', text: 'How often do you use AI-based tools (e.g. ChatGPT)?', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: 'Do you have experience with digital memory services (e.g. digital wills, memory apps)?', type: 'single', section: 'c',
+                      options: ['Yes', 'No', 'Unsure'] },
+                    { key: 'tech_affinity', text: 'I consider myself tech-savvy.', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'I expect the AI biographer to capture my personality well.', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'I believe that AI can capture emotional depth.', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: 'I am concerned about the privacy of my personal information.', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: 'I am open to the concept of a digital legacy.', type: 'likert', section: 'c' },
+                    // Section D: Self-Image Baseline
+                    { key: 'self_describe', text: 'I can describe my personality well in words.', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: 'My life has a clear "story" with a common thread.', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: 'My current mood is positive.', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: 'I have a clear idea of how I come across to others.', type: 'likert', section: 'd' }
+                ]
+            },
+            fr: {
+                greeting: 'Bienvenue ! Avant de commencer la conversation, j\'aimerais mieux vous connaître.',
+                thanks: 'Merci pour vos réponses ! Je prépare tout pour vous, un instant...',
+                placeholder: 'Votre réponse...',
+                confirm: 'Suivant →',
+                section_a: 'Section A : Profil personnel',
+                section_b: 'Section B : Motivation et contexte',
+                section_c: 'Section C : Expériences et attentes',
+                section_d: 'Section D : Auto-évaluation de base',
+                likert_labels: ['Pas du tout d\'accord', 'Plutôt pas d\'accord', 'Neutre', 'Plutôt d\'accord', 'Tout à fait d\'accord'],
+                likert_labels_comfort: ['Très inquiétant', 'Plutôt inquiétant', 'Neutre', 'Plutôt rassurant', 'Très rassurant'],
+                frequency_labels: ['Jamais', 'Moins d\'une fois par mois', 'Plusieurs fois par mois', 'Plusieurs fois par semaine', 'Quotidiennement ou plus'],
+                questions: [
+                    { key: 'nickname', text: 'Quel est votre prénom ou surnom ?', type: 'text', section: 'a' },
+                    { key: 'age_group', text: 'Enchanté(e), {name} ! À quel groupe d\'âge appartenez-vous ?', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: 'En quelle année êtes-vous né(e) ? (optionnel)', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: 'Quel est votre genre / quels pronoms utilisez-vous ?', type: 'single', section: 'a',
+                      options: ['Masculin', 'Féminin', 'Non-binaire', 'Préfère ne pas dire'] },
+                    { key: 'family_status', text: 'Quel est votre état civil ?', type: 'single', section: 'a',
+                      options: ['Célibataire', 'En couple', 'Marié(e)', 'Divorcé(e)', 'Veuf/Veuve', 'Préfère ne pas dire'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: 'Comment s\'appelle votre partenaire ?',
+                        2: 'Comment s\'appelle votre époux/épouse ?',
+                        3: 'Souhaitez-vous partager le prénom de votre ancien(ne) partenaire ?',
+                        4: 'Souhaitez-vous partager le prénom de votre défunt(e) partenaire ?'
+                    }},
+                    { key: 'has_children', text: 'Avez-vous des enfants ?', type: 'single', section: 'a',
+                      options: ['Oui', 'Non', 'Préfère ne pas dire'] },
+                    { key: 'children_names', text: 'Comment s\'appellent vos enfants ?', type: 'text', section: 'a', showIf: 'has_children' },
+                    { key: 'motivation', text: 'Qu\'est-ce qui vous a motivé(e) à participer ?', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: 'Il est important pour moi de préserver les souvenirs pour les générations futures.', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: 'Je me suis déjà intensivement occupé(e) de mon héritage numérique.', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: 'L\'idée que ma personnalité survive après ma mort me semble…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: 'Il est important pour moi que mes enfants/petits-enfants connaissent mon histoire de vie.', type: 'likert', section: 'b' },
+                    { key: 'ai_usage', text: 'À quelle fréquence utilisez-vous des outils basés sur l\'IA (ex. ChatGPT) ?', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: 'Avez-vous de l\'expérience avec des services de mémoire numérique (ex. testaments numériques, applications de souvenirs) ?', type: 'single', section: 'c',
+                      options: ['Oui', 'Non', 'Pas sûr(e)'] },
+                    { key: 'tech_affinity', text: 'Je me considère comme une personne à l\'aise avec la technologie.', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'Je m\'attends à ce que le biographe IA capture bien ma personnalité.', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'Je crois que l\'IA peut saisir la profondeur émotionnelle.', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: 'Je suis préoccupé(e) par la protection de mes informations personnelles.', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: 'Je suis ouvert(e) au concept d\'un héritage numérique.', type: 'likert', section: 'c' },
+                    { key: 'self_describe', text: 'Je peux bien décrire ma personnalité en mots.', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: 'Ma vie a une « histoire » claire avec un fil conducteur.', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: 'Mon humeur actuelle est positive.', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: 'J\'ai une idée claire de l\'impression que je donne aux autres.', type: 'likert', section: 'd' }
+                ]
+            },
+            it: {
+                greeting: 'Benvenuto/a! Prima di iniziare la conversazione, vorrei conoscerla un po\' meglio.',
+                thanks: 'Grazie per le Sue risposte! Sto preparando tutto, solo un momento...',
+                placeholder: 'La Sua risposta...',
+                confirm: 'Avanti →',
+                section_a: 'Sezione A: Profilo personale',
+                section_b: 'Sezione B: Motivazione e contesto',
+                section_c: 'Sezione C: Esperienze e aspettative',
+                section_d: 'Sezione D: Autovalutazione di base',
+                likert_labels: ['Non sono per niente d\'accordo', 'Non sono d\'accordo', 'Neutrale', 'Sono d\'accordo', 'Sono pienamente d\'accordo'],
+                likert_labels_comfort: ['Molto inquietante', 'Abbastanza inquietante', 'Neutrale', 'Abbastanza rassicurante', 'Molto rassicurante'],
+                frequency_labels: ['Mai', 'Meno di una volta al mese', 'Più volte al mese', 'Più volte alla settimana', 'Ogni giorno o più'],
+                questions: [
+                    { key: 'nickname', text: 'Qual è il Suo nome o soprannome?', type: 'text', section: 'a' },
+                    { key: 'age_group', text: 'Piacere di conoscerLa, {name}! A quale fascia d\'età appartiene?', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: 'In che anno è nato/a? (opzionale)', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: 'Qual è il Suo genere / quali pronomi utilizza?', type: 'single', section: 'a',
+                      options: ['Maschile', 'Femminile', 'Non binario', 'Preferisco non specificare'] },
+                    { key: 'family_status', text: 'Qual è il Suo stato civile?', type: 'single', section: 'a',
+                      options: ['Celibe/Nubile', 'In una relazione', 'Sposato/a', 'Divorziato/a', 'Vedovo/a', 'Preferisco non specificare'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: 'Come si chiama il Suo partner?',
+                        2: 'Come si chiama il Suo coniuge?',
+                        3: 'Desidera condividere il nome del Suo ex partner?',
+                        4: 'Desidera condividere il nome del Suo defunto/a partner?'
+                    }},
+                    { key: 'has_children', text: 'Ha figli?', type: 'single', section: 'a',
+                      options: ['Sì', 'No', 'Preferisco non specificare'] },
+                    { key: 'children_names', text: 'Come si chiamano i Suoi figli?', type: 'text', section: 'a', showIf: 'has_children' },
+                    { key: 'motivation', text: 'Cosa L\'ha motivata a partecipare?', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: 'Per me è importante preservare i ricordi per le generazioni future.', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: 'Mi sono già occupato/a intensamente del mio patrimonio digitale.', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: 'L\'idea che la mia personalità sopravviva dopo la mia morte mi sembra…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: 'Per me è importante che i miei figli/nipoti conoscano la mia storia di vita.', type: 'likert', section: 'b' },
+                    { key: 'ai_usage', text: 'Con quale frequenza utilizza strumenti basati sull\'IA (es. ChatGPT)?', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: 'Ha esperienza con servizi di memoria digitale (es. testamenti digitali, app di ricordi)?', type: 'single', section: 'c',
+                      options: ['Sì', 'No', 'Incerto/a'] },
+                    { key: 'tech_affinity', text: 'Mi considero una persona appassionata di tecnologia.', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'Mi aspetto che il biografo IA catturi bene la mia personalità.', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'Credo che l\'IA possa catturare la profondità emotiva.', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: 'Sono preoccupato/a per la privacy delle mie informazioni personali.', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: 'Sono aperto/a al concetto di un patrimonio digitale.', type: 'likert', section: 'c' },
+                    { key: 'self_describe', text: 'Riesco a descrivere bene la mia personalità a parole.', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: 'La mia vita ha una «storia» chiara con un filo conduttore.', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: 'Il mio umore attuale è positivo.', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: 'Ho un\'idea chiara di come appaio agli altri.', type: 'likert', section: 'd' }
+                ]
+            },
+            ko: {
+                greeting: '환영합니다! 대화를 시작하기 전에, 잠깐 자기소개를 부탁드려도 될까요?',
+                thanks: '답변해 주셔서 감사합니다! 모든 것을 준비하고 있으니 잠시만 기다려 주세요...',
+                placeholder: '답변을 입력하세요...',
+                confirm: '다음 →',
+                section_a: '섹션 A: 개인 프로필',
+                section_b: '섹션 B: 동기와 맥락',
+                section_c: '섹션 C: 사전 경험과 기대',
+                section_d: '섹션 D: 자아상 기초 평가',
+                likert_labels: ['전혀 동의하지 않음', '별로 동의하지 않음', '보통', '어느 정도 동의함', '매우 동의함'],
+                likert_labels_comfort: ['매우 불안함', '다소 불안함', '보통', '다소 안심됨', '매우 안심됨'],
+                frequency_labels: ['전혀 사용하지 않음', '월 1회 미만', '월 수회', '주 수회', '매일 또는 그 이상'],
+                questions: [
+                    { key: 'nickname', text: '이름이나 별명이 어떻게 되시나요?', type: 'text', section: 'a' },
+                    { key: 'age_group', text: '만나서 반갑습니다, {name}! 어떤 연령대에 속하시나요?', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: '태어난 연도가 어떻게 되시나요? (선택사항)', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: '성별 / 사용하시는 대명사는 무엇인가요?', type: 'single', section: 'a',
+                      options: ['남성', '여성', '논바이너리', '밝히고 싶지 않음'] },
+                    { key: 'family_status', text: '혼인 상태는 어떠신가요?', type: 'single', section: 'a',
+                      options: ['미혼', '연인 관계', '기혼', '이혼', '사별', '밝히고 싶지 않음'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: '파트너의 이름이 어떻게 되시나요?',
+                        2: '배우자의 이름이 어떻게 되시나요?',
+                        3: '전 파트너의 이름을 알려주시겠어요?',
+                        4: '고인이 된 파트너의 이름을 알려주시겠어요?'
+                    }},
+                    { key: 'has_children', text: '자녀가 있으신가요?', type: 'single', section: 'a',
+                      options: ['예', '아니오', '밝히고 싶지 않음'] },
+                    { key: 'children_names', text: '자녀의 이름이 어떻게 되나요?', type: 'text', section: 'a', showIf: 'has_children' },
+                    { key: 'motivation', text: '참여하게 된 동기는 무엇인가요?', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: '미래 세대를 위해 기억을 보존하는 것이 중요합니다.', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: '디지털 유산에 대해 이미 깊이 고민해 본 적이 있습니다.', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: '사후에도 나의 성격이 계속된다는 생각이…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: '자녀/손자녀가 내 인생 이야기를 아는 것이 중요합니다.', type: 'likert', section: 'b' },
+                    { key: 'ai_usage', text: 'AI 기반 도구(예: ChatGPT)를 얼마나 자주 사용하시나요?', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: '디지털 기억 서비스(예: 디지털 유언장, 기억 앱)를 사용해 본 경험이 있으신가요?', type: 'single', section: 'c',
+                      options: ['예', '아니오', '잘 모르겠음'] },
+                    { key: 'tech_affinity', text: '저는 기술에 능숙한 편입니다.', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'AI 전기작가가 제 성격을 잘 파악할 수 있을 것으로 기대합니다.', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'AI가 감정적 깊이를 포착할 수 있다고 믿습니다.', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: '개인 정보 보호에 대해 우려하고 있습니다.', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: '디지털 유산이라는 개념에 열린 마음입니다.', type: 'likert', section: 'c' },
+                    { key: 'self_describe', text: '나의 성격을 말로 잘 표현할 수 있습니다.', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: '내 인생에는 일관된 줄거리가 있는 분명한 이야기가 있습니다.', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: '현재 기분이 긍정적입니다.', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: '다른 사람들에게 어떻게 보이는지 명확히 알고 있습니다.', type: 'likert', section: 'd' }
+                ]
+            },
+            ja: {
+                greeting: 'ようこそ！会話を始める前に、少しお聞かせください。',
+                thanks: 'ご回答ありがとうございます！準備をしていますので、少々お待ちください...',
+                placeholder: 'ご回答をどうぞ...',
+                confirm: '次へ →',
+                section_a: 'セクションA：個人プロフィール',
+                section_b: 'セクションB：動機とコンテキスト',
+                section_c: 'セクションC：経験と期待',
+                section_d: 'セクションD：自己イメージ基準',
+                likert_labels: ['全く同意しない', 'あまり同意しない', 'どちらでもない', 'やや同意する', '強く同意する'],
+                likert_labels_comfort: ['非常に不安', 'やや不安', 'どちらでもない', 'やや安心', '非常に安心'],
+                frequency_labels: ['全くない', '月1回未満', '月に数回', '週に数回', '毎日またはそれ以上'],
+                questions: [
+                    { key: 'nickname', text: 'お名前またはニックネームは何ですか？', type: 'text', section: 'a' },
+                    { key: 'age_group', text: 'はじめまして、{name}さん！年齢層はどちらですか？', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: '生まれた年は何年ですか？（任意）', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: '性別はどちらですか？', type: 'single', section: 'a',
+                      options: ['男性', '女性', 'ノンバイナリー', '回答しない'] },
+                    { key: 'family_status', text: '婚姻状況はいかがですか？', type: 'single', section: 'a',
+                      options: ['未婚', '交際中', '既婚', '離婚', '死別', '回答しない'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: 'パートナーのお名前は何ですか？',
+                        2: '配偶者のお名前は何ですか？',
+                        3: '元パートナーのお名前を教えていただけますか？',
+                        4: '亡くなられたパートナーのお名前を教えていただけますか？'
+                    }},
+                    { key: 'has_children', text: 'お子さんはいらっしゃいますか？', type: 'single', section: 'a',
+                      options: ['はい', 'いいえ', '回答しない'] },
+                    { key: 'children_names', text: 'お子さんのお名前は何ですか？', type: 'text', section: 'a', showIf: 'has_children' },
+                    { key: 'motivation', text: '参加の動機は何ですか？', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: '将来の世代のために思い出を残すことは私にとって大切です。', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: 'デジタル遺産について既に深く考えたことがあります。', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: '死後も自分の人格が続くという考えについて…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: '子供や孫が私の人生の物語を知ることは大切です。', type: 'likert', section: 'b' },
+                    { key: 'ai_usage', text: 'AIベースのツール（例：ChatGPT）をどのくらいの頻度で使用しますか？', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: 'デジタル記憶サービス（例：デジタル遺言書、思い出アプリ）の経験はありますか？', type: 'single', section: 'c',
+                      options: ['はい', 'いいえ', 'わからない'] },
+                    { key: 'tech_affinity', text: '自分はテクノロジーに詳しい方だと思います。', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: 'AI伝記作家が私の人格をうまく捉えられると期待しています。', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: 'AIは感情の深みを捉えることができると信じています。', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: '個人情報のプライバシーについて心配しています。', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: 'デジタル遺産という概念にオープンです。', type: 'likert', section: 'c' },
+                    { key: 'self_describe', text: '自分の性格を言葉でうまく表現できます。', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: '私の人生には一貫したテーマのある明確な「物語」があります。', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: '現在の気分はポジティブです。', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: '他人にどう映っているか明確にわかっています。', type: 'likert', section: 'd' }
+                ]
+            },
+            zh: {
+                greeting: '欢迎！在开始对话之前，我想先简单了解一下您。',
+                thanks: '感谢您的回答！我正在为您准备一切，请稍等...',
+                placeholder: '请输入您的回答...',
+                confirm: '下一步 →',
+                section_a: '部分A：个人资料',
+                section_b: '部分B：动机与背景',
+                section_c: '部分C：经验与期望',
+                section_d: '部分D：自我认知基线',
+                likert_labels: ['完全不同意', '比较不同意', '中立', '比较同意', '完全同意'],
+                likert_labels_comfort: ['非常不安', '比较不安', '中立', '比较安心', '非常安心'],
+                frequency_labels: ['从不', '每月不到一次', '每月数次', '每周数次', '每天或更频繁'],
+                questions: [
+                    { key: 'nickname', text: '您的名字或昵称是什么？', type: 'text', section: 'a' },
+                    { key: 'age_group', text: '很高兴认识您，{name}！您属于哪个年龄段？', type: 'single', section: 'a',
+                      options: ['16–20', '21–25', '26–30', '31–35', '36–40', '41–45', '46–50', '51–55', '56–60', '61–65', '66+'] },
+                    { key: 'birth_year', text: '您出生于哪一年？（可选）', type: 'text', section: 'a', optional: true },
+                    { key: 'gender', text: '您的性别是什么？', type: 'single', section: 'a',
+                      options: ['男性', '女性', '非二元性别', '不愿透露'] },
+                    { key: 'family_status', text: '您的婚姻状况如何？', type: 'single', section: 'a',
+                      options: ['单身', '恋爱中', '已婚', '离异', '丧偶', '不愿透露'] },
+                    { key: 'partner_name', type: 'text', section: 'a', showIf: 'family_status', variants: {
+                        1: '您伴侣的名字是什么？',
+                        2: '您配偶的名字是什么？',
+                        3: '您愿意分享前伴侣的名字吗？',
+                        4: '您愿意分享已故伴侣的名字吗？'
+                    }},
+                    { key: 'has_children', text: '您有孩子吗？', type: 'single', section: 'a',
+                      options: ['是', '否', '不愿透露'] },
+                    { key: 'children_names', text: '您孩子的名字是什么？', type: 'text', section: 'a', showIf: 'has_children' },
+                    { key: 'motivation', text: '是什么促使您参与？', type: 'text', section: 'b' },
+                    { key: 'preserve_memories', text: '为后代保存记忆对我来说很重要。', type: 'likert', section: 'b' },
+                    { key: 'digital_legacy_experience', text: '我已经深入思考过我的数字遗产。', type: 'likert', section: 'b' },
+                    { key: 'personality_afterlife', text: '我的个性在去世后继续存在这个想法让我觉得…', type: 'likert_comfort', section: 'b' },
+                    { key: 'family_story', text: '让我的子孙了解我的人生故事对我来说很重要。', type: 'likert', section: 'b' },
+                    { key: 'ai_usage', text: '您多久使用一次AI工具（如ChatGPT）？', type: 'frequency', section: 'c' },
+                    { key: 'memory_services', text: '您有数字记忆服务（如数字遗嘱、记忆应用）的使用经验吗？', type: 'single', section: 'c',
+                      options: ['是', '否', '不确定'] },
+                    { key: 'tech_affinity', text: '我认为自己精通技术。', type: 'likert', section: 'c' },
+                    { key: 'ai_personality_capture', text: '我期望AI传记作家能很好地捕捉我的个性。', type: 'likert', section: 'c' },
+                    { key: 'ai_emotional_depth', text: '我相信AI能够捕捉情感的深度。', type: 'likert', section: 'c' },
+                    { key: 'data_privacy_concern', text: '我对个人信息的隐私保护感到担忧。', type: 'likert', section: 'c' },
+                    { key: 'digital_legacy_open', text: '我对数字遗产的概念持开放态度。', type: 'likert', section: 'c' },
+                    { key: 'self_describe', text: '我能很好地用语言描述自己的性格。', type: 'likert', section: 'd' },
+                    { key: 'life_story_thread', text: '我的人生有一个清晰的、有主线的"故事"。', type: 'likert', section: 'd' },
+                    { key: 'current_mood', text: '我目前的心情是积极的。', type: 'likert', section: 'd' },
+                    { key: 'self_perception', text: '我清楚地知道自己在别人眼中是什么样的。', type: 'likert', section: 'd' }
+                ]
+            }
+        };
+
+        // Returns questionnaire for current language
+        function getQuestionnaire() {
+            const lang = questionnaireLanguage || 'de';
+            return (QUESTIONNAIRE_I18N[lang] || QUESTIONNAIRE_I18N['de']).questions;
+        }
+
+        // Block 0 questionnaire definition (fallback, replaced by getQuestionnaire())
+        const QUESTIONNAIRE = QUESTIONNAIRE_I18N['de'].questions;
+
+        // ============================================
+        // DOM ELEMENTS
+        // ============================================
+        const loadingScreen = document.getElementById('loadingScreen');
+        const consentModal = document.getElementById('consentModal');
+        const languageModal = document.getElementById('languageModal');
+        const messagesArea = document.getElementById('messagesArea');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // ============================================
+        // VOICE INPUT (Web Speech API)
+        // ============================================
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        let recognition = null;
+        let isRecording = false;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.maxAlternatives = 1;
+
+            function getSpeechLang() {
+                const lang = questionnaireLanguage || localStorage.getItem('oblivio_language') || 'de';
+                const map = { de: 'de-CH', en: 'en-US', fr: 'fr-FR', it: 'it-IT', ko: 'ko-KR', ja: 'ja-JP', zh: 'zh-CN' };
+                return map[lang] || 'de-CH';
+            }
+
+            recognition.onresult = (event) => {
+                let transcript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                messageInput.value = transcript;
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error === 'not-allowed') {
+                    alert('Mikrofonzugriff verweigert. Bitte erlaube den Zugriff in den Browser-Einstellungen.');
+                }
+                stopRecording();
+            };
+
+            recognition.onend = () => {
+                // With continuous=false, recognition ends after a pause
+                if (isRecording) stopRecording();
+            };
+
+            function startRecording() {
+                try {
+                    messageInput.value = '';
+                    recognition.lang = getSpeechLang();
+                    recognition.start();
+                    isRecording = true;
+                    voiceBtn.classList.add('recording');
+                    messageInput.placeholder = 'Sprich jetzt...';
+                } catch (err) {
+                    console.error('Could not start speech recognition:', err);
+                    isRecording = false;
+                    voiceBtn.classList.remove('recording');
+                }
+            }
+
+            function stopRecording() {
+                try { recognition.stop(); } catch(e) {}
+                isRecording = false;
+                voiceBtn.classList.remove('recording');
+                const qi18n = QUESTIONNAIRE_I18N[questionnaireLanguage] || QUESTIONNAIRE_I18N['de'];
+                messageInput.placeholder = qi18n.placeholder || 'Deine Antwort...';
+            }
+
+            voiceBtn.addEventListener('click', () => {
+                if (isRecording) {
+                    stopRecording();
+                } else {
+                    startRecording();
+                }
+            });
+        } else {
+            voiceBtn.classList.add('voice-unsupported');
+        }
+
+        // Sync voice button enabled/disabled with message input
+        function syncVoiceBtn() {
+            if (!recognition) return;
+            voiceBtn.disabled = messageInput.disabled;
+            if (messageInput.disabled && isRecording) stopRecording();
+        }
+        new MutationObserver(syncVoiceBtn).observe(messageInput, { attributes: true, attributeFilter: ['disabled'] });
+        // Also sync on property changes via polling (fallback for browsers where attribute doesn't sync)
+        setInterval(syncVoiceBtn, 500);
+
+        // ============================================
+        // AUTHENTICATION CHECK
+        // ============================================
+        async function checkAuth() {
+            console.log('Checking authentication...');
+
+            try {
+                // Add timeout to prevent hanging
+                const authPromise = supabaseClient.auth.getUser();
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Auth timeout')), 5000)
+                );
+
+                const { data: { user }, error } = await Promise.race([authPromise, timeoutPromise]);
+
+                console.log('Auth response:', { user, error });
+
+                if (error || !user) {
+                    console.log('No user found, redirecting to login');
+                    // Not logged in, redirect to login immediately
+                    localStorage.setItem('oblivio_redirect', 'biographer.html');
+                    window.location.replace('login.html');
+                    return false;
+                }
+
+                console.log('User authenticated:', user.email);
+                currentUser = user;
+                return true;
+            } catch (err) {
+                console.error('Auth check error:', err);
+                // Redirect to login on any error
+                localStorage.setItem('oblivio_redirect', 'biographer.html');
+                window.location.replace('login.html');
+                return false;
+            }
+        }
+
+        // ============================================
+        // LANGUAGE SELECTION
+        // ============================================
+        function checkBiographerLanguageSelected() {
+            // Check if user has already selected a biographer language
+            const savedLanguage = localStorage.getItem('oblivio_biographer_language');
+            return savedLanguage !== null;
+        }
+
+        function showLanguageModal() {
+            languageModal.classList.remove('hidden');
+            // Ensure translations are applied to modal content
+            if (typeof translatePage === 'function') {
+                translatePage();
+            }
+        }
+
+        function hideLanguageModal() {
+            languageModal.classList.add('hidden');
+        }
+
+        function setupLanguageSelection() {
+            const languageOptions = document.querySelectorAll('.language-option');
+            const confirmBtn = document.getElementById('confirmLanguageBtn');
+
+            languageOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove selected class from all options
+                    languageOptions.forEach(opt => opt.classList.remove('selected'));
+                    // Add selected class to clicked option
+                    option.classList.add('selected');
+                    // Store selected language
+                    selectedBiographerLanguage = option.dataset.lang;
+                    // Enable confirm button
+                    confirmBtn.disabled = false;
+                });
+            });
+
+            confirmBtn.addEventListener('click', async () => {
+                if (selectedBiographerLanguage) {
+                    // Save to localStorage
+                    localStorage.setItem('oblivio_biographer_language', selectedBiographerLanguage);
+                    // Also update the website language to match
+                    if (typeof setLanguage === 'function') {
+                        setLanguage(selectedBiographerLanguage);
+                    }
+                    // Update nav selector to match
+                    const langSelector = document.getElementById('languageSelector');
+                    if (langSelector) langSelector.value = selectedBiographerLanguage;
+                    // Hide modal
+                    hideLanguageModal();
+                    // Now check consent (Step 2)
+                    const existingConsent = await checkUserConsent(currentUser.id);
+                    if (existingConsent !== true) {
+                        showConsentModal();
+                        setupConsentModal(() => {
+                            continueInitialization(selectedBiographerLanguage);
+                        });
+                    } else {
+                        continueInitialization(selectedBiographerLanguage);
+                    }
+                }
+            });
+        }
+
+        function getBiographerLanguage() {
+            return localStorage.getItem('oblivio_biographer_language') || 'en';
+        }
+
+        // ============================================
+        // CONSENT FUNCTIONS
+        // ============================================
+        async function checkUserConsent(userId) {
+            // Fast local check first
+            if (localStorage.getItem('oblivio_consent_' + userId) === 'true') {
+                return true;
+            }
+            // Fallback to Supabase
+            const { data, error } = await supabaseClient
+                .from('user_consents')
+                .select('consented')
+                .eq('user_id', userId)
+                .maybeSingle();
+            if (error || !data) return null;
+            // Cache locally if already consented
+            if (data.consented === true) {
+                localStorage.setItem('oblivio_consent_' + userId, 'true');
+            }
+            return data.consented;
+        }
+
+        async function saveUserConsent(userId, consented) {
+            // Save locally for instant future checks
+            if (consented) {
+                localStorage.setItem('oblivio_consent_' + userId, 'true');
+            } else {
+                localStorage.removeItem('oblivio_consent_' + userId);
+            }
+            // Also persist to Supabase
+            const { error } = await supabaseClient
+                .from('user_consents')
+                .upsert({
+                    user_id: userId,
+                    consented: consented,
+                    consented_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+            if (error) console.error('Error saving consent:', error);
+        }
+
+        function showConsentModal() {
+            applyConsentLanguage(getCurrentLanguage());
+            consentModal.classList.remove('hidden');
+        }
+
+        function hideConsentModal() {
+            consentModal.classList.add('hidden');
+        }
+
+        function setupConsentModal(onConsented) {
+            document.getElementById('consentJaBtn').addEventListener('click', async () => {
+                await saveUserConsent(currentUser.id, true);
+                hideConsentModal();
+                onConsented();
+            });
+
+            document.getElementById('consentNeinBtn').addEventListener('click', async () => {
+                await saveUserConsent(currentUser.id, false);
+                hideConsentModal();
+                const ct = CONSENT_TEXTS[getCurrentLanguage()] || CONSENT_TEXTS['de'];
+                alert(ct.refusal);
+                window.location.replace('journey.html');
+            });
+        }
+
+        // ============================================
+        // USER PROFILE (BLOCK 0)
+        // ============================================
+        async function checkUserProfile(userId) {
+            const { data, error } = await supabaseClient
+                .from('user_profiles')
+                .select('id, nickname')
+                .eq('user_id', userId)
+                .single();
+            if (error || !data) return null;
+            return data;
+        }
+
+        async function saveUserProfile(userId, profileData) {
+            // Save nickname to user_profiles (needed by biographer)
+            const { error } = await supabaseClient
+                .from('user_profiles')
+                .upsert({
+                    user_id: userId,
+                    nickname: profileData.nickname || null,
+                    completed_at: new Date().toISOString()
+                }, { onConflict: 'user_id' });
+            if (error) console.error('Error saving profile:', error);
+
+            // Save full questionnaire answers to questionnaire_answers table
+            try {
+                const { error: qaError } = await supabaseClient
+                    .from('questionnaire_answers')
+                    .upsert({
+                        user_id: userId,
+                        answers: profileData,
+                        completed_at: new Date().toISOString()
+                    }, { onConflict: 'user_id' });
+                if (qaError) console.warn('Could not save questionnaire answers:', qaError.message);
+            } catch (e) {
+                console.warn('questionnaire_answers table may not exist yet:', e.message);
+            }
+        }
+
+        function removeChoiceButtons() {
+            const existing = document.querySelector('.choice-buttons');
+            if (existing) existing.remove();
+        }
+
+        // Track which section header was last shown
+        let lastShownSection = null;
+
+        function showQuestionnaireQuestion(idx, greetingPrefix = null) {
+            const q = getQuestionnaire()[idx];
+            const qi18n = QUESTIONNAIRE_I18N[questionnaireLanguage] || QUESTIONNAIRE_I18N['de'];
+            multiSelectBuffer = [];
+
+            let questionText = q.text || '';
+            // Resolve variant text for conditional questions (e.g. partner_name)
+            if (q.variants && q.showIf) {
+                const depAnswer = questionnaireAnswers[q.showIf];
+                const depQuestion = getQuestionnaire().find(qq => qq.key === q.showIf);
+                if (depQuestion && depQuestion.options && depAnswer) {
+                    const answerIdx = depQuestion.options.indexOf(depAnswer);
+                    if (q.variants[answerIdx]) questionText = q.variants[answerIdx];
+                }
+            }
+            if (questionnaireAnswers.nickname) {
+                questionText = questionText.replace('{name}', questionnaireAnswers.nickname);
+            }
+
+            // Show typing indicator for 500ms before the question appears
+            showTypingIndicator();
+            setTimeout(() => {
+                hideTypingIndicator();
+
+                // Show section header if entering a new section
+                if (q.section && q.section !== lastShownSection) {
+                    lastShownSection = q.section;
+                    const sectionKey = 'section_' + q.section;
+                    const sectionLabel = qi18n[sectionKey];
+                    if (sectionLabel) {
+                        const sectionDiv = document.createElement('div');
+                        sectionDiv.className = 'questionnaire-section-header';
+                        sectionDiv.textContent = sectionLabel;
+                        messagesArea.appendChild(sectionDiv);
+                    }
+                }
+
+                // First question: combine greeting + question in one bubble
+                const displayText = greetingPrefix ? greetingPrefix + '\n\n' + questionText : questionText;
+                addMessageToUI('biographer', displayText, false);
+
+                if (q.type === 'text') {
+                    // Use existing input field for text answer
+                    messageInput.disabled = false;
+                    sendBtn.disabled = false;
+                    messageInput.placeholder = qi18n.placeholder;
+
+                    // For optional text fields, show a skip button
+                    let skipBtnEl = null;
+                    if (q.optional) {
+                        const skipLabels = { de: 'Überspringen', en: 'Skip', fr: 'Passer', it: 'Salta', ko: '건너뛰기', ja: 'スキップ', zh: '跳过' };
+                        const skipContainer = document.createElement('div');
+                        skipContainer.className = 'choice-buttons';
+                        skipBtnEl = document.createElement('button');
+                        skipBtnEl.className = 'choice-btn';
+                        skipBtnEl.textContent = skipLabels[questionnaireLanguage || 'de'] || 'Überspringen';
+                        skipContainer.appendChild(skipBtnEl);
+                        messagesArea.appendChild(skipContainer);
+                        messagesArea.scrollTop = messagesArea.scrollHeight;
+                    }
+
+                    const handleTextAnswer = (e) => {
+                        if ((e.type === 'click' || (e.type === 'keydown' && e.key === 'Enter')) && messageInput.value.trim()) {
+                            const answer = messageInput.value.trim();
+                            messageInput.value = '';
+                            messageInput.disabled = true;
+                            sendBtn.disabled = true;
+                            messageInput.placeholder = qi18n.placeholder;
+                            sendBtn.removeEventListener('click', handleTextAnswer);
+                            messageInput.removeEventListener('keydown', handleTextAnswer);
+                            if (skipBtnEl) skipBtnEl.remove();
+                            handleQuestionnaireAnswer(q.key, answer);
+                        }
+                    };
+                    sendBtn.addEventListener('click', handleTextAnswer, { once: true });
+                    messageInput.addEventListener('keydown', handleTextAnswer);
+
+                    if (skipBtnEl) {
+                        skipBtnEl.addEventListener('click', () => {
+                            messageInput.value = '';
+                            messageInput.disabled = true;
+                            sendBtn.disabled = true;
+                            sendBtn.removeEventListener('click', handleTextAnswer);
+                            messageInput.removeEventListener('keydown', handleTextAnswer);
+                            skipBtnEl.parentElement.remove();
+                            handleQuestionnaireAnswer(q.key, '');
+                        }, { once: true });
+                    }
+                } else if (q.type === 'likert' || q.type === 'likert_comfort' || q.type === 'frequency') {
+                    // Render Likert / frequency slider
+                    const labels = q.type === 'likert_comfort' ? qi18n.likert_labels_comfort
+                                 : q.type === 'frequency' ? qi18n.frequency_labels
+                                 : qi18n.likert_labels;
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'choice-buttons';
+
+                    const sliderWrap = document.createElement('div');
+                    sliderWrap.className = 'likert-slider-wrap';
+
+                    // Min/Max labels
+                    const minMaxLabels = document.createElement('div');
+                    minMaxLabels.className = 'likert-slider-labels';
+                    minMaxLabels.innerHTML = '<span>' + labels[0] + '</span><span>' + labels[labels.length - 1] + '</span>';
+                    sliderWrap.appendChild(minMaxLabels);
+
+                    // Slider track
+                    const trackDiv = document.createElement('div');
+                    trackDiv.className = 'likert-slider-track';
+                    const slider = document.createElement('input');
+                    slider.type = 'range';
+                    slider.min = '1';
+                    slider.max = String(labels.length);
+                    slider.value = '3';
+                    slider.step = '1';
+                    trackDiv.appendChild(slider);
+                    sliderWrap.appendChild(trackDiv);
+
+                    // Tick numbers
+                    const ticks = document.createElement('div');
+                    ticks.className = 'likert-slider-ticks';
+                    labels.forEach((_, i) => {
+                        const tick = document.createElement('span');
+                        tick.textContent = String(i + 1);
+                        if (i + 1 === 3) tick.classList.add('active');
+                        ticks.appendChild(tick);
+                    });
+                    sliderWrap.appendChild(ticks);
+
+                    // Current value label
+                    const currentLabel = document.createElement('div');
+                    currentLabel.className = 'likert-current-label';
+                    currentLabel.textContent = labels[2]; // default: 3 (middle)
+                    sliderWrap.appendChild(currentLabel);
+
+                    // Update on slider change
+                    slider.addEventListener('input', () => {
+                        const val = parseInt(slider.value);
+                        currentLabel.textContent = labels[val - 1];
+                        ticks.querySelectorAll('span').forEach((t, i) => {
+                            t.classList.toggle('active', i + 1 === val);
+                        });
+                    });
+
+                    // Confirm button
+                    const confirmBtn = document.createElement('button');
+                    confirmBtn.className = 'likert-confirm-btn';
+                    confirmBtn.textContent = qi18n.confirm;
+                    confirmBtn.addEventListener('click', () => {
+                        const val = parseInt(slider.value);
+                        wrapper.remove();
+                        handleQuestionnaireAnswer(q.key, { value: val, label: labels[val - 1] });
+                    });
+                    sliderWrap.appendChild(confirmBtn);
+
+                    wrapper.appendChild(sliderWrap);
+                    messagesArea.appendChild(wrapper);
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                } else {
+                    // Render choice buttons (single / multi)
+                    const btnContainer = document.createElement('div');
+                    btnContainer.className = 'choice-buttons';
+
+                    q.options.forEach(opt => {
+                        const btn = document.createElement('button');
+                        btn.className = 'choice-btn';
+                        btn.textContent = opt;
+
+                        if (q.type === 'multi') {
+                            btn.addEventListener('click', () => {
+                                btn.classList.toggle('selected');
+                                if (btn.classList.contains('selected')) {
+                                    multiSelectBuffer.push(opt);
+                                } else {
+                                    multiSelectBuffer = multiSelectBuffer.filter(o => o !== opt);
+                                }
+                            });
+                        } else {
+                            btn.addEventListener('click', () => {
+                                removeChoiceButtons();
+                                handleQuestionnaireAnswer(q.key, opt);
+                            });
+                        }
+                        btnContainer.appendChild(btn);
+                    });
+
+                    if (q.type === 'multi') {
+                        const confirmBtn = document.createElement('button');
+                        confirmBtn.className = 'choice-btn choice-btn-confirm';
+                        confirmBtn.textContent = qi18n.confirm;
+                        confirmBtn.addEventListener('click', () => {
+                            if (multiSelectBuffer.length === 0) return;
+                            removeChoiceButtons();
+                            handleQuestionnaireAnswer(q.key, [...multiSelectBuffer]);
+                        });
+                        btnContainer.appendChild(confirmBtn);
+                    }
+
+                    messagesArea.appendChild(btnContainer);
+                    messagesArea.scrollTop = messagesArea.scrollHeight;
+                }
+            }, 500);
+        }
+
+        function shouldSkipQuestion(q) {
+            if (!q.showIf) return false;
+            const depKey = q.showIf;
+            const depAnswer = questionnaireAnswers[depKey];
+            if (!depAnswer) return true;
+            const depQuestion = getQuestionnaire().find(qq => qq.key === depKey);
+            if (!depQuestion || !depQuestion.options) return true;
+            const answerIdx = depQuestion.options.indexOf(depAnswer);
+            if (q.key === 'partner_name') {
+                // Skip if Ledig (index 0) or Keine Angabe (last index)
+                return answerIdx === 0 || answerIdx === depQuestion.options.length - 1;
+            }
+            if (q.key === 'children_names') {
+                // Only show if first option (Ja/Yes/Oui/...)
+                return answerIdx !== 0;
+            }
+            return false;
+        }
+
+        function handleQuestionnaireAnswer(key, answer) {
+            questionnaireAnswers[key] = answer;
+
+            // Show answer as user message
+            let displayAnswer;
+            if (answer && typeof answer === 'object' && answer.label) {
+                displayAnswer = answer.label;
+            } else if (Array.isArray(answer)) {
+                displayAnswer = answer.join(', ');
+            } else {
+                displayAnswer = answer;
+            }
+            addMessageToUI('user', displayAnswer, false);
+
+            currentQuestionIdx++;
+
+            // Skip conditional questions whose condition is not met
+            const questions = getQuestionnaire();
+            while (currentQuestionIdx < questions.length && shouldSkipQuestion(questions[currentQuestionIdx])) {
+                currentQuestionIdx++;
+            }
+
+            if (currentQuestionIdx < questions.length) {
+                showQuestionnaireQuestion(currentQuestionIdx);
+            } else {
+                // All questions answered — show thanks with typing indicator
+                const qi18n = QUESTIONNAIRE_I18N[questionnaireLanguage] || QUESTIONNAIRE_I18N['de'];
+                showTypingIndicator();
+                setTimeout(async () => {
+                    hideTypingIndicator();
+                    addMessageToUI('biographer', qi18n.thanks, false);
+                    await saveUserProfile(currentUser.id, questionnaireAnswers);
+                    setTimeout(() => finishQuestionnaireAndStartBiographer(), 600);
+                }, 500);
+            }
+        }
+
+        async function finishQuestionnaireAndStartBiographer() {
+            const language = questionnaireLanguage;
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            messageInput.placeholder = t('bio_input_placeholder') || 'Type your answer here...';
+            try {
+                const nickname = questionnaireAnswers.nickname || null;
+                console.log('DEBUG nickname being sent to PROMISE:', nickname);
+                console.log('DEBUG full questionnaireAnswers:', questionnaireAnswers);
+                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language, nickname);
+                await loadConversation();
+                if (conversationHistory.length === 0) {
+                    await startNewConversation();
+                }
+            } catch (error) {
+                console.error('Error starting biographer after questionnaire:', error);
+                addMessageToUI('biographer', 'Sorry, there was an error. Please refresh.', false);
+            }
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        async function initialize() {
+            console.log('Initializing biographer with PROMISE...');
+
+            const isAuthenticated = await checkAuth();
+            if (!isAuthenticated) {
+                console.log('Not authenticated, stopping initialization');
+                return;
+            }
+
+            // Hide loading screen
+            loadingScreen.classList.add('hidden');
+
+            // Step 1: Language selection (always first)
+            if (!checkBiographerLanguageSelected()) {
+                console.log('No biographer language selected, showing modal...');
+                showLanguageModal();
+                setupLanguageSelection();
+                return;
+            }
+
+            // Step 2: Consent check (after language is selected)
+            const existingConsent = await checkUserConsent(currentUser.id);
+
+            if (existingConsent !== true) {
+                // No consent yet - show consent modal in selected language
+                showConsentModal();
+                setupConsentModal(() => {
+                    continueInitialization(getBiographerLanguage());
+                });
+                return;
+            }
+
+            // Both language and consent done - proceed
+            const language = getBiographerLanguage();
+            await continueInitialization(language);
+        }
+
+        async function continueInitialization(language) {
+            console.log('Continuing initialization with language:', language);
+            questionnaireLanguage = language;
+
+            // Check if user has completed Block 0 profile
+            const userProfile = await checkUserProfile(currentUser.id);
+            if (!userProfile) {
+                // Start Block 0 questionnaire (greeting + Q1 combined in first bubble)
+                currentQuestionIdx = 0;
+                questionnaireAnswers = {};
+                lastShownSection = null;
+                const qi18n = QUESTIONNAIRE_I18N[language] || QUESTIONNAIRE_I18N['de'];
+                showQuestionnaireQuestion(0, qi18n.greeting);
+                return;
+            }
+
+            // Profile exists - start biographer directly
+            messageInput.disabled = false;
+            sendBtn.disabled = false;
+            loadDraftMessage();
+
+            try {
+                console.log('Getting PROMISE agent...');
+                currentAgentId = await PromiseAPI.getOrCreateAgent(currentUser.id, language, userProfile.nickname || null);
+                console.log('Agent ID:', currentAgentId);
+                await loadConversation();
+                if (conversationHistory.length === 0) {
+                    console.log('Starting new conversation...');
+                    await startNewConversation();
+                }
+                console.log('Initialization complete!');
+            } catch (error) {
+                console.error('Error initializing:', error);
+                addMessageToUI('biographer', 'Sorry, there was an error starting the conversation. Please refresh the page.', false);
+            }
+        }
+
+        // ============================================
+        // CONVERSATION FUNCTIONS
+        // ============================================
+        async function loadConversation() {
+            try {
+                // First, try to load from Supabase by current agent_id
+                console.log('Loading conversation from Supabase...');
+                let supabaseMessages = await PromiseAPI.loadMessages(currentUser.id, currentAgentId);
+
+                // Fallback: if no messages found for current agent (e.g. PROMISE restarted
+                // and created a new agent_id), load all messages for this user
+                if (!supabaseMessages || supabaseMessages.length === 0) {
+                    console.log('No messages for current agent, trying user-wide fallback...');
+                    supabaseMessages = await PromiseAPI.loadAllUserMessages(currentUser.id);
+                }
+
+                if (supabaseMessages && supabaseMessages.length > 0) {
+                    console.log(`Found ${supabaseMessages.length} messages in Supabase`);
+                    supabaseMessages.forEach(msg => {
+                        const sender = msg.role === 'assistant' ? 'biographer' : 'user';
+                        addMessageToUI(sender, msg.content, false); // false = don't save again
+                    });
+
+                    // Mark conversation as having history so startNewConversation is not called
+                    conversationHistory = supabaseMessages;
+
+                    // Restore progress bar from localStorage (persists across refreshes)
+                    restoreProgressBar();
+
+                    // Check if conversation is complete
+                    try {
+                        const promiseUrl = window.OBLIVIO_CONFIG?.PROMISE_API_URL || 'http://localhost:8080';
+                        const agentInfo = await fetch(`${promiseUrl}/${currentAgentId}/info`);
+                        const agentData = await agentInfo.json();
+                        isConversationActive = agentData.active;
+
+                        if (!isConversationActive) {
+                            await showCompletionMessage();
+                        }
+                    } catch (err) {
+                        console.log('Could not check agent status from PROMISE');
+                    }
+
+                    return;
+                }
+
+                // Fallback: Try to get conversation from PROMISE
+                console.log('No messages in Supabase, trying PROMISE...');
+                const conversation = await PromiseAPI.getConversation(currentAgentId);
+
+                // Display messages
+                if (conversation && conversation.utterances) {
+                    console.log(`Found ${conversation.utterances.length} messages in PROMISE`);
+                    conversation.utterances.forEach(utterance => {
+                        const sender = utterance.speaker === 'ASSISTANT' ? 'biographer' : 'user';
+                        const role = utterance.speaker === 'ASSISTANT' ? 'assistant' : 'user';
+                        addMessageToUI(sender, utterance.text, false);
+                        // Save to Supabase for future loads
+                        PromiseAPI.saveMessage(currentUser.id, currentAgentId, role, utterance.text);
+                    });
+                    conversationHistory = conversation.utterances;
+                }
+
+                // Check if conversation is complete
+                const promiseUrl = window.OBLIVIO_CONFIG?.PROMISE_API_URL || 'http://localhost:8080';
+                const agentInfo = await fetch(`${promiseUrl}/${currentAgentId}/info`);
+                const agentData = await agentInfo.json();
+                isConversationActive = agentData.active;
+
+                if (!isConversationActive) {
+                    await showCompletionMessage();
+                }
+            } catch (error) {
+                console.log('No previous conversation found, starting fresh');
+            }
+        }
+
+        async function startNewConversation() {
+            try {
+                showTypingIndicator();
+
+                // Start conversation with PROMISE
+                const response = await PromiseAPI.startConversation(currentAgentId);
+
+                hideTypingIndicator();
+                addMessageToUI('biographer', response.text, true); // true = save to Supabase
+
+                // Track state and update progress bar
+                currentStateName = response.stateName;
+                updateProgressBar(response.stateName);
+
+                // Log to biographer_conversations
+                if (currentUser && currentAgentId) {
+                    PromiseAPI.saveBiographerConversation(currentUser.id, currentAgentId, 'assistant', response.text, currentStateName);
+                }
+
+                // Speak the biographer's response
+                await speakText(response.text);
+
+                isConversationActive = response.active;
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error starting conversation:', error);
+                addMessageToUI('biographer', 'Sorry, I encountered an error. Please try again.', false);
+            }
+        }
+
+        function addMessageToUI(sender, text, saveToSupabase = true) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            if (sender === 'biographer') {
+                avatar.innerHTML = '<img src="images/logo.png" alt="Oblivio" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">';
+            } else {
+                avatar.textContent = currentUser?.user_metadata?.full_name?.[0] || 'U';
+            }
+
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            content.textContent = text;
+
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+
+            // Save to Supabase if requested
+            if (saveToSupabase && currentUser && currentAgentId) {
+                const role = sender === 'biographer' ? 'assistant' : 'user';
+                PromiseAPI.saveMessage(currentUser.id, currentAgentId, role, text);
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message biographer';
+            typingDiv.id = 'typingIndicator';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.innerHTML = '<img src="images/logo.png" alt="Oblivio" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">';
+
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator active';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(indicator);
+
+            messagesArea.appendChild(typingDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        async function handleSendMessage() {
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            if (!currentAgentId) {
+                addMessageToUI('biographer', 'Connection lost. Please refresh the page.', false);
+                return;
+            }
+
+            if (!isConversationActive) {
+                addMessageToUI('biographer', t('bio_complete'), false);
+                return;
+            }
+
+            // Disable input while processing
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // Add user message to UI and save to Supabase
+            addMessageToUI('user', message, true);
+            messageInput.value = '';
+
+            // Log user message to biographer_conversations
+            if (currentUser && currentAgentId) {
+                PromiseAPI.saveBiographerConversation(currentUser.id, currentAgentId, 'user', message, currentStateName);
+            }
+
+            // Clear draft from localStorage after sending
+            clearDraftMessage();
+
+            try {
+                // Show typing indicator
+                showTypingIndicator();
+
+                // Send to PROMISE
+                const response = await PromiseAPI.sendMessage(currentAgentId, message);
+
+                // Hide typing indicator
+                hideTypingIndicator();
+
+                // Add PROMISE response and save to Supabase
+                addMessageToUI('biographer', response.text, true);
+
+                // Track state and update progress bar
+                currentStateName = response.stateName;
+                updateProgressBar(response.stateName);
+
+                // Log assistant response to biographer_conversations
+                if (currentUser && currentAgentId) {
+                    PromiseAPI.saveBiographerConversation(currentUser.id, currentAgentId, 'assistant', response.text, currentStateName);
+                }
+
+                // Speak the biographer's response
+                await speakText(response.text);
+
+                // Update conversation status
+                isConversationActive = response.active;
+
+                // If conversation is complete
+                if (!isConversationActive) {
+                    await handleConversationComplete();
+                }
+
+                // Re-enable input
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                messageInput.focus();
+            } catch (error) {
+                hideTypingIndicator();
+                console.error('Error sending message:', error);
+                addMessageToUI('biographer', 'Sorry, there was an error. Please try again.', false);
+
+                // Re-enable input
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        function generateAccessCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 8; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
+        }
+
+        async function handleConversationComplete() {
+            console.log('Conversation complete! Getting legacy data...');
+            localStorage.removeItem('oblivio_bio_current_block');
+
+            try {
+                // Get the complete legacy data from PROMISE
+                const legacyData = await PromiseAPI.getLegacyData(currentAgentId);
+                console.log('Legacy data:', legacyData);
+
+                // Save to Supabase
+                await PromiseAPI.saveLegacy(currentUser.id, currentAgentId, legacyData);
+
+                // Generate and save access code
+                let accessCode = null;
+                try {
+                    accessCode = generateAccessCode();
+                    const nickname = localStorage.getItem('oblivio_nickname') || 'User';
+                    const language = localStorage.getItem('oblivio_language') || 'de';
+
+                    await supabaseClient.from('legacy_access_codes').insert({
+                        user_id: currentUser.id,
+                        access_code: accessCode,
+                        nickname: nickname,
+                        language: language
+                    });
+                    console.log('Access code saved:', accessCode);
+                } catch (codeErr) {
+                    console.error('Error saving access code:', codeErr);
+                }
+
+                // Show completion message with access code
+                showCompletionMessage(accessCode);
+
+                // Disable input
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            } catch (error) {
+                console.error('Error handling conversation completion:', error);
+            }
+        }
+
+        async function showCompletionMessage(accessCode) {
+            // Show progress bar at 100%
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-label').textContent = '10 / 10 ✓';
+            document.getElementById('progress-bar-fill').style.width = '100%';
+
+            // Disable input
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+
+            // If no code passed, try to load from Supabase
+            if (!accessCode && currentUser) {
+                try {
+                    const { data } = await supabaseClient
+                        .from('legacy_access_codes')
+                        .select('access_code')
+                        .eq('user_id', currentUser.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+                    if (data) accessCode = data.access_code;
+                } catch (e) {
+                    console.warn('Could not load access code:', e);
+                }
+            }
+
+            let codeHTML = '';
+            if (accessCode) {
+                const nickname = localStorage.getItem('oblivio_nickname') || 'User';
+                const emailSubject = encodeURIComponent((t('bio_complete_email_subject') || 'Dein Oblivio Zugangscode für') + ' ' + nickname);
+                const emailBody = encodeURIComponent(
+                    (t('bio_complete_email_greeting') || 'Hallo') + ',\n\n' +
+                    (t('bio_complete_email_line1') || 'Die Biografie wurde erfolgreich abgeschlossen!') + '\n\n' +
+                    (t('bio_complete_email_line2') || 'Zugangscode:') + ' ' + accessCode + '\n\n' +
+                    (t('bio_complete_email_line3') || 'Besuche diese Seite, um mit dem Vermächtnis zu sprechen:') + '\nhttps://oblivio.ch/legacy.html'
+                );
+
+                codeHTML = `
+                    <div style="margin: 20px 0 16px; padding: 20px; background: var(--cream, #f8f4ed); border-radius: 12px; border: 2px solid var(--moss, #5a6e4a);">
+                        <p style="font-size: 0.85rem; color: #555; margin-bottom: 8px;">${t('bio_complete_code_desc') || 'Teile diesen Code mit Angehörigen:'}</p>
+                        <div style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; letter-spacing: 4px; color: var(--charcoal, #1a1a1a); margin-bottom: 12px;" id="accessCodeDisplay">${accessCode}</div>
+                        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                            <button onclick="navigator.clipboard.writeText('${accessCode}').then(()=>{this.textContent='${t('bio_complete_code_copied') || 'Kopiert!'}';setTimeout(()=>{this.textContent='${t('bio_complete_code_copy') || 'Code kopieren'}'},2000)})" style="padding: 8px 20px; border-radius: 20px; border: 1.5px solid var(--moss, #5a6e4a); background: transparent; color: var(--charcoal); cursor: pointer; font-family: 'Crimson Pro', serif; font-size: 0.85rem;">${t('bio_complete_code_copy') || 'Code kopieren'}</button>
+                            <a href="mailto:?subject=${emailSubject}&body=${emailBody}" style="padding: 8px 20px; border-radius: 20px; border: 1.5px solid var(--moss, #5a6e4a); background: transparent; color: var(--charcoal); text-decoration: none; font-family: 'Crimson Pro', serif; font-size: 0.85rem;">${t('bio_complete_code_email') || 'Per E-Mail teilen'}</a>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const completionDiv = document.createElement('div');
+            completionDiv.className = 'biography-complete-card';
+            completionDiv.innerHTML = `
+                <div class="biography-complete-icon">✓</div>
+                <h2 class="biography-complete-title">${t('bio_complete_title') || 'Biografie abgeschlossen'}</h2>
+                <p class="biography-complete-text">${t('bio_complete')}</p>
+                ${codeHTML}
+                <a href="journey.html" class="biography-complete-btn">← ${t('nav_back') || 'Back to Journey'}</a>
+            `;
+            messagesArea.appendChild(completionDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function getCurrentLanguage() {
+            // Get language from localStorage (same key as translations.js)
+            return localStorage.getItem('oblivio_language') || 'en'; // Default to English
+        }
+
+        // ============================================
+        // LOGOUT
+        // ============================================
+        async function handleLogout() {
+            await supabaseClient.auth.signOut();
+            window.location.href = 'index.html';
+        }
+
+        // ============================================
+        // TEXT PERSISTENCE
+        // ============================================
+        function saveDraftMessage() {
+            const text = messageInput.value;
+            if (text.trim()) {
+                localStorage.setItem('oblivio_draft_message', text);
+            } else {
+                localStorage.removeItem('oblivio_draft_message');
+            }
+        }
+
+        function loadDraftMessage() {
+            const draft = localStorage.getItem('oblivio_draft_message');
+            if (draft) {
+                messageInput.value = draft;
+            }
+        }
+
+        function clearDraftMessage() {
+            localStorage.removeItem('oblivio_draft_message');
+        }
+
+        // ============================================
+        // ELEVENLABS TEXT-TO-SPEECH
+        // ============================================
+        const voiceAudio = document.getElementById('voiceAudio');
+        const voiceToggle = document.getElementById('voiceToggle');
+        const voicePath = document.getElementById('voicePath');
+        let isVoiceEnabled = true;
+        let isCurrentlySpeaking = false;
+
+        async function speakText(text) {
+            // Check if voice is enabled
+            if (!isVoiceEnabled) {
+                console.log('Voice is disabled, skipping TTS');
+                return;
+            }
+
+            try {
+                isCurrentlySpeaking = true;
+                voiceToggle.classList.add('active');
+
+                // Call PROMISE Backend TTS endpoint (secure)
+                const promiseUrl = window.OBLIVIO_CONFIG?.PROMISE_API_URL || 'http://localhost:8080';
+                const response = await fetch(`${promiseUrl}/${currentAgentId}/tts`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        text: text
+                    })
+                });
+
+                if (!response.ok) {
+                    // If 503, API key not configured on backend
+                    if (response.status === 503) {
+                        console.log('ElevenLabs API key not configured on backend');
+                        return;
+                    }
+                    throw new Error('TTS API error: ' + response.statusText);
+                }
+
+                // Get audio blob and play
+                const audioBlob = await response.blob();
+                const audioUrl = URL.createObjectURL(audioBlob);
+
+                voiceAudio.src = audioUrl;
+                await voiceAudio.play();
+
+                // Clean up when done
+                voiceAudio.onended = () => {
+                    URL.revokeObjectURL(audioUrl);
+                    isCurrentlySpeaking = false;
+                    if (!isVoiceEnabled) {
+                        voiceToggle.classList.remove('active');
+                    }
+                };
+
+            } catch (error) {
+                console.error('Error with text-to-speech:', error);
+                isCurrentlySpeaking = false;
+                voiceToggle.classList.remove('active');
+            }
+        }
+
+        function toggleVoice() {
+            if (isVoiceEnabled) {
+                // Disable voice
+                isVoiceEnabled = false;
+                voiceToggle.classList.remove('active');
+                voicePath.style.opacity = '0.3';
+                localStorage.setItem('oblivio_voice_enabled', 'false');
+
+                // Stop current speech if playing
+                if (isCurrentlySpeaking) {
+                    voiceAudio.pause();
+                    voiceAudio.currentTime = 0;
+                    isCurrentlySpeaking = false;
+                }
+            } else {
+                // Enable voice
+                isVoiceEnabled = true;
+                voiceToggle.classList.add('active');
+                voicePath.style.opacity = '1';
+                localStorage.setItem('oblivio_voice_enabled', 'true');
+            }
+        }
+
+        function initializeVoice() {
+            // Check if user previously disabled voice
+            const voiceEnabled = localStorage.getItem('oblivio_voice_enabled');
+
+            // Default to ON
+            if (voiceEnabled === 'false') {
+                isVoiceEnabled = false;
+                voiceToggle.classList.remove('active');
+                voicePath.style.opacity = '0.3';
+            } else {
+                isVoiceEnabled = true;
+                voiceToggle.classList.add('active');
+                voicePath.style.opacity = '1';
+            }
+        }
+
+        // ============================================
+        // BACKGROUND MUSIC
+        // ============================================
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const musicToggle = document.getElementById('musicToggle');
+        const soundWaves = document.getElementById('soundWaves');
+        let isMusicPlaying = false;
+
+        function toggleMusic() {
+            if (isMusicPlaying) {
+                backgroundMusic.pause();
+                musicToggle.classList.remove('playing');
+                soundWaves.style.opacity = '0.3';
+                localStorage.setItem('oblivio_music_enabled', 'false');
+                isMusicPlaying = false;
+            } else {
+                backgroundMusic.play().catch(err => {
+                    console.log('Music autoplay prevented:', err);
+                });
+                musicToggle.classList.add('playing');
+                soundWaves.style.opacity = '1';
+                localStorage.setItem('oblivio_music_enabled', 'true');
+                isMusicPlaying = true;
+            }
+        }
+
+        function initializeMusic() {
+            // Set volume to a comfortable level
+            backgroundMusic.volume = 0.3;
+
+            // Check if user previously disabled music
+            const musicEnabled = localStorage.getItem('oblivio_music_enabled');
+
+            // Default to ON (music plays by default)
+            if (musicEnabled === 'false') {
+                // User explicitly disabled it
+                musicToggle.classList.remove('playing');
+                soundWaves.style.opacity = '0.3';
+                isMusicPlaying = false;
+            } else {
+                // Auto-play by default (may be blocked by browser)
+                backgroundMusic.play().then(() => {
+                    musicToggle.classList.add('playing');
+                    soundWaves.style.opacity = '1';
+                    isMusicPlaying = true;
+                }).catch(err => {
+                    console.log('Music autoplay prevented by browser:', err);
+                    // If autoplay fails, update UI
+                    musicToggle.classList.remove('playing');
+                    soundWaves.style.opacity = '0.3';
+                    isMusicPlaying = false;
+                });
+            }
+        }
+
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        sendBtn.addEventListener('click', handleSendMessage);
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+
+        // Save draft as user types
+        messageInput.addEventListener('input', saveDraftMessage);
+
+        // Load draft when input is enabled
+        messageInput.addEventListener('focus', () => {
+            if (!messageInput.value) {
+                loadDraftMessage();
+            }
+        }, { once: true });
+
+        logoutBtn.addEventListener('click', handleLogout);
+
+        voiceToggle.addEventListener('click', toggleVoice);
+        musicToggle.addEventListener('click', toggleMusic);
+
+        // Initialize voice and music when page loads
+        initializeVoice();
+        initializeMusic();
+
+        // ============================================
+        // ERROR HANDLING
+        // ============================================
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error || event.message || 'Unknown error');
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason || 'Unknown reason');
+        });
+
+        // ============================================
+        // START
+        // ============================================
+        console.log('Starting Oblivio Biographer...');
+
+        // Quick check: If Supabase SDK is not loaded, wait a bit
+        if (typeof window.supabase === 'undefined') {
+            console.log('Waiting for Supabase SDK...');
+            setTimeout(() => {
+                if (typeof window.supabase === 'undefined') {
+                    console.error('Supabase SDK not loaded! Check internet connection.');
+                    document.getElementById('loadingScreen').innerHTML = '<div class="loading-text">Error: Could not load authentication system. Please check your internet connection and refresh.</div>';
+                } else {
+                    startApp();
+                }
+            }, 1000);
+        } else {
+            startApp();
+        }
+
+        function startApp() {
+            console.log('Supabase SDK loaded:', typeof window.supabase !== 'undefined');
+
+            // Immediately check for session and redirect if not logged in
+            const { createClient } = window.supabase;
+            const quickClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            quickClient.auth.getSession().then(({ data: { session } }) => {
+                console.log('Quick session check:', session ? 'Has session' : 'No session');
+
+                if (!session) {
+                    console.log('No session found - redirecting to login immediately');
+                    localStorage.setItem('oblivio_redirect', 'biographer.html');
+                    window.location.replace('login.html');
+                    return;
+                }
+
+                // Session exists, proceed with full initialization
+                console.log('Session found, initializing...');
+                initialize().catch(err => {
+                    console.error('Initialize error:', err);
+                    document.getElementById('loadingScreen').innerHTML = '<div class="loading-text">Error: ' + err.message + '</div>';
+                });
+            }).catch(err => {
+                console.error('Session check error:', err);
+                localStorage.setItem('oblivio_redirect', 'biographer.html');
+                window.location.replace('login.html');
+            });
+        }
+    </script>
+</body>
+</html>

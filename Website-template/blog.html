@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="page-id" content="blog">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog – Oblivio</title>
+    <meta name="description" content="Oblivio Blog – Insights into building an AI-powered legacy platform. Technology, research and philosophy.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://oblivio.ch/blog.html">
+    <meta property="og:title" content="Blog – Oblivio">
+    <meta property="og:description" content="Einblicke in die Entwicklung einer KI-gestützten Vermächtnis-Plattform.">
+    <meta property="og:image" content="https://oblivio.ch/images/og-image.jpg">
+    <meta property="og:url" content="https://oblivio.ch/blog.html">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Blog – Oblivio">
+    <meta name="twitter:description" content="Einblicke in die Entwicklung einer KI-gestützten Vermächtnis-Plattform.">
+    <meta name="twitter:image" content="https://oblivio.ch/images/og-image.jpg">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root{--cream:#f8f4ed;--charcoal:#1a1a1a;--moss:#4a5942;--rust:#a84832;--stone:#8a8a8a;--shadow:rgba(26,26,26,0.15);}
+        .skip-link{position:absolute;top:-40px;left:0;background:var(--rust);color:var(--cream);padding:8px 16px;z-index:10000;font-size:14px;text-decoration:none;transition:top 0.3s;}.skip-link:focus{top:0;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Crimson Pro',serif;background-color:var(--cream);color:var(--charcoal);line-height:1.7;overflow-x:hidden;}
+        body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');pointer-events:none;z-index:9999;opacity:0.6;}
+        nav{position:fixed;top:0;width:100%;z-index:1000;background-color:rgba(248,244,237,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(26,26,26,0.08);}
+        .nav-content{display:flex;justify-content:space-between;align-items:center;padding:24px 60px;}
+        .logo{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-0.5px;color:var(--charcoal);text-decoration:none;}
+        .nav-links{display:flex;gap:40px;list-style:none;}
+        .nav-links a{color:var(--charcoal);text-decoration:none;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.3s;}
+        .nav-links a:hover{color:var(--rust);}
+        .lang-select{background-color:var(--cream);border:2px solid rgba(26,26,26,0.1);padding:8px 30px 8px 12px;font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.3s;color:var(--moss);border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;appearance:none;background-image:url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');background-repeat:no-repeat;background-position:right 4px center;background-size:20px;}
+        .lang-select:hover{border-color:var(--rust);color:var(--rust);}
+        .lang-select:focus{outline:none;border-color:var(--rust);}
+        .page-hero{padding:160px 60px 80px;max-width:900px;}
+        .page-label{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--rust);margin-bottom:20px;}
+        .page-hero h1{font-family:'DM Serif Display',serif;font-size:clamp(42px,6vw,72px);font-weight:400;line-height:1.1;margin-bottom:24px;}
+        .page-hero p{font-size:20px;color:var(--stone);max-width:640px;line-height:1.6;}
+        .content{padding:0 60px 120px;max-width:860px;}
+        .divider{width:60px;height:1px;background:var(--rust);margin:0 0 80px 0;}
+
+        /* Article */
+        .article-meta{display:flex;align-items:center;gap:20px;margin-bottom:48px;padding-bottom:24px;border-bottom:1px solid rgba(26,26,26,0.08);}
+        .article-date{font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--stone);}
+        .article-tag{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);border:1px solid var(--moss);padding:4px 12px;}
+        .article h2{font-family:'DM Serif Display',serif;font-size:40px;font-weight:400;line-height:1.2;margin-bottom:16px;}
+        .article .lead{font-size:21px;color:var(--stone);line-height:1.7;margin-bottom:48px;}
+
+        .article-body h3{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;margin:52px 0 20px;}
+        .article-body p{font-size:18px;color:#3a3a3a;line-height:1.85;margin-bottom:24px;}
+        .article-body p:last-child{margin-bottom:0;}
+
+        .pull-quote{
+            font-family:'DM Serif Display',serif;
+            font-size:26px;line-height:1.4;
+            color:var(--charcoal);
+            border-left:3px solid var(--rust);
+            padding:24px 32px;margin:48px 0;
+            font-style:italic;
+        }
+        .tech-note{background:rgba(74,89,66,0.07);border-left:3px solid var(--moss);padding:24px 28px;margin:32px 0;font-size:16px;color:#3a3a3a;line-height:1.7;}
+        .tech-note code{font-family:monospace;background:rgba(26,26,26,0.07);padding:2px 6px;border-radius:3px;font-size:15px;}
+
+        footer{background-color:var(--charcoal);color:var(--cream);padding:80px 60px 40px;}
+        .footer-content{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;margin-bottom:60px;}
+        .footer-brand{font-family:'DM Serif Display',serif;font-size:32px;margin-bottom:16px;}
+        .footer-tagline{font-size:15px;color:rgba(248,244,237,0.5);line-height:1.6;}
+        .footer-section h4{font-size:14px;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;color:#d4af37;font-weight:600;}
+        .footer-links{list-style:none;}
+        .footer-links li{margin-bottom:10px;}
+        .footer-links a{color:rgba(248,244,237,0.7);text-decoration:none;font-size:15px;transition:color 0.3s;}
+        .footer-links a:hover{color:var(--cream);}
+        .footer-bottom{border-top:1px solid rgba(248,244,237,0.1);padding-top:30px;font-size:13px;color:rgba(248,244,237,0.3);text-align:center;}
+        .hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:1002;}.hamburger span{display:block;width:24px;height:2px;background:var(--charcoal);margin:5px 0;transition:all 0.3s;}.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}.hamburger.active span:nth-child(2){opacity:0;}.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}.mobile-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(248,244,237,0.98);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:32px;}.mobile-overlay.active{display:flex;}.mobile-overlay a{font-family:'Crimson Pro',serif;font-size:20px;color:var(--charcoal);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:12px 0;transition:color 0.3s;}.mobile-overlay a:hover{color:var(--rust);}.mobile-overlay .lang-select{margin-top:16px;}
+        @media(max-width:768px){.nav-content{padding:16px 20px;}.nav-links{display:none;}.hamburger{display:block;}.page-hero{padding:120px 20px 60px;}.page-hero h1{font-size:36px;}.page-hero p{font-size:17px;}.content{padding:0 20px 80px;}.divider{margin-bottom:48px;}.article h2{font-size:28px;}.article .lead{font-size:18px;}.article-body h3{font-size:22px;margin-top:36px;}.pull-quote{font-size:20px;padding:16px 20px;margin:32px 0;}.tech-note{padding:16px 20px;margin:24px 0;}footer{padding:48px 20px 32px;}.footer-content{grid-template-columns:1fr;gap:32px;}}
+    </style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+
+<nav aria-label="Hauptnavigation">
+    <div class="nav-content">
+        <a href="index.html" class="logo">Oblivio</a>
+        <button class="hamburger" aria-label="Menü öffnen" onclick="document.querySelector('.hamburger').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active');document.body.style.overflow=document.querySelector('.mobile-overlay').classList.contains('active')?'hidden':''"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="features.html" data-i18n="nav_tech_link">Technologie</a></li>
+            <li><a href="about.html" data-i18n="nav_about_link">Über Oblivio</a></li>
+            <li><a href="journey.html" data-i18n="nav_start_link">Starten</a></li>
+            <li><select class="lang-select" id="languageSelector" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="en">English</option><option value="de" selected>Deutsch</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="mobile-overlay">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="features.html" data-i18n="nav_tech_link">Technologie</a>
+    <a href="about.html" data-i18n="nav_about_link">Über Oblivio</a>
+    <a href="journey.html" data-i18n="nav_start_link">Starten</a>
+    <select class="lang-select" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="de">Deutsch</option><option value="en">English</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select>
+</div>
+
+<main id="main-content">
+<div class="page-hero">
+    <p class="page-label" data-i18n="blog_label">Blog</p>
+    <h1 data-i18n="blog_h1">Wie Oblivio<br>entstand.</h1>
+    <p data-i18n="blog_sub">Ein ehrlicher Bericht über Entscheidungen, Umwege und Erkenntnisse auf dem Weg von der Idee zur Plattform.</p>
+</div>
+
+<div class="content">
+    <div class="divider"></div>
+
+    <div class="article">
+        <div class="article-meta">
+            <span class="article-date" data-i18n="blog_date_v2">9. Mai 2026</span>
+            <span class="article-tag" data-i18n="blog_tag_v2_1">Update</span>
+            <span class="article-tag" data-i18n="blog_tag_v2_2">Iteration</span>
+        </div>
+
+        <h2 data-i18n="blog_v2_h2">Von vier zu acht Sprachen: Die grosse Überarbeitung</h2>
+        <p class="lead" data-i18n="blog_v2_lead">In den letzten Wochen ist Oblivio gewachsen. Nicht nur in der Anzahl der Personas, sondern auch in der Tiefe seiner Funktionen. Hier ein Überblick über die wichtigsten Änderungen.</p>
+
+        <div class="article-body">
+
+            <h3 data-i18n="blog_v2_h3_1">Acht Sprachen statt vier</h3>
+            <p data-i18n="blog_v2_p1">
+                Oblivio unterstützt jetzt acht Sprachen: Deutsch, Englisch, Französisch, Italienisch, Türkisch, Koreanisch, Japanisch und Chinesisch. Türkisch wurde als achte Sprache hinzugefügt, um die internationale Reichweite weiter zu vergrössern. Dafür wurden alle UI-Texte, der Biograph-Fragebogen und die Block-Anweisungen ergänzt.
+            </p>
+
+            <h3 data-i18n="blog_v2_h3_2">Drei Konversationsvarianten</h3>
+            <p data-i18n="blog_v2_p2_1">
+                Die Legacy-Personas können jetzt in drei verschiedenen Modi befragt werden: Variante 1 enthält eine vollständige Persönlichkeitsanalyse mit Radar-Diagramm, Kommunikations-DNA und Lebensmuster. Variante 2 lässt die Persona das Gespräch aktiv eröffnen. Variante 3 wartet schweigend auf die erste Nachricht des Besuchers.
+            </p>
+            <p data-i18n="blog_v2_p2_2">
+                Jede Variante eignet sich für eine andere emotionale Situation: tiefes Verständnis, niedrige Einstiegshürde oder vollständige Kontrolle über den Gesprächsbeginn.
+            </p>
+
+            <h3 data-i18n="blog_v2_h3_3">Automatische Kontextkompaktion</h3>
+            <p data-i18n="blog_v2_p3">
+                Eine technische Verbesserung im PROMISE-Backend: Nach zwanzig Benutzernachrichten werden ältere Gesprächsbeiträge automatisch zusammengefasst und durch eine kompakte System-Nachricht ersetzt. So bleiben die Token-Kosten konstant, während die wichtigsten Inhalte erhalten bleiben — ähnlich wie das menschliche Gedächtnis Details verblassen lässt, aber das Gesamtbild bewahrt.
+            </p>
+
+            <h3 data-i18n="blog_v2_h3_4">Sichtbare Fortschritte und unsichtbare Aufräumarbeiten</h3>
+            <p data-i18n="blog_v2_p4_1">
+                Im Hintergrund wurden viele Komponenten verfeinert: Das Repository wurde neu strukturiert (separate Ordner für Dokumentation und SQL-Skripte), alle Java-Klassen erhielten ausführliche Kommentare, und veraltete Texte auf der Website wurden aktualisiert.
+            </p>
+            <p data-i18n="blog_v2_p4_2">
+                Auch die Personenseite wurde überarbeitet: Ältere Verweise auf einzelne Persona-Namen wurden durch generische Formulierungen ersetzt, damit die Plattform auch mit zukünftigen Personas konsistent bleibt.
+            </p>
+
+            <h3 data-i18n="blog_v2_h3_5">15 Teilnehmende, neue Personas, neue Stimmen</h3>
+            <p data-i18n="blog_v2_p5">
+                Insgesamt haben 15 Personen an der Studie teilgenommen und ihre Lebensgeschichte mit dem Biografen geteilt. Jede dieser Geschichten wurde zu einer eigenen Persona — mit eigenem Profilbild, eigener Stimme via ElevenLabs und einem dreigeteilten System-Prompt für die drei Konversationsvarianten. Die Plattform hat dadurch an Vielfalt gewonnen — verschiedene Sprachen, Altersgruppen und Lebenswege treffen aufeinander.
+            </p>
+
+            <p data-i18n="blog_v2_p_final">
+                Oblivio entwickelt sich weiter — nicht im grossen Wurf, sondern in vielen kleinen Verbesserungen, die jede für sich das Gespräch echter und menschlicher machen.
+            </p>
+
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="article">
+        <div class="article-meta">
+            <span class="article-date" data-i18n="blog_date">Frühjahr 2026</span>
+            <span class="article-tag" data-i18n="blog_tag1">Bachelorarbeit</span>
+            <span class="article-tag" data-i18n="blog_tag2">Entwicklung</span>
+        </div>
+
+        <h2 data-i18n="blog_art_h2">Von der Idee zur lebendigen Plattform: Die Entwicklungsgeschichte von Oblivio</h2>
+        <p class="lead" data-i18n="blog_art_lead">Was beginnt, wenn man sich fragt: Was bleibt von einem Menschen, wenn er nicht mehr da ist? Oblivio begann mit dieser Frage und endete mit einer Antwort, die mehr technische Entscheidungen enthält, als ich anfangs erwartet hatte.</p>
+
+        <div class="article-body">
+
+            <h3 data-i18n="blog_h3_1">Die Ausgangsfrage</h3>
+            <p data-i18n="blog_p1_1">
+                Die Idee zu Oblivio entstand nicht am Schreibtisch, sondern in einem Moment persönlicher Stille: Was würde ich einer Person, die ich verloren habe, noch fragen wollen? Und umgekehrt: Was würde ich selbst gerne hinterlassen, wenn ich nicht mehr hier bin?
+            </p>
+            <p data-i18n="blog_p1_2">
+                Diese Fragen haben mich zu meiner Bachelorarbeit geführt. Das Ziel war ambitioniert: eine KI-gestützte Plattform, die es jedem Menschen ermöglicht, sein Leben in Form eines digitalen Vermächtnisses zu dokumentieren: tief, persönlich und dauerhaft.
+            </p>
+
+            <div class="pull-quote" data-i18n="blog_quote">"Nicht ein Formular. Kein Fragebogen. Ein Gespräch, das tatsächlich zuhört."</div>
+
+            <h3 data-i18n="blog_h3_2">PROMISE: Das Herzstück</h3>
+            <p data-i18n="blog_p2_1">
+                Das technologische Rückgrat von Oblivio ist <strong>PROMISE</strong>, ein zustandsbasiertes Konversationsframework, das an der ZHAW entwickelt wurde. Statt einfacher Chatbot-Sequenzen ermöglicht PROMISE echte Gesprächszustände: Jeder der zehn Biografen-Blöcke ist ein eigener Zustand mit eigenem Systemkontext, eigenen Übergangsbedingungen und automatischer Wissensextraktion.
+            </p>
+            <p data-i18n="blog_p2_2">
+                Die zentrale Herausforderung: Wann wechselt ein Block zum nächsten? Die erste Lösung war eine doppelte Bedingung: Der Nutzer musste explizit „weiter" sagen, UND der Guard musste bestätigen, dass genug Themen abgedeckt wurden. Das klingt vernünftig, führte aber zu einem gravierenden Bug.
+            </p>
+            <div class="tech-note" data-i18n="blog_technote">
+                <strong>Bug:</strong> <code>Transition(List.of(trigger, guard), ...)</code> — AND-Logik. Wenn der Nutzer „nein" sagte (Trigger = true) nach einem langen Gespräch (Guard = true), wurde <code>TransferUtterancesAction</code> ausgelöst — und da die gesamte Gesprächshistorie auf alle Folge-States übertragen wurde, evaluierten ALLE Guards gleichzeitig als true. Block 1 sprang direkt zu „Biography Complete".<br><br>
+                <strong>Lösung:</strong> <code>Transition(List.of(guard), ...)</code> — Guard allein. Kein Trigger. Der Wechsel erfolgt automatisch, sobald genug bedeutungsvolle Antworten gesammelt wurden.
+            </div>
+
+            <h3 data-i18n="blog_h3_3">Zehn Blöcke statt einem</h3>
+            <p data-i18n="blog_p3_1">
+                Die ursprüngliche Version des Biografen war ein einziger State, ein endloser Konversationsfluss ohne Struktur. Das Problem: Ohne thematische Führung blieben viele Bereiche des Lebens unberührt. Nutzer sprachen über Kindheitserinnerungen, aber nie über ihre Werte. Über ihre Arbeit, aber nie über ihre Träume.
+            </p>
+            <p data-i18n="blog_p3_2">
+                Die Lösung war der Wechsel zu zehn thematischen Blöcken: Ice-Breaker (Geschmack & Vorlieben), Alltag & Lebenswelt, Kommunikationsstil, Erinnerungen & Schlüsselerlebnisse, Emotionen & Beziehungsmuster, Beziehungen & Fremdbild, Werte & Überzeugungen, Macken & Widersprüche, Vermächtnis & Zukunft und Abschluss. Jeder Block ist so konzipiert, dass er einen spezifischen Lebensbereich vollständig erschliesst, und erst dann automatisch weiterschaltet.
+            </p>
+
+            <h3 data-i18n="blog_h3_4">Frontend: Zwischen Funktion und Würde</h3>
+            <p data-i18n="blog_p4_1">
+                Das Design von Oblivio folgte einer klaren Prämisse: Es soll sich nicht anfühlen wie eine App, sondern wie ein Brief. Die Farbpalette (Creme, Anthrazit, rostrot, moosgrün) wurde bewusst gewählt, um Wärme und Dauerhaftigkeit zu vermitteln. Die Schriften Crimson Pro und DM Serif Display bringen Literatur ins Interface.
+            </p>
+            <p data-i18n="blog_p4_2">
+                Der Fortschrittsbalken, der nach Block 1 erscheint und den Nutzer von Block 1 bis 10 begleitet, war eine kleine aber bedeutsame UX-Entscheidung: Sichtbarer Fortschritt gibt Orientierung, ohne das Gespräch zu unterbrechen. Sein Stand wird im <code>localStorage</code> gespeichert, damit er nach einem Refresh erhalten bleibt.
+            </p>
+
+            <h3 data-i18n="blog_h3_5">Der Block-0-Fragebogen</h3>
+            <p data-i18n="blog_p5_1">
+                Bevor der eigentliche Biograf beginnt, durchläuft der Nutzer einen kurzen Fragebogen: Name, Altersgruppe, Geschlecht, Familienstand, Persönlichkeitsmerkmale und Kommunikationsstil. Diese Informationen werden dem Biografen als Kontext mitgegeben. Er weiss dann, wen er vor sich hat, und kann seinen Ton, seine Fragen und seine Reaktionen entsprechend anpassen.
+            </p>
+            <p data-i18n="blog_p5_2">
+                Dieser „Block 0" ist in acht Sprachen verfügbar (Deutsch, Englisch, Französisch, Italienisch, Türkisch, Koreanisch, Japanisch und Chinesisch) und wurde so gestaltet, dass er schnell, nicht aufdringlich und ehrlich wirkt. Das Einwilligungsformular davor kommuniziert klar, was gespeichert wird und warum.
+            </p>
+
+            <h3 data-i18n="blog_h3_6">Supabase, Railway & Schweizer Hosting</h3>
+            <p data-i18n="blog_p6_1">
+                Die Infrastruktur von Oblivio wurde nach einem einfachen Prinzip ausgewählt: Jede Komponente sollte das Beste in ihrer Kategorie sein, gut zusammenarbeiten und keine unnötige Komplexität hinzufügen. Supabase für Authentifizierung und Datenbank. Railway für den PROMISE-Backend-Dienst mit Auto-Deploy bei jedem Git-Push. Ein Schweizer Anbieter für das Frontend-Hosting.
+            </p>
+            <p data-i18n="blog_p6_2">
+                Railway hat sich dabei als besonders wertvoll erwiesen: Jede Änderung am Java-Backend (neue Guards, neue Prompts, neue Sprachunterstützung) ist innerhalb weniger Minuten live. Das hat die Iterationsgeschwindigkeit erheblich erhöht.
+            </p>
+
+            <h3 data-i18n="blog_h3_7">Was bereits erreicht wurde</h3>
+            <p data-i18n="blog_p7_1">
+                Oblivio ist über die ursprüngliche Vision hinausgewachsen: Der Legacy-Chat ist aktiv — Angehörige können per Zugangscode mit dem gespeicherten Vermächtnis in Dialog treten. ElevenLabs-Sprachsynthese verleiht dem Biografen eine hörbare Stimme, und dank Web Speech API können Nutzer ihre Antworten auch per Spracheingabe diktieren.
+            </p>
+            <p data-i18n="blog_p7_2">
+                Oblivio ist fertig, aber nicht abgeschlossen. Es ist eine Plattform, die mit jedem Gespräch, das auf ihr geführt wird, reicher wird.
+            </p>
+
+        </div>
+    </div>
+
+</div>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div><div class="footer-brand">Oblivio</div><p class="footer-tagline" data-i18n="footer_tagline">Bewahre das Unvergessliche.<br>Ein Erbe für die Ewigkeit.</p></div>
+        <div class="footer-section"><h4 data-i18n="footer_product">Produkt</h4><ul class="footer-links"><li><a href="features.html" data-i18n="footer_tech">Technologie</a></li><li><a href="pricing.html" data-i18n="footer_pricing">Preise</a></li><li><a href="security.html" data-i18n="footer_security">Sicherheit</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
+        <div class="footer-section"><h4 data-i18n="footer_company">Unternehmen</h4><ul class="footer-links"><li><a href="about.html" data-i18n="footer_about">Über Oblivio</a></li><li><a href="blog.html" data-i18n="footer_blog">Blog</a></li></ul></div>
+        <div class="footer-section"><h4 data-i18n="footer_legal">Rechtliches</h4><ul class="footer-links"><li><a href="privacy.html" data-i18n="footer_privacy">Datenschutz</a></li><li><a href="terms.html" data-i18n="footer_terms">Nutzungsbedingungen</a></li><li><a href="contact.html" data-i18n="footer_contact">Kontakt</a></li></ul></div>
+    </div>
+    <div class="footer-bottom" data-i18n="footer_rights">© 2026 Oblivio. Alle Rechte vorbehalten.</div>
+</footer>
+
+<script src="js/translations.js"></script>
+<script>const sel=document.getElementById('languageSelector');const saved=localStorage.getItem('oblivio_language');if(saved&&sel)sel.value=saved;</script>
+</body>
+</html>

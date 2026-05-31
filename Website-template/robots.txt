@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /login.html
+Disallow: /signup.html
+Disallow: /biographer.html
+Disallow: /journey.html
+Disallow: /legacy.html
+Disallow: /images/avatars/
+
+Sitemap: https://oblivio.ch/sitemap.xml

@@ -1,0 +1,28 @@
+// ============================================
+// CONFIGURATION FOR OBLIVIO + PROMISE
+// ============================================
+
+const CONFIG = {
+    // PROMISE Backend API URL
+    // TODO: Replace with your actual Railway URL
+    PROMISE_API_URL: 'https://promise-production.up.railway.app',
+
+    // Supabase Configuration
+    SUPABASE_URL: 'YOUR_SUPABASE_URL',
+    SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY',
+
+    // ElevenLabs TTS Configuration
+    // API key is now securely stored on Railway Backend (not in frontend)
+    // Voice is handled by PROMISE Backend
+
+    // Agent Types
+    AGENT_TYPES: {
+        BIOGRAPHER: 2,
+        SINGLE_STATE: 0
+    }
+};
+
+// Export for use in other files
+window.OBLIVIO_CONFIG = CONFIG;
+
+console.log('✅ Oblivio configuration loaded');

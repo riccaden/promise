@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="page-id" content="features">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technology – Oblivio</title>
+    <meta name="description" content="The technology behind Oblivio – PROMISE Framework, OpenAI, Supabase and cutting-edge AI for your digital legacy.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://oblivio.ch/features.html">
+    <meta property="og:title" content="Technologie – Oblivio">
+    <meta property="og:description" content="PROMISE Framework, OpenAI, Supabase – die Technologie hinter Oblivio.">
+    <meta property="og:image" content="https://oblivio.ch/images/og-image.jpg">
+    <meta property="og:url" content="https://oblivio.ch/features.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Technologie – Oblivio">
+    <meta name="twitter:description" content="PROMISE Framework, OpenAI, Supabase – die Technologie hinter Oblivio.">
+    <meta name="twitter:image" content="https://oblivio.ch/images/og-image.jpg">
+    <link rel="icon" type="image/png" href="images/logo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root{--cream:#f8f4ed;--charcoal:#1a1a1a;--moss:#4a5942;--rust:#a84832;--gold:#d4af37;--stone:#8a8a8a;--shadow:rgba(26,26,26,0.15);}
+        .skip-link{position:absolute;top:-40px;left:0;background:var(--rust);color:var(--cream);padding:8px 16px;z-index:10000;font-size:14px;text-decoration:none;transition:top 0.3s;}.skip-link:focus{top:0;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Crimson Pro',serif;background-color:var(--cream);color:var(--charcoal);line-height:1.7;overflow-x:hidden;}
+        body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:url('data:image/svg+xml,%3Csvg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="3.5" numOctaves="4" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)" opacity="0.03"/%3E%3C/svg%3E');pointer-events:none;z-index:9999;opacity:0.6;}
+        nav{position:fixed;top:0;width:100%;z-index:1000;background-color:rgba(248,244,237,0.95);backdrop-filter:blur(12px);border-bottom:1px solid rgba(26,26,26,0.08);}
+        .nav-content{display:flex;justify-content:space-between;align-items:center;padding:24px 60px;}
+        .logo{font-family:'DM Serif Display',serif;font-size:26px;letter-spacing:-0.5px;color:var(--charcoal);text-decoration:none;}
+        .nav-links{display:flex;gap:40px;list-style:none;}
+        .nav-links a{color:var(--charcoal);text-decoration:none;font-size:14px;letter-spacing:0.5px;text-transform:uppercase;transition:color 0.3s;}
+        .nav-links a:hover{color:var(--rust);}
+        .lang-select{background-color:var(--cream);border:2px solid rgba(26,26,26,0.1);padding:8px 30px 8px 12px;font-family:'Crimson Pro',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.3s;color:var(--moss);border-radius:4px;text-transform:uppercase;letter-spacing:0.5px;appearance:none;background-image:url('data:image/svg+xml;utf8,<svg fill="%234a5942" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');background-repeat:no-repeat;background-position:right 4px center;background-size:20px;}
+        .lang-select:hover{border-color:var(--rust);color:var(--rust);}
+        .lang-select:focus{outline:none;border-color:var(--rust);}
+        .page-hero{padding:160px 60px 80px;max-width:900px;}
+        .page-label{font-size:12px;letter-spacing:3px;text-transform:uppercase;color:var(--rust);margin-bottom:20px;}
+        .page-hero h1{font-family:'DM Serif Display',serif;font-size:clamp(42px,6vw,72px);font-weight:400;line-height:1.1;color:var(--charcoal);margin-bottom:24px;}
+        .page-hero p{font-size:20px;color:var(--stone);max-width:640px;line-height:1.6;}
+        .content{padding:0 60px 120px;max-width:1200px;margin:0 auto;}
+        .divider{width:60px;height:1px;background:var(--rust);margin:0 0 80px 0;}
+        .tech-intro{font-size:19px;color:var(--stone);max-width:720px;margin-bottom:80px;line-height:1.8;}
+        .tech-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:2px;margin-bottom:80px;}
+        .tech-card{background:white;padding:52px 48px;border:1px solid rgba(26,26,26,0.06);transition:transform 0.3s ease,box-shadow 0.3s ease;}
+        .tech-card:hover{transform:translateY(-4px);box-shadow:0 12px 40px var(--shadow);}
+        .tech-number{font-family:'DM Serif Display',serif;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--rust);margin-bottom:24px;}
+        .tech-card h2{font-family:'DM Serif Display',serif;font-size:28px;font-weight:400;color:var(--charcoal);margin-bottom:16px;line-height:1.2;}
+        .tech-card .tech-subtitle{font-size:13px;letter-spacing:1.5px;text-transform:uppercase;color:var(--stone);margin-bottom:20px;}
+        .tech-card p{font-size:17px;color:#4a4a4a;line-height:1.7;}
+        .tech-tag{display:inline-block;margin-top:24px;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--moss);border:1px solid var(--moss);padding:5px 14px;border-radius:20px;}
+        .tech-tag+.tech-tag{margin-left:8px;}
+        .arch-section{margin-bottom:80px;}
+        .arch-section h2{font-family:'DM Serif Display',serif;font-size:36px;font-weight:400;margin-bottom:16px;}
+        .arch-section .lead{font-size:19px;color:var(--stone);max-width:640px;margin-bottom:48px;}
+        .flow-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(26,26,26,0.08);}
+        .flow-step{background:var(--cream);padding:36px 28px;}
+        .flow-step-num{font-family:'DM Serif Display',serif;font-size:40px;color:rgba(26,26,26,0.08);margin-bottom:16px;}
+        .flow-step h4{font-size:15px;letter-spacing:0.5px;margin-bottom:10px;}
+        .flow-step p{font-size:15px;color:var(--stone);}
+        footer{background-color:var(--charcoal);color:var(--cream);padding:80px 60px 40px;}
+        .footer-content{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:60px;margin-bottom:60px;}
+        .footer-brand{font-family:'DM Serif Display',serif;font-size:32px;margin-bottom:16px;}
+        .footer-tagline{font-size:15px;color:rgba(248,244,237,0.5);line-height:1.6;}
+        .footer-section h4{font-size:14px;text-transform:uppercase;letter-spacing:1px;margin-bottom:20px;color:#d4af37;font-weight:600;}
+        .footer-links{list-style:none;}
+        .footer-links li{margin-bottom:10px;}
+        .footer-links a{color:rgba(248,244,237,0.7);text-decoration:none;font-size:15px;transition:color 0.3s;}
+        .footer-links a:hover{color:var(--cream);}
+        .footer-bottom{border-top:1px solid rgba(248,244,237,0.1);padding-top:30px;font-size:13px;color:rgba(248,244,237,0.3);text-align:center;}
+        .hamburger{display:none;background:none;border:none;cursor:pointer;padding:8px;z-index:1002;}.hamburger span{display:block;width:24px;height:2px;background:var(--charcoal);margin:5px 0;transition:all 0.3s;}.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px);}.hamburger.active span:nth-child(2){opacity:0;}.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px);}.mobile-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(248,244,237,0.98);z-index:999;flex-direction:column;align-items:center;justify-content:center;gap:32px;}.mobile-overlay.active{display:flex;}.mobile-overlay a{font-family:'Crimson Pro',serif;font-size:20px;color:var(--charcoal);text-decoration:none;letter-spacing:1px;text-transform:uppercase;padding:12px 0;transition:color 0.3s;}.mobile-overlay a:hover{color:var(--rust);}.mobile-overlay .lang-select{margin-top:16px;}
+        @media(max-width:768px){.nav-content{padding:16px 20px;}.nav-links{display:none;}.hamburger{display:block;}.page-hero{padding:120px 20px 60px;}.page-hero h1{font-size:36px;}.page-hero p{font-size:17px;}.content{padding:0 20px 80px;}.divider{margin-bottom:48px;}.tech-grid{grid-template-columns:1fr;}.tech-card{padding:32px 24px;}.tech-card h2{font-size:22px;}.flow-steps{grid-template-columns:1fr;}.flow-step{padding:24px 20px;}.arch-section h2{font-size:28px;}footer{padding:48px 20px 32px;}.footer-content{grid-template-columns:1fr;gap:32px;}}
+    </style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Zum Inhalt springen</a>
+
+<nav aria-label="Hauptnavigation">
+    <div class="nav-content">
+        <a href="index.html" class="logo">Oblivio</a>
+        <button class="hamburger" aria-label="Menü öffnen" onclick="document.querySelector('.hamburger').classList.toggle('active');document.querySelector('.mobile-overlay').classList.toggle('active');document.body.style.overflow=document.querySelector('.mobile-overlay').classList.contains('active')?'hidden':''"><span></span><span></span><span></span></button>
+        <ul class="nav-links">
+            <li><a href="index.html" data-i18n="nav_home">Home</a></li>
+            <li><a href="features.html" data-i18n="nav_tech_link">Technologie</a></li>
+            <li><a href="about.html" data-i18n="nav_about_link">Über Oblivio</a></li>
+            <li><a href="journey.html" data-i18n="nav_start_link">Starten</a></li>
+            <li><select class="lang-select" id="languageSelector" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="de">Deutsch</option><option value="en">English</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select></li>
+        </ul>
+    </div>
+</nav>
+
+<div class="mobile-overlay">
+    <a href="index.html" data-i18n="nav_home">Home</a>
+    <a href="features.html" data-i18n="nav_tech_link">Technologie</a>
+    <a href="about.html" data-i18n="nav_about_link">Über Oblivio</a>
+    <a href="journey.html" data-i18n="nav_start_link">Starten</a>
+    <select class="lang-select" aria-label="Sprache wählen" onchange="setLanguage(this.value)"><option value="de">Deutsch</option><option value="en">English</option><option value="it">Italiano</option><option value="tr">Türkçe</option><option value="ko">한국어</option><option value="fr">Français</option><option value="ja">日本語</option><option value="zh">中文</option></select>
+</div>
+
+<main id="main-content">
+<div class="page-hero">
+    <p class="page-label" data-i18n="tech_label">Technologie</p>
+    <h1 data-i18n="tech_h1">Die Architektur<br>des Unvergänglichen</h1>
+    <p data-i18n="tech_sub">Oblivio vereint modernste Forschung mit durchdachter Infrastruktur, damit jede Geschichte sicher bewahrt, jedes Gespräch lebendig und jedes Erbe dauerhaft zugänglich bleibt.</p>
+</div>
+
+<div class="content">
+    <div class="divider"></div>
+
+    <p class="tech-intro" data-i18n="tech_intro">Hinter Oblivio stehen keine fertigen Baukasten-Lösungen, sondern bewusst gewählte Technologien, die zusammen ein System ergeben, das Würde, Sicherheit und Tiefe in Einklang bringt.</p>
+
+    <div class="tech-grid">
+
+        <div class="tech-card">
+            <div class="tech-number">01</div>
+            <div class="tech-subtitle" data-i18n="tech_01_sub">Konversations-KI-Framework</div>
+            <h2 data-i18n="tech_01_title">PROMISE</h2>
+            <p data-i18n="tech_01_p">PROMISE ist ein wissenschaftliches Framework der <strong>ZHAW – Zürcher Hochschule für Angewandte Wissenschaften</strong>, das zustandsbasierte, mehrstufige KI-Konversationen ermöglicht. Der Biograf von Oblivio basiert vollständig auf PROMISE: Jeder der zehn thematischen Gesprächsblöcke ist ein eigenständiger Zustand mit individuellem Systemkontext, Übergangsbedingungen und automatischer Wissensextraktion.</p>
+            <span class="tech-tag" data-i18n="tech_01_tag1">ZHAW Research</span>
+            <span class="tech-tag" data-i18n="tech_01_tag2">Stateful AI</span>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-number">02</div>
+            <div class="tech-subtitle" data-i18n="tech_02_sub">Sprachmodell</div>
+            <h2 data-i18n="tech_02_title">GPT von OpenAI</h2>
+            <p data-i18n="tech_02_p">Die Gespräche des Biografen werden von einem <strong>GPT-Sprachmodell von OpenAI</strong> angetrieben. OpenAIs Modelle wurden auf riesigen Mengen menschlicher Sprache trainiert und sind in der Lage, kontextsensitive, einfühlsame Konversationen zu führen. Das ermöglicht Oblivio, Gespräche zu führen, die sich nicht maschinell anfühlen, sondern wie ein aufmerksames Gegenüber: geduldig, feinfühlig und stets an der Person interessiert.</p>
+            <span class="tech-tag" data-i18n="tech_02_tag1">OpenAI</span>
+            <span class="tech-tag" data-i18n="tech_02_tag2">GPT</span>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-number">03</div>
+            <div class="tech-subtitle" data-i18n="tech_03_sub">Datenbank &amp; Authentifizierung</div>
+            <h2 data-i18n="tech_03_title">Supabase</h2>
+            <p data-i18n="tech_03_p">Alle Nutzerdaten, Gesprächsverläufe und gespeicherten Vermächtnisse werden in <strong>Supabase</strong> abgelegt, einer offenen PostgreSQL-Plattform mit Row Level Security (RLS). Das bedeutet: Kein Nutzer kann auf die Daten eines anderen zugreifen, nicht durch Fehler, nicht durch Schwachstellen. Die Authentifizierung erfolgt über verschlüsselte JWT-Token, und alle Verbindungen sind TLS-gesichert.</p>
+            <span class="tech-tag" data-i18n="tech_03_tag1">PostgreSQL</span>
+            <span class="tech-tag" data-i18n="tech_03_tag2">Row Level Security</span>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-number">04</div>
+            <div class="tech-subtitle" data-i18n="tech_04_sub">Backend-Infrastruktur</div>
+            <h2 data-i18n="tech_04_title">Railway</h2>
+            <p data-i18n="tech_04_p">Der PROMISE-Backend-Dienst läuft auf <strong>Railway</strong>, einer modernen Cloud-Plattform, die automatisches Deployment, Skalierung und Monitoring vereint. Jede Änderung am Biografen-System ist innerhalb von Minuten live, ohne manuelle Server-Konfiguration. Railway sorgt dafür, dass Oblivio auch unter Last zuverlässig erreichbar bleibt.</p>
+            <span class="tech-tag" data-i18n="tech_04_tag1">Auto-Deploy</span>
+            <span class="tech-tag" data-i18n="tech_04_tag2">Cloud Infrastructure</span>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-number">05</div>
+            <div class="tech-subtitle" data-i18n="tech_05_sub">Stimmsynthese · Geplant</div>
+            <h2 data-i18n="tech_05_title">ElevenLabs</h2>
+            <p data-i18n="tech_05_p">In einer zukünftigen Version von Oblivio soll jedes digitale Vermächtnis nicht nur lesbar, sondern <em>hörbar</em> sein. Mit <strong>ElevenLabs</strong>, der führenden Plattform für realistische Stimmsynthese, wird es möglich sein, die eigene Stimme aufzunehmen und zu klonen. Angehörige können dann nicht nur Textnachrichten lesen, sondern die vertraute Stimme ihrer Liebsten wieder hören.</p>
+            <span class="tech-tag" data-i18n="tech_05_tag1">Voice Cloning</span>
+            <span class="tech-tag" data-i18n="tech_05_tag2">Roadmap 2026</span>
+        </div>
+
+        <div class="tech-card">
+            <div class="tech-number">06</div>
+            <div class="tech-subtitle" data-i18n="tech_06_sub">Web-Hosting</div>
+            <h2 data-i18n="tech_06_title">Schweizer Webhosting</h2>
+            <p data-i18n="tech_06_p">Das Frontend von Oblivio wird über einen renommierten Schweizer Hosting-Anbieter betrieben. Die Domain <em>oblivio.ch</em> und alle statischen Ressourcen werden direkt aus der Schweiz ausgeliefert. Das bedeutet: Daten bleiben in der Schweiz, unterliegen dem Schweizer Datenschutzgesetz (DSG) und profitieren von einer exzellenten Netzinfrastruktur.</p>
+            <span class="tech-tag" data-i18n="tech_06_tag1">Schweizer Hosting</span>
+            <span class="tech-tag" data-i18n="tech_06_tag2">DSG-konform</span>
+        </div>
+
+    </div>
+
+    <div class="arch-section">
+        <h2 data-i18n="tech_arch_title">Wie alles zusammenspielt</h2>
+        <p class="lead" data-i18n="tech_arch_lead">Von deiner Eingabe bis zur gespeicherten Erinnerung: Jeder Schritt ist durchdacht und gesichert.</p>
+
+        <div class="flow-steps">
+            <div class="flow-step">
+                <div class="flow-step-num">01</div>
+                <h4 data-i18n="tech_flow1_title">Eingabe</h4>
+                <p data-i18n="tech_flow1_p">Du schreibst eine Nachricht im Browser, verschlüsselt über HTTPS übertragen.</p>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">02</div>
+                <h4 data-i18n="tech_flow2_title">PROMISE verarbeitet</h4>
+                <p data-i18n="tech_flow2_p">Der Railway-Backend-Dienst empfängt die Nachricht, bestimmt den aktuellen Zustand und sendet sie an OpenAI GPT.</p>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">03</div>
+                <h4 data-i18n="tech_flow3_title">GPT antwortet</h4>
+                <p data-i18n="tech_flow3_p">Das Sprachmodell generiert eine einfühlsame, kontextsensitive Antwort basierend auf dem Zustand des Biografen.</p>
+            </div>
+            <div class="flow-step">
+                <div class="flow-step-num">04</div>
+                <h4 data-i18n="tech_flow4_title">Supabase speichert</h4>
+                <p data-i18n="tech_flow4_p">Gespräch und extrahierte Erkenntnisse werden sicher in deiner persönlichen Supabase-Instanz gespeichert, zugänglich nur für dich.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+</main>
+
+<footer>
+    <div class="footer-content">
+        <div><div class="footer-brand">Oblivio</div><p class="footer-tagline" data-i18n="footer_tagline">Bewahre das Unvergessliche.<br>Ein Erbe für die Ewigkeit.</p></div>
+        <div class="footer-section"><h4 data-i18n="footer_product">Produkt</h4><ul class="footer-links"><li><a href="features.html" data-i18n="footer_tech">Technologie</a></li><li><a href="pricing.html" data-i18n="footer_pricing">Preise</a></li><li><a href="security.html" data-i18n="footer_security">Sicherheit</a></li><li><a href="faq.html">FAQ</a></li></ul></div>
+        <div class="footer-section"><h4 data-i18n="footer_company">Unternehmen</h4><ul class="footer-links"><li><a href="about.html" data-i18n="footer_about">Über Oblivio</a></li><li><a href="blog.html" data-i18n="footer_blog">Blog</a></li></ul></div>
+        <div class="footer-section"><h4 data-i18n="footer_legal">Rechtliches</h4><ul class="footer-links"><li><a href="privacy.html" data-i18n="footer_privacy">Datenschutz</a></li><li><a href="terms.html" data-i18n="footer_terms">Nutzungsbedingungen</a></li><li><a href="contact.html" data-i18n="footer_contact">Kontakt</a></li></ul></div>
+    </div>
+    <div class="footer-bottom" data-i18n="footer_rights">© 2026 Oblivio. Alle Rechte vorbehalten.</div>
+</footer>
+
+<script src="js/translations.js"></script>
+</body>
+</html>
