@@ -515,7 +515,8 @@ Required tools:
 
 ### Step 2: Swap MySQL for PostgreSQL in [`pom.xml`](pom.xml)
 
-PROMISE was originally configured for MySQL. Oblivio uses Supabase PostgreSQL.
+**Why this change?**
+PROMISE was originally configured for MySQL. Oblivio needed a hosted database with built-in authentication and JWT support — Supabase was chosen because it offers PostgreSQL plus user management out of the box, removing the need to write a separate auth service. PostgreSQL also handles JSONB and TEXT columns better than MySQL, which matters for our long persona prompts and structured block summaries.
 
 **Before (PROMISE):**
 ```xml
@@ -535,11 +536,16 @@ PROMISE was originally configured for MySQL. Oblivio uses Supabase PostgreSQL.
 </dependency>
 ```
 
+**Without this change:** Spring Boot would fail at startup with `Driver org.postgresql.Driver claims to not accept jdbcUrl` because the PostgreSQL driver wouldn't be on the classpath.
+
 ---
 
 ### Step 3: Migrate Database Columns to TEXT
 
-PROMISE caps prompt columns at VARCHAR(10000). Oblivio's persona prompts can be 20k+ characters long. Three Java entity files must be modified:
+**Why this change?**
+PROMISE caps prompt columns at VARCHAR(10000). Oblivio's persona prompts are much longer because they contain six sections (IDENTITY + CHAPTERS + ANALYSIS + STYLE + EXAMPLES + SELF_KNOWLEDGE + RULES) — a single persona prompt can reach 20,000 characters. Without this migration, inserting such prompts crashes with `value too long for type character varying(10000)`. Switching to PostgreSQL's TEXT type removes the size limit entirely without performance penalties.
+
+Three Java entity files must be modified:
 
 **Before (in [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java)):**
 ```java
@@ -553,7 +559,7 @@ private String prompt;
 private String prompt;
 ```
 
-**Important:** If the table already exists, Hibernate will NOT change the column type automatically. Run manually in Supabase SQL Editor:
+**Important caveat — why this isn't automatic:** Hibernate's `ddl-auto=update` mode adds new columns but does NOT modify existing column types. If the database was previously running with VARCHAR(10000), the Java annotation alone won't change the schema. Run this manually in Supabase SQL Editor:
 ```sql
 ALTER TABLE prompt ALTER COLUMN prompt TYPE TEXT;
 ALTER TABLE state ALTER COLUMN starter_prompt TYPE TEXT;
@@ -565,7 +571,8 @@ ALTER TABLE utterance ALTER COLUMN content TYPE TEXT;
 
 ### Step 4: Add `userId` to [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) for Multi-User Tracking
 
-PROMISE was single-user. Oblivio needs to attribute each agent to a registered user.
+**Why this change?**
+PROMISE was designed for a single user — every agent in the database belonged to "the user". Oblivio is a multi-user platform: many people simultaneously run their own Biographer sessions and own their own Legacy personas. Without a `userId` field, there would be no way to filter "show me only my agents" — anyone could potentially see everyone else's conversations. Adding this column to the `agent` entity links each agent to a Supabase Auth user via UUID.
 
 **Add to `Agent` class:**
 ```java
@@ -576,11 +583,16 @@ public String getUserId() { return this.userId; }
 public void setUserId(String userId) { this.userId = userId; }
 ```
 
+**Without this change:** The `/user/{userId}/agents` endpoint (Step 12) would have no field to filter by — and the frontend dashboard couldn't show users their own biographer history.
+
 ---
 
 ### Step 5: Add Context Compaction to [`Utterances.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java)
 
-Without compaction, every new message resends the full conversation to GPT — token costs grow linearly. After 20 user messages, older messages are summarized.
+**Why this change?**
+In PROMISE, every new user message resends the full conversation history to GPT — token costs grow linearly with conversation length. A 50-message conversation sends ~5000 input tokens on every turn, multiplied by every additional message. At GPT-4o pricing, a long biographer session can quickly cost several dollars. Beyond cost, GPT-4o's 128k token context window would eventually overflow for very long conversations, causing API errors.
+
+The compaction mechanism solves both problems: after 20 user messages, older messages are summarized into a single system message (3–5 sentences). This keeps the cost roughly constant regardless of conversation length, while still preserving the gist of what was discussed earlier. The threshold of 20 was chosen empirically — early enough to keep costs manageable, late enough that natural conversation context is preserved.
 
 **Add constants and method:**
 ```java
@@ -609,6 +621,9 @@ Full implementation: ~60 lines. See [`Utterances.java:118-179`](src/main/java/ch
 
 ### Step 6: Trigger Compaction in [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java)
 
+**Why this change?**
+The `compactIfNeeded()` method from Step 5 doesn't run by itself — it needs to be called at the right moment. The best moment is **right before each new LLM call**, so the compacted context is used in the next request. By placing it in `State.respond()` immediately after `acknowledge()` (which adds the new user message), every conversation in every state automatically benefits — Biographer, Legacy, even future agent types. One line, one place, full coverage.
+
 **Before (PROMISE `State.respond()`):**
 ```java
 public Response respond(String userSays, String outerPrompt) throws TransitionException {
@@ -632,7 +647,8 @@ public Response respond(String userSays, String outerPrompt) throws TransitionEx
 
 ### Step 7: Add `summariseOffline()` to [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java)
 
-Compaction needs a plain-text summary (no JSON). PROMISE has `summarise()` (JSON) but not the plain-text variant.
+**Why this change?**
+PROMISE's existing `summarise()` method returns a JSON object (designed for structured data extraction). But for context compaction, we need a plain-text paragraph to inject as a system message — JSON would confuse the LLM in subsequent turns. The new `summariseOffline()` method skips the JSON-format instruction and returns a raw string, ready to be wrapped in `[Zusammenfassung des bisherigen Gesprächs]` and prepended to the message list.
 
 **Add:**
 ```java
@@ -647,7 +663,10 @@ public static String summariseOffline(Utterances utterances, String systemPrepen
 
 ### Step 8: Build the Biographer Factory ([`AgentMetaUtility.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java))
 
-This is the most complex addition (~500 lines). The Biographer is a chain of 21 states (10 blocks × 2 + Final), built **backwards** so each transition can reference its `subsequentState`.
+**Why this change?**
+PROMISE provides only the building blocks (State, Transition, Decision, Action) — it does NOT provide ready-made agents. To create the Biographer, every block had to be hand-wired: a conversation state for asking questions, a confirmation state for validating the summary, transitions between them with the right guards, and an extraction action that saves the block summary to storage. Doing this 10 times manually would be error-prone, so the logic was centralized in one factory method. The factory also handles language selection (8 languages) and nickname injection so the same code produces customized biographers per user. **The chain is built backwards** because each transition needs to reference its `subsequentState`, which must exist at creation time — starting from Final and working back to Block 1 is the only practical way.
+
+This is the most complex addition (~500 lines). The Biographer is a chain of 21 states (10 blocks × 2 + Final).
 
 **Key method:**
 ```java
@@ -691,6 +710,9 @@ Plus helpers:
 
 ### Step 9: Add `/agent/biographer` Endpoint
 
+**Why this change?**
+PROMISE exposes only `POST /agent/singlestate`, which creates a basic single-state agent. The Biographer is fundamentally different — it has 21 states, accepts a language parameter, and accepts a nickname. Adding a dedicated endpoint keeps the API clean: the frontend simply calls `/agent/biographer` with the user's chosen language and gets back a fully wired agent. Sharing the `/agent/singlestate` endpoint would require overloading it with optional fields and runtime type-checks, which is messy.
+
 In [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java), add:
 
 ```java
@@ -715,7 +737,8 @@ Plus create [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconv
 
 ### Step 10: Add CORS Configuration
 
-PROMISE has no CORS config — the browser blocks cross-origin requests from Hostpoint to Railway.
+**Why this change?**
+The Oblivio frontend lives on `oblivio.ch` (Hostpoint), the backend on `promise-production.up.railway.app` (Railway). These are two different domains. By default, browsers enforce the Same-Origin Policy: a JavaScript fetch from one origin to another is blocked unless the server explicitly permits it. Without CORS headers from the backend, every API call from the frontend would fail with `Access-Control-Allow-Origin missing`. The CORS configuration tells the browser "yes, this Railway server accepts requests from any origin" — a single Spring Boot bean fixes this for all endpoints at once.
 
 **Create new file [`config/WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java):**
 ```java
@@ -739,7 +762,8 @@ public class WebConfig {
 
 ### Step 11: Add TTS Bridge ([`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java))
 
-New controller (~100 lines) that proxies requests to ElevenLabs. Keeps the API key on the server.
+**Why this change?**
+PROMISE is text-only — there's no audio. Oblivio's legacy personas needed voices to feel emotionally real (a grandmother's voice carries memory the way text cannot). ElevenLabs provides the voice synthesis. But we cannot call ElevenLabs directly from the browser, because that would expose the API key in the frontend code where anyone could copy it and run up our bill. The Backend-as-a-bridge pattern keeps the key on the server: the frontend sends plain text to our backend, and our backend calls ElevenLabs with the key and returns the MP3 bytes.
 
 ```java
 @PostMapping("{agentID}/tts")
@@ -763,6 +787,9 @@ Also create [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/contr
 
 ### Step 12: Add Multi-User Endpoints ([`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java))
 
+**Why this change?**
+PROMISE's `AgentController` exposes operations per-agent (`/{agentId}/respond` etc.), but it has no endpoints per-user. Once we added `userId` to the Agent entity (Step 4), we need ways to query "show me all of user X's agents", "their full conversation history", and "their usage stats". The frontend journey-dashboard page needs these endpoints to render the user's overview.
+
 ```java
 @GetMapping("/user/{userId}/agents")        // List user's agents
 @GetMapping("/user/{userId}/conversations") // Their conversations
@@ -775,7 +802,10 @@ Plus DTOs [`UserAgentView.java`](src/main/java/ch/zhaw/statefulconversation/cont
 
 ### Step 13: Add Live Log Streaming (`logging/` package)
 
-For debugging in production, a Server-Sent Events log stream. Four new classes:
+**Why this change?**
+When something goes wrong in production on Railway, getting logs traditionally requires SSH access or the Railway CLI — neither is convenient during a live debugging session. With the live log stream, we open `/logs/stream` in any browser and immediately see what the state machine is doing in real time. This was especially helpful while debugging the cascading-transition bug: watching guards fire in sequence revealed exactly which condition was wrong. Implemented with Server-Sent Events because they're unidirectional (server → browser only), require no special client libraries, and survive automatic reconnects.
+
+Four new classes:
 
 - [`LogEvent.java`](src/main/java/ch/zhaw/statefulconversation/logging/LogEvent.java) — DTO
 - [`SseLogAppender.java`](src/main/java/ch/zhaw/statefulconversation/logging/SseLogAppender.java) — Logback appender
@@ -788,7 +818,8 @@ Register the appender in [`logback-spring.xml`](src/main/resources/logback-sprin
 
 ### Step 14: Add Production Properties
 
-PROMISE has only local config. Oblivio needs production-grade properties that read from Railway env vars.
+**Why this change?**
+PROMISE ships with only local-development properties — database URL, password, API key are hardcoded. Pushing those to GitHub would leak credentials. Spring Boot's "profiles" mechanism allows different property files per environment: `application-prod.properties` is loaded only when `SPRING_PROFILES_ACTIVE=prod` is set. By using `${ENV_VAR}` placeholders, the actual values come from Railway's environment variables at runtime — keeping passwords out of the repository entirely. The `prepareThreshold=0` setting at the bottom is essential because Supabase uses PgBouncer in transaction-pooling mode, which incompatibly handles prepared statements.
 
 **Create [`application-prod.properties`](src/main/resources/application-prod.properties):**
 ```properties
@@ -813,6 +844,9 @@ openai.model=gpt-4o
 ---
 
 ### Step 15: Containerize for Railway
+
+**Why this change?**
+PROMISE has no Dockerfile — it's meant to be run locally with `mvn spring-boot:run`. Railway needs an image to deploy, so we package the application in a Docker container. The multi-stage build is deliberate: Stage 1 includes the full JDK and Maven (~700 MB) needed only to compile the JAR, Stage 2 contains just the JRE and the compiled JAR (~200 MB). The smaller final image starts faster on Railway, uses less memory, and is more secure (fewer attack vectors than a JDK). The `USER nobody` line follows the principle of least privilege — if a vulnerability is exploited, the attacker has no shell privileges. The healthcheck lets Railway automatically restart the container if it stops responding.
 
 Create [`Dockerfile`](Dockerfile) (multi-stage build):
 ```dockerfile
@@ -857,6 +891,9 @@ sql/
 
 ### Step 16: Create Supabase Tables for Frontend
 
+**Why this change?**
+Hibernate automatically creates all PROMISE-related tables (agent, state, prompt, utterance, etc.) when the backend starts. But the frontend talks **directly to Supabase** via the JavaScript client (bypassing the backend) for things like login, persona lookup, and message persistence. Those tables don't have corresponding Java entities, so Hibernate doesn't know about them — they must be created manually. Splitting responsibility this way is intentional: it lets the frontend operate independently of the backend for read-heavy operations, reducing latency and load on Railway.
+
 Run [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) once on Supabase. Creates the tables used by the frontend (not by Hibernate):
 
 | Table | Purpose |
@@ -870,6 +907,9 @@ Run [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) once on Supabase. Creat
 ---
 
 ### Step 17: Deploy to Railway
+
+**Why Railway?**
+Railway was chosen because it integrates seamlessly with GitHub: every push to `main` triggers a fresh build and rolling deployment automatically — no separate CI/CD scripts, no manual SSH, no downtime. Alternatives like AWS or Google Cloud would have required significantly more setup. Railway also handles SSL/HTTPS, automatic restarts on failure, and Docker builds out of the box. The combination of "git push = live in 3 minutes" was essential for iterating quickly during the bachelor's thesis.
 
 1. Push code to GitHub
 2. On Railway: "New Project" → "Deploy from GitHub" → select your fork
