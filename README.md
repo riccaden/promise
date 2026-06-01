@@ -495,6 +495,241 @@ After the Final state is reached, the frontend fetches `GET /{agentId}/storage` 
 
 ---
 
+## Supabase Schema — Tables and Columns You Must Create
+
+**Read this section first if you are rebuilding Oblivio from scratch.** Every "Where the data goes" line later in this README points to one of the tables defined here. Without these tables (and the columns shown), the frontend's `.insert()` and `.select()` calls will fail silently and the conversation will not persist.
+
+There are **two groups of tables** in the Supabase project:
+
+- **Group A — Created automatically by Hibernate** (PROMISE-managed). The Spring Boot backend runs with `spring.jpa.hibernate.ddl-auto=update`, so the first request after deploy creates these. You do **not** write SQL for them. Tables: `agent`, `state`, `prompt`, `transition`, `prompt_transitions`, `utterance`, `utterances`, `storage`, `storage_entry`.
+- **Group B — Created manually by you** (Oblivio-specific). These are written directly from the browser via the Supabase JS client. You must create them with SQL in the Supabase SQL Editor *before* the website can save anything. The complete script lives at [`sql/SUPABASE_TABLES.sql`](sql/SUPABASE_TABLES.sql) (core) and [`sql/supabase_migrations.sql`](sql/supabase_migrations.sql) (with share-token extension). The 9 tables below are what the frontend in [`Website-template/`](Website-template/) expects.
+
+### How "field on the website → column in Supabase" works (mental model)
+
+The pattern is always the same. There is no ORM, no API layer, no glue code — the frontend writes columns by name.
+
+```javascript
+//  1. A user types something into an HTML form field:
+//     <input id="nickname-input" />
+const nickname = document.getElementById('nickname-input').value;
+
+//  2. JavaScript builds a plain object whose KEYS MUST MATCH the Supabase column names:
+const row = {
+    user_id: currentUser.id,    // ← column 'user_id'   on table 'user_profiles'
+    nickname: nickname,          // ← column 'nickname'  on table 'user_profiles'
+    completed_at: new Date().toISOString()
+};
+
+//  3. One Supabase call writes the row. The library translates the object
+//     literally — keys become column names, values become column values.
+await supabaseClient.from('user_profiles').upsert(row, { onConflict: 'user_id' });
+```
+
+**To add a new field that flows from website → Supabase, you do three things:**
+
+1. **Add the column in Supabase** (SQL Editor → `ALTER TABLE user_profiles ADD COLUMN birthplace TEXT;`)
+2. **Capture the value in the browser** (`<input id="birthplace">` + `document.getElementById('birthplace').value`)
+3. **Add the key to the JS object** that gets inserted (`row.birthplace = ...`) — the *key name must equal the column name*.
+
+That's it. Supabase's PostgREST layer auto-exposes every column as part of the row; no migration of code is needed beyond those three points.
+
+If you forget step 1, the insert fails with `column "birthplace" of relation "user_profiles" does not exist`. If you forget step 3, the column stays NULL forever.
+
+### The 9 Oblivio-specific tables
+
+| Table | What it stores | Written by | Read by |
+|---|---|---|---|
+| `user_profiles` | Per-user nickname (the Biographer's name for them) | [`biographer.html`](Website-template/biographer.html) `saveUserProfile()` | [`biographer.html`](Website-template/biographer.html), [`journey.html`](Website-template/journey.html) |
+| `user_consents` | GDPR consent flag per user | [`biographer.html`](Website-template/biographer.html) `saveUserConsent()` | [`biographer.html`](Website-template/biographer.html) `checkUserConsent()` |
+| `questionnaire_answers` | All Pre-Survey (Block 0) answers as one JSONB | [`biographer.html`](Website-template/biographer.html) `saveUserProfile()` | Admin / analytics only |
+| `user_agents` | Maps a Supabase user → a PROMISE agent UUID (per language) | [`biographer-promise.js`](Website-template/js/biographer-promise.js) `getOrCreatePromiseAgent()` | Same file (resume logic) |
+| `chat_messages` | Denormalised chat history of the Biographer interview | [`biographer-promise.js`](Website-template/js/biographer-promise.js) `saveChatMessage()` | `loadChatMessages()` (resume) |
+| `biographer_conversations` | Per-block log of every Biographer message (with block number + state) | [`biographer-promise.js`](Website-template/js/biographer-promise.js) | Admin / analytics |
+| `user_legacies` | Final 10 block summaries as one JSONB (the "biography") | [`biographer-promise.js`](Website-template/js/biographer-promise.js) `saveLegacyToSupabase()` | [`legacy.html`](Website-template/legacy.html) (fallback path) |
+| `legacy_access_codes` | The 8-char share code + persona prompts + voice + avatar | [`biographer.html`](Website-template/biographer.html) (insert), admin SQL (prompt update) | [`legacy.html`](Website-template/legacy.html), [`journey.html`](Website-template/journey.html) |
+| `legacy_messages` | Every visitor↔persona message (one row per turn, scoped by visitor_id + mode) | [`legacy.html`](Website-template/legacy.html) `saveMessage()` | [`legacy.html`](Website-template/legacy.html) `loadConversationHistory()` |
+
+Plus `auth.users` — managed entirely by Supabase Auth, you do not create or modify it.
+
+### Complete CREATE TABLE script
+
+Paste this into the **Supabase SQL Editor** once, on a fresh project. It is idempotent (uses `CREATE TABLE IF NOT EXISTS`), so it is safe to re-run.
+
+```sql
+-- ============================================
+-- 1. user_profiles — nickname per Supabase user
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
+    nickname TEXT,
+    completed_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 2. user_consents — GDPR consent
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_consents (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    consented BOOLEAN NOT NULL,
+    consented_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 3. questionnaire_answers — full Pre-Survey responses
+-- ============================================
+CREATE TABLE IF NOT EXISTS questionnaire_answers (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    answers JSONB NOT NULL,
+    completed_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 4. user_agents — user → PROMISE agent mapping (per language)
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_agents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    agent_id UUID NOT NULL,
+    language VARCHAR(10) NOT NULL DEFAULT 'en',
+    nickname TEXT,                                   -- so a name change starts a fresh agent
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(user_id, language)
+);
+
+-- ============================================
+-- 5. chat_messages — flat Biographer chat history (for resume)
+-- ============================================
+CREATE TABLE IF NOT EXISTS chat_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    agent_id UUID NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('user','assistant')),
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 6. biographer_conversations — per-block log (with block number + state)
+-- ============================================
+CREATE TABLE IF NOT EXISTS biographer_conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    agent_id UUID NOT NULL,
+    block_number INTEGER,
+    state_name TEXT,
+    role TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 7. user_legacies — final 10 block summaries (the "biography")
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_legacies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    agent_id UUID NOT NULL,
+    legacy_data JSONB NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    completed_at TIMESTAMPTZ
+);
+
+-- ============================================
+-- 8. legacy_access_codes — the 8-char share code + persona prompts
+-- ============================================
+CREATE TABLE IF NOT EXISTS legacy_access_codes (
+    access_code VARCHAR(8) PRIMARY KEY,             -- e.g. 'VDSRMACZ'
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    nickname TEXT,
+    language VARCHAR(10),
+    legacy_data JSONB,                              -- contains full_prompt_active / _passive / _analysis
+    voice_id TEXT,                                  -- ElevenLabs voice identifier (optional)
+    avatar_url TEXT,                                -- relative path to avatar image (optional)
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- 9. legacy_messages — visitor ↔ persona chat history
+-- ============================================
+CREATE TABLE IF NOT EXISTS legacy_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    access_code VARCHAR(8) NOT NULL REFERENCES legacy_access_codes(access_code) ON DELETE CASCADE,
+    visitor_id TEXT NOT NULL,                       -- mode-scoped: '<uuid>__active' / '__passive' / '__analysis'
+    visitor_name TEXT,
+    user_id UUID,                                   -- the persona owner (nullable for guests)
+    role TEXT NOT NULL CHECK (role IN ('user','legacy')),
+    content TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================
+-- Performance indexes
+-- ============================================
+CREATE INDEX IF NOT EXISTS idx_user_agents_user_id        ON user_agents(user_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_user_agent   ON chat_messages(user_id, agent_id);
+CREATE INDEX IF NOT EXISTS idx_user_legacies_user_id      ON user_legacies(user_id);
+CREATE INDEX IF NOT EXISTS idx_legacy_access_codes_user   ON legacy_access_codes(user_id);
+CREATE INDEX IF NOT EXISTS idx_legacy_messages_code_vis   ON legacy_messages(access_code, visitor_id);
+```
+
+### Row-Level Security (RLS) — critical for production
+
+Without RLS, **any** anonymous request can read **any** row. With RLS turned on plus the policies below, a logged-in user can only see their own rows, and visitors with an access code can only read the public-by-design columns of the persona they're talking to.
+
+```sql
+-- Turn RLS on
+ALTER TABLE user_profiles          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_consents          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE questionnaire_answers  ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_agents            ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE biographer_conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_legacies          ENABLE ROW LEVEL SECURITY;
+ALTER TABLE legacy_access_codes    ENABLE ROW LEVEL SECURITY;
+ALTER TABLE legacy_messages        ENABLE ROW LEVEL SECURITY;
+
+-- A user can read / write only their own rows on the "owner" tables
+CREATE POLICY "own_rows" ON user_profiles         FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON user_consents         FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON questionnaire_answers FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON user_agents           FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON chat_messages         FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON biographer_conversations FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "own_rows" ON user_legacies         FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- legacy_access_codes: owner manages, anyone can read an active code (visitors don't log in)
+CREATE POLICY "owner_manage" ON legacy_access_codes FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "public_read_active" ON legacy_access_codes FOR SELECT USING (is_active = true);
+
+-- legacy_messages: anyone can read/write rows for an active code (visitors are anonymous)
+CREATE POLICY "active_code_messages" ON legacy_messages FOR ALL
+    USING ( EXISTS (SELECT 1 FROM legacy_access_codes c WHERE c.access_code = legacy_messages.access_code AND c.is_active = true) )
+    WITH CHECK ( EXISTS (SELECT 1 FROM legacy_access_codes c WHERE c.access_code = legacy_messages.access_code AND c.is_active = true) );
+```
+
+### How to verify the schema is wired correctly
+
+After running the SQL above, open the website locally and check the Supabase **Table Editor** in the browser as you go:
+
+| You do this on the website | Then this row appears |
+|---|---|
+| Sign up | `auth.users` (automatic, by Supabase) |
+| Accept GDPR modal in Biographer | `user_consents` |
+| Finish Block 0 (Pre-Survey) | `user_profiles` (nickname) + `questionnaire_answers` (full JSONB) |
+| First Biographer message | `user_agents` (one row), then `chat_messages` grows with every turn |
+| Finish Block 10 | `user_legacies` (final JSONB) + `legacy_access_codes` (your 8-char code) |
+| Open the access code in Legacy Chat | (no row yet, just a SELECT on `legacy_access_codes`) |
+| Send a message to the persona | `legacy_messages` grows |
+
+If a row does not appear, the browser console will show a Supabase error like `relation "user_profiles" does not exist` (you forgot the CREATE) or `new row violates row-level security policy` (RLS is on but no policy matches — usually because the user is not logged in or the `user_id` value doesn't match `auth.uid()`).
+
+---
+
 ## End-to-End Process
 
 The full journey from "user registers" to "loved ones chat with the digital persona", in **two perspectives**:
@@ -523,10 +758,15 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **PROMISE adaptations:**
 - None — authentication is handled by Supabase, not by PROMISE. PROMISE had no auth system; Oblivio relies entirely on Supabase Auth.
 
-**Where the data goes:**
-- Supabase table `auth.users` (managed automatically by Supabase — stores email, hashed password, email-verified flag, timestamps)
-- JWT token stored in browser cookie + localStorage (by the Supabase JS client automatically)
-- No row is created in any Oblivio-specific table at this point — that happens only when the user starts the Biographer (Step 4)
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source on the website | Why this column |
+|---|---|---|---|
+| `auth.users` | `email`, `encrypted_password`, `email_confirmed_at` | The two form fields in [`signup.html`](Website-template/signup.html) (`<input type="email">`, `<input type="password">`) — handed to `supabase.auth.signUp({ email, password })` | Managed entirely by Supabase Auth. You don't create this table or insert into it manually. |
+
+No Oblivio-specific table is touched yet — that starts in Step 3 (consent) and Step 4 (agent creation). The user's UUID (`auth.users.id`) is what every later table joins on.
+
+**To add a new signup field** (e.g. "preferred name" at signup) you would: (1) add `<input id="preferred-name">` to signup.html, (2) collect it in the submit handler, (3) call `supabase.from('user_profiles').upsert({ user_id: data.user.id, preferred_name: ... })` immediately after `signUp()` returns — Step 1's `auth.users` row cannot hold custom columns directly.
 
 ---
 
@@ -556,12 +796,20 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 
 ---
 
-### Step 3 — Block 0: Pre-Survey
+### Step 3 — Block 0: Pre-Survey + GDPR Consent
 
-**What happens:** Before the actual Biographer starts, the user fills out a short questionnaire: age range, gender, personality traits, communication style. This gives the Biographer agent context for personalisation.
+**What happens:** Before the actual Biographer starts, the user (1) accepts a GDPR consent modal and (2) fills out a short questionnaire: nickname, age range, gender, personality traits, communication style. This gives the Biographer agent context for personalisation.
 
-**Frontend files:**
-- [`Website-template/biographer.html`](Website-template/biographer.html) — the questionnaire form with dropdowns and multi-select fields
+**What this step needs to work:**
+- User must be logged in (Step 1 must have happened — we need `currentUser.id` from `supabase.auth.getUser()`).
+- Tables `user_consents`, `user_profiles`, and `questionnaire_answers` must exist in Supabase (see the Schema section above). If they don't, the inserts fail silently and the user can still continue, but no data persists.
+- RLS policies on these tables must accept `auth.uid() = user_id` — otherwise inserts return `42501 new row violates row-level security policy`.
+
+**Frontend files in detail:**
+
+| File | What it specifically does | Why it's designed this way |
+|---|---|---|
+| [`Website-template/biographer.html`](Website-template/biographer.html) | Three things in one page: the consent modal (rendered on first visit), the Pre-Survey form (rendered after consent), then the chat UI (rendered after Pre-Survey). `checkUserConsent()` / `saveUserConsent()` write the boolean. `saveUserProfile()` writes the nickname to `user_profiles` AND the full answer set to `questionnaire_answers` in two separate calls. | **Two writes for the questionnaire** (nickname → `user_profiles`, full JSON → `questionnaire_answers`) because the nickname is needed at every page load (dashboard, biographer, journey) and a small text column is much faster to read than parsing a JSONB blob. The JSONB copy is kept for analytics and to later re-derive personality hints. |
 
 **Backend / Railway:**
 - Not involved. The frontend writes directly to Supabase.
@@ -569,15 +817,37 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **PROMISE adaptations:**
 - None — this is purely an Oblivio addition that happens before any PROMISE agent is created.
 
-**Where the data goes:**
-- Supabase table `questionnaire_answers` (JSONB column `answers` with all responses)
-- Used in Step 5 as `nickname` and contextual hints for the Biographer prompts
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source on the website | Required? |
+|---|---|---|---|
+| `user_consents` | `user_id` | `currentUser.id` from Supabase Auth | yes |
+| `user_consents` | `consented` | The "Ja" / "Nein" button in the consent modal | yes |
+| `user_consents` | `consented_at` | `new Date().toISOString()` at click time | yes |
+| `user_profiles` | `user_id` | `currentUser.id` | yes |
+| `user_profiles` | `nickname` | `<input id="nickname-input">` value | yes — used as `{{nickname}}` in all Biographer prompts |
+| `user_profiles` | `completed_at` | timestamp when the Pre-Survey is finished | optional |
+| `questionnaire_answers` | `user_id` | `currentUser.id` | yes |
+| `questionnaire_answers` | `answers` | The full `profileData` object (age, gender, traits…) as JSONB | yes if you want analytics |
+| `questionnaire_answers` | `completed_at` | timestamp | optional |
+
+**How to add a new Pre-Survey question that flows to Supabase:**
+1. Add the `<input>` / `<select>` to the form section in `biographer.html` (around the "Block 0" UI). Give it a unique `id`.
+2. In `collectProfileData()` (same file), add a line `profileData.your_field = document.getElementById('your-id').value;`. Because `answers` is JSONB, **you don't need to change Supabase at all** — the new key is just stored inside the existing JSONB column.
+3. If you also want the field as its own queryable column, run `ALTER TABLE user_profiles ADD COLUMN your_field TEXT;` and add the key to the `user_profiles.upsert(...)` call in `saveUserProfile()`.
 
 ---
 
 ### Step 4 — Biographer Agent is Created
 
 **What happens:** Frontend sends a POST request to the backend asking for a new Biographer. The backend builds a 20-state agent + 1 end state (10 blocks × 2 + Final) on the fly and returns its ID.
+
+**What this step needs to work:**
+- User logged in + Steps 1–3 done (we need `user_profiles.nickname` for the prompts).
+- Railway backend reachable at the URL set in `js/config.js` → `PROMISE_API_URL` (e.g. `https://promise-production.up.railway.app`).
+- CORS must allow your frontend origin — see [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java). If you self-host, add your domain to the `allowedOrigins` list or the browser blocks the POST with a CORS error.
+- Supabase environment variables on Railway: `DB_URL`, `DB_USER`, `DB_PASS` pointing at the Supabase Postgres connection. Plus `OPENAI_API_KEY` for the LLM calls that fire inside the agent. Without these the backend starts but `repository.save(agent)` fails on the first call.
+- Table `user_agents` must exist in Supabase (frontend writes to it).
 
 **Frontend files in detail:**
 
@@ -631,10 +901,31 @@ The full journey from "user registers" to "loved ones chat with the digital pers
   - **What was changed:** One field + getter + setter in `Agent.java`. Hibernate auto-adds the column on first deploy.
   - **How it works now:** The factory sets `userId` from the DTO. Later, [`UserLogController`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) filters by it (`WHERE user_id = ?`).
 
-**Where the data goes:**
-- **Supabase (PROMISE-managed tables, written by Hibernate automatically):** `agent`, `state`, `prompt`, `transition`, `prompt_transitions`, `utterance`, `utterances`, `storage`, `storage_entry`
-- **Supabase (Oblivio-managed):** Frontend writes a row to `user_agents` linking `user_id` → `agent_id`
-- **Returned to frontend:** the new agent's UUID
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source | Why |
+|---|---|---|---|
+| `agent` *(Hibernate, auto-created)* | `id` | Generated UUID by Hibernate | Primary key of the new agent |
+| `agent` | `user_id` | DTO field, set by `AgentMetaUtility.createBiographerAgent()` | Oblivio's multi-user link |
+| `agent` | `current_state_id`, `initial_state_id` | Block 1 Conv state UUID | Where the agent starts |
+| `state` (×21 rows) | one row per state | Built backwards inside the factory | The 20 conversation states + 1 Final |
+| `prompt` (×N rows) | one per prompt component | The 7 sections × 10 blocks | Where the actual prompt text lives |
+| `transition`, `prompt_transitions` | wiring rows | Built by the factory | Links between states |
+| `storage`, `storage_entry` | empty initially | Created by factory | Will hold the 10 block summaries later |
+| `user_agents` *(Oblivio, frontend write)* | `user_id` | `currentUser.id` | Owner of the agent |
+| `user_agents` | `agent_id` | The UUID returned by `POST /agent/biographer` | Cross-reference |
+| `user_agents` | `language` | `localStorage('oblivio_language')` | One agent per (user, language) |
+| `user_agents` | `nickname` | From `user_profiles.nickname` | Lets us detect "user changed their nickname → start fresh agent" |
+| `user_agents` | `is_active` | `true` at creation | Soft-delete flag |
+
+**How to add a new field that the backend should remember per agent:**
+1. Add the column to the Java entity class (e.g. `Agent.java`) with a `@Column` annotation.
+2. Restart the backend once with `ddl-auto=update` — Hibernate adds the column automatically.
+3. Set the value in `AgentMetaUtility.createBiographerAgent()` so every new agent has it populated.
+
+**How to add a new field that the frontend should remember per agent** (without backend changes):
+1. `ALTER TABLE user_agents ADD COLUMN your_field TEXT;` in Supabase.
+2. Add the key to the `user_agents.upsert(...)` call in [`biographer-promise.js:85`](Website-template/js/biographer-promise.js#L85).
 
 ---
 
@@ -643,6 +934,12 @@ The full journey from "user registers" to "loved ones chat with the digital pers
 **What happens:** For each of 10 thematic blocks, the user goes through two states: a **conversation state** (AI asks all the block's questions, e.g. "Tell me about your childhood…") and a **confirmation state** (AI summarises what it heard, user confirms or corrects).
 
 #### 5a. Conversation Phase
+
+**What this step needs to work:**
+- Step 4 must have succeeded: there must be an `agent_id` in `user_agents` for the current user.
+- The OpenAI key (`OPENAI_API_KEY` env var on Railway) must be funded — every user message triggers at least one GPT-4o call.
+- Network connectivity to Railway. If Railway is cold-starting, the first message may take 5–10 seconds; the frontend has no spinner timeout intentionally, because cancelling mid-cold-start corrupts the conversation history.
+- Optional: `chat_messages` and `biographer_conversations` tables in Supabase. If they don't exist, the conversation **still works** (PROMISE's own `utterance` table is the source of truth), but a refresh loses the chat history because the frontend uses `chat_messages` to repopulate the UI.
 
 **Frontend files in detail:**
 
@@ -695,11 +992,25 @@ The full journey from "user registers" to "loved ones chat with the digital pers
   - **What was changed:** Removed `<dependency>mysql-connector-j</dependency>`, added `<dependency>org.postgresql:postgresql</dependency>`.
   - **How it works now:** JDBC opens connections to `jdbc:postgresql://...supabase.co:5432/postgres` and Hibernate uses the PostgreSQL dialect for SQL generation.
 
-**Where the data goes:**
-- Every message (user + assistant) → Supabase tables `utterance` / `utterances` (PROMISE-managed by Hibernate)
-- Conversation state itself → Supabase table `state` and `agent.currentState`
-- LLM call → OpenAI API (external service)
-- Browser displays the assistant response
+**Where the data goes — Supabase fields written per user message:**
+
+| Table | Column | Source | Notes |
+|---|---|---|---|
+| `utterance` *(Hibernate)* | `content` | `userSays` body of the POST + the GPT-4o response | One row per message. Two new rows per turn (user + assistant). |
+| `utterance` | `role` | `"user"` or `"assistant"` | Set by `appendUserSays()` / `appendAssistantSays()` |
+| `utterance` | `state_name` | The current state's name | Lets you query "all messages from Block 5" |
+| `utterance` | `utterances_id` | FK to `utterances` row | One container per state |
+| `utterances` | `id` | UUID | One per state's conversation history |
+| `agent` | `current_state_id` | Updated when a transition fires | Tracks where in the 20-state machine the user is |
+| `chat_messages` *(Oblivio, optional)* | `user_id`, `agent_id`, `role`, `content`, `created_at` | Written from [`biographer-promise.js`](Website-template/js/biographer-promise.js) after every successful turn | Used for fast UI reload on refresh |
+| `biographer_conversations` *(Oblivio, optional)* | `user_id`, `agent_id`, `block_number`, `state_name`, `role`, `content` | Also written from `biographer-promise.js` | Richer than `chat_messages` — has block + state context for analytics |
+
+Plus: every user message is sent to **OpenAI's `chat/completions` endpoint** along with the system prompt for the current state. The response is the assistant text shown in the chat.
+
+**How to add a new column to track something per Biographer message** (e.g. token count, sentiment):
+1. `ALTER TABLE chat_messages ADD COLUMN token_count INTEGER;` (or whichever table fits).
+2. In [`biographer-promise.js`](Website-template/js/biographer-promise.js) → `saveChatMessage()`, extend the inserted object with the new key.
+3. If the value comes from the backend (e.g. response.usage.total_tokens), pass it through the `sendMessage` return value first.
 
 #### 5b. Transition: Conversation → Confirmation
 
@@ -732,8 +1043,14 @@ After Block 10's confirmation, the next transition leads to the Final state.
 
 **What happens:** After Block 10 confirmation, the Biographer agent transitions to the Final state. The frontend now requests the 10 stored summaries, persists them in Supabase, and generates an access code for sharing.
 
+**What this step needs to work:**
+- All 10 blocks must have completed AND confirmed — `agent.currentState` must be the Final state. The frontend checks this via `getState(agentId)` and only triggers code generation when `state.isActive === false`.
+- Tables `user_legacies` and `legacy_access_codes` must exist in Supabase.
+- `legacy_access_codes.access_code` must be UNIQUE (it's the primary key in our schema) — the frontend retries with a fresh random code on collision (chance ≈ 1 in 36⁸).
+
 **Frontend files:**
 - [`Website-template/biographer.html`](Website-template/biographer.html) — handles completion UI (shows the access code with a "Copy" button and email-share button)
+- [`Website-template/js/biographer-promise.js`](Website-template/js/biographer-promise.js) — `saveLegacyToSupabase()` writes the 10 summaries
 
 **Backend / Railway:**
 - [`model/Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java) — Final state, `isActive()` returns `false`
@@ -742,15 +1059,34 @@ After Block 10's confirmation, the next transition leads to the Final state.
 **PROMISE adaptations:**
 - None at this point — but the new endpoint `GET /{agentId}/storage` is in the original PROMISE controller and is used by Oblivio to retrieve block summaries.
 
-**Where the data goes:**
-- **Supabase `user_legacies` table:** Frontend writes the 10 block summaries as one JSONB document (column `legacy_data`)
-- **Supabase `legacy_access_codes` table:** Frontend generates an 8-character random code (e.g. `VDSRMACZ`) and inserts a row with `access_code`, `user_id`, `nickname`, `language`, `is_active = true`
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source | Why |
+|---|---|---|---|
+| `user_legacies` | `user_id` | `currentUser.id` | Owner |
+| `user_legacies` | `agent_id` | The Biographer agent's UUID | Cross-reference |
+| `user_legacies` | `legacy_data` | The JSON returned by `GET /{agentId}/storage` (all 10 block summaries as one JSONB) | The raw biography material |
+| `user_legacies` | `created_at`, `completed_at` | Timestamps | Audit trail |
+| `legacy_access_codes` | `access_code` | Frontend-generated random 8-char string (`A-Z + 2-9`, avoiding ambiguous chars) | The share key visitors will type |
+| `legacy_access_codes` | `user_id` | `currentUser.id` | So the owner can find their own codes |
+| `legacy_access_codes` | `nickname` | `localStorage('oblivio_nickname')` (also in `user_profiles`) | Shown to visitors as "you are chatting with ..." |
+| `legacy_access_codes` | `language` | `localStorage('oblivio_language')` | Locks the persona's language |
+| `legacy_access_codes` | `is_active` | `true` | Lets the owner deactivate the code later |
+| `legacy_access_codes` | `legacy_data` | (left NULL initially — filled in Step 7) | Will hold the three persona prompts |
+
+**How to add a "private notes" field that only the owner sees** (example): `ALTER TABLE legacy_access_codes ADD COLUMN owner_notes TEXT;` plus an `<textarea>` in `biographer.html` and one extra key in the `.insert({...})` call. RLS's existing `auth.uid() = user_id` policy already hides it from visitors.
 
 ---
 
 ### Step 7 — Persona Prompts Are Created (Manual Step)
 
 **What happens:** From the 10 block summaries, three full persona prompts are crafted — one per conversation variant. This is currently a **manual admin step** done via SQL: the admin reads the block summaries, drafts the prompts, and inserts them into the `legacy_data` JSONB column.
+
+**What this step needs to work:**
+- Step 6 must have produced a row in `legacy_access_codes` with the persona's `access_code`.
+- You (the admin) must have read access to `user_legacies.legacy_data` to see the 10 block summaries the person produced.
+- You must be authenticated in Supabase as a role that bypasses RLS — typically the **service-role key** in the Supabase SQL Editor, since the policies on `legacy_access_codes` only allow `auth.uid() = user_id` to write.
+- The frontend Legacy Chat (Step 12) will not start a conversation if `legacy_data` is empty or missing the prompt keys — it shows "diese Persona ist noch nicht bereit".
 
 Each prompt is built from these sections:
 
@@ -770,11 +1106,27 @@ Each prompt is built from these sections:
 
 **PROMISE adaptations:** none — this happens entirely in Supabase.
 
-**Where the data goes:**
-- Supabase `legacy_access_codes.legacy_data` JSONB column gets three new keys:
-  - `full_prompt_active` — Variant 2 (persona greets first)
-  - `full_prompt_passive` — Variant 3 (persona waits)
-  - `full_prompt_analysis` — Variant 1 (with personality analysis block)
+**Where the data goes — Supabase fields written in this step:**
+
+The admin runs one `UPDATE` statement against `legacy_access_codes`, merging three keys into the JSONB column:
+
+```sql
+UPDATE legacy_access_codes
+SET legacy_data = jsonb_build_object(
+  'full_prompt_active',   'Du bist Maria, geboren 1965 in Bern… [SECTION:IDENTITY] …',
+  'full_prompt_passive',  'Du bist Maria… (kein aktiver Gruss)…',
+  'full_prompt_analysis', 'Du bist Maria… plus [SECTION:ANALYSIS] …'
+)
+WHERE access_code = 'VDSRMACZ';
+```
+
+| JSONB key on `legacy_access_codes.legacy_data` | Variant it powers | When the Legacy Chat reads it |
+|---|---|---|
+| `full_prompt_active` | Variant 2 (Active — persona greets first) | Step 12 sends it as the agent's system prompt |
+| `full_prompt_passive` | Variant 3 (Passive — persona waits) | Step 12, ditto |
+| `full_prompt_analysis` | Variant 1 (Analysis — with personality block) | Step 12, ditto |
+
+If you want to automate Step 7 later, the natural place is a new backend endpoint that takes a `legacy_id`, reads `user_legacies.legacy_data` (the 10 summaries), calls GPT-4o to draft the three prompts, and writes them back to `legacy_access_codes.legacy_data`. Today that's done by hand because prompt quality benefits from human review.
 
 ---
 
@@ -782,14 +1134,37 @@ Each prompt is built from these sections:
 
 **What happens:** Optionally, the admin records or selects an [ElevenLabs](https://elevenlabs.io) voice for the persona and uploads a profile photo. These enable audio playback and a face for the chat avatar.
 
+**What this step needs to work:**
+- (Voice) An [ElevenLabs](https://elevenlabs.io) account with at least one voice cloned or chosen — you need its `voice_id` (looks like `21m00Tcm4TlvDq8ikWAM`).
+- (Voice) Railway env var `ELEVENLABS_API_KEY` set. The backend's [`TTSController`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) uses it as a bearer token; without it, audio playback returns 401 and the chat silently falls back to text-only.
+- (Avatar) A way to upload the image. Hostpoint allows FTP/SFTP; Supabase Storage is an alternative if you don't have a separate host.
+- Two `ALTER` statements if the columns aren't already there (the schema above already includes them):
+  ```sql
+  ALTER TABLE legacy_access_codes ADD COLUMN IF NOT EXISTS voice_id TEXT;
+  ALTER TABLE legacy_access_codes ADD COLUMN IF NOT EXISTS avatar_url TEXT;
+  ```
+
 **Frontend files:** Avatar images are uploaded to Hostpoint at `/images/avatars/<name>.jpg` (referenced by `avatar_url`).
 
 **Backend / Railway:** none for assignment; voice is used in Step 14 of Perspective 2.
 
 **PROMISE adaptations:** none.
 
-**Where the data goes:**
-- Supabase `legacy_access_codes` gets `voice_id` (ElevenLabs voice identifier) and `avatar_url` (path to the avatar image on Hostpoint)
+**Where the data goes — Supabase fields updated in this step:**
+
+```sql
+UPDATE legacy_access_codes
+SET voice_id   = '21m00Tcm4TlvDq8ikWAM',
+    avatar_url = '/images/avatars/maria.jpg'
+WHERE access_code = 'VDSRMACZ';
+```
+
+| Column on `legacy_access_codes` | What it does at runtime |
+|---|---|
+| `voice_id` | Read by Legacy Chat (Step 14) → posted to backend → backend posts to ElevenLabs `/text-to-speech/{voice_id}` → audio returned and played in the browser |
+| `avatar_url` | Read by Legacy Chat → set as `<img src>` in the chat header |
+
+If a persona has no `voice_id`, the chat works fine — just no audio. If a persona has no `avatar_url`, the UI falls back to the persona's first initial in a coloured circle.
 
 The persona is now fully online. The 8-character access code can be shared with loved ones.
 
@@ -801,6 +1176,11 @@ The persona is now fully online. The 8-character access code can be shared with 
 
 **What happens:** A loved one goes to oblivio.ch/legacy.html, enters the 8-character access code, and the website loads the persona's data.
 
+**What this step needs to work:**
+- A row in `legacy_access_codes` with `is_active = true` and the typed `access_code`.
+- That row must have `legacy_data` populated (Step 7 must have happened) — otherwise the chat shows "persona not ready".
+- The RLS policy `public_read_active` on `legacy_access_codes` (see Schema section) must permit unauthenticated reads of active rows. Without it, the anon Supabase key gets `0 rows` and the visitor sees "invalid code" even when the code exists.
+
 **Frontend files:**
 - [`Website-template/legacy.html`](Website-template/legacy.html) — code input form, then chat UI
 
@@ -810,15 +1190,37 @@ The persona is now fully online. The 8-character access code can be shared with 
 **PROMISE adaptations:**
 - None — this is purely frontend-to-Supabase.
 
-**Where the data goes:**
-- Frontend reads from Supabase `legacy_access_codes` table: `nickname`, `language`, `legacy_data` (with all 3 prompts), `avatar_url`, `voice_id`
-- Returned data drives the rest of the chat experience
+**Where the data goes — Supabase fields READ (not written) in this step:**
+
+```javascript
+supabaseClient
+  .from('legacy_access_codes')
+  .select('nickname, language, is_active, legacy_data, user_id, avatar_url, voice_id')
+  .eq('access_code', code)
+  .single();
+```
+
+| Column read | Used for |
+|---|---|
+| `nickname` | Header "you are talking to {nickname}" |
+| `language` | Sets the chat UI language + the persona's language |
+| `is_active` | Hard gate — `false` means "this code is deactivated" |
+| `legacy_data` | Source of the three persona prompts (Step 12) |
+| `user_id` | Fallback path: if `legacy_data` is empty, frontend reads `user_legacies` filtered by this user_id |
+| `avatar_url` | The persona's profile picture (Step 8) |
+| `voice_id` | The ElevenLabs voice id (Step 14) |
+
+If you want to **track who is opening which code**, add `ALTER TABLE legacy_access_codes ADD COLUMN open_count INTEGER DEFAULT 0;` and a `.update()` call here that increments it.
 
 ---
 
 ### Step 10 — Enter Visitor Info (Name, Relation, Gender)
 
 **What happens:** Before chatting, the visitor enters their name (e.g. "Maria"), their relationship to the persona (child, friend, etc.), and their gender. The persona will know who's talking to it.
+
+**What this step needs to work:**
+- The visitor is NOT logged in (visitors are anonymous). All identification is by `visitor_id`, a UUID generated client-side and persisted in `localStorage`.
+- No Supabase write happens yet — that comes in Step 14 when the first message is sent.
 
 **Frontend files:**
 - [`Website-template/legacy.html`](Website-template/legacy.html) — visitor info form
@@ -828,9 +1230,14 @@ The persona is now fully online. The 8-character access code can be shared with 
 
 **PROMISE adaptations:** none.
 
-**Where the data goes:**
-- `localStorage('oblivio_visitor_<accessCode>')` as JSON: `{ name, relation, gender }`
-- Used to personalise the persona prompt in Step 12
+**Where the data goes — nothing in Supabase yet:**
+
+| Storage | Key | Value |
+|---|---|---|
+| `localStorage` | `oblivio_visitor_<accessCode>` | JSON: `{ name, relation, gender }` |
+| `localStorage` | `oblivio_visitor_id` | UUID generated on first visit — will become the `visitor_id` column on `legacy_messages` in Step 14 |
+
+To **persist visitor info to Supabase later** (e.g. for the persona owner to see who's been chatting): add a `visitor_profiles` table with `(visitor_id, access_code, name, relation, gender, created_at)`, then write a row here. Today this isn't done because guest identification is intentionally lightweight.
 
 ---
 
@@ -851,6 +1258,10 @@ Default = Variant 1 (Analysis).
 | **2 (Active)** | Persona greets first with a personal hello. | `legacy_data.full_prompt_active` |
 | **3 (Passive)** | Persona waits silently, no analysis. | `legacy_data.full_prompt_passive` |
 
+**What this step needs to work:**
+- All three keys (`full_prompt_active`, `full_prompt_passive`, `full_prompt_analysis`) must exist in `legacy_access_codes.legacy_data`. If one is missing, switching to that variant loads `undefined` as the system prompt and the persona produces gibberish.
+- No Supabase write yet — just `localStorage`.
+
 **Frontend files:**
 - [`Website-template/legacy.html`](Website-template/legacy.html) — mode toggle buttons (~line 1054)
 - [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js) — `getScopedVisitorId()` adds `__active`, `__passive`, or `__analysis` suffix so the three conversations stay isolated
@@ -859,14 +1270,24 @@ Default = Variant 1 (Analysis).
 
 **PROMISE adaptations:** none — the variants are an Oblivio concept layered on top of PROMISE. The backend treats all three identically: a single PROMISE state machine with a different prompt.
 
-**Where the data goes:**
-- `localStorage('oblivio_mode_<accessCode>')` = `'active'` / `'passive'` / `'analysis'`
+**Where the data goes — Supabase is not touched in this step:**
+
+| Storage | Key | Value |
+|---|---|---|
+| `localStorage` | `oblivio_mode_<accessCode>` | `'active'` / `'passive'` / `'analysis'` |
+
+The chosen mode is later baked into the **`visitor_id`** column of `legacy_messages` as a `__mode` suffix (Step 14), so the same browser can keep three independent conversations with the same persona.
 
 ---
 
 ### Step 12 — Build the System Prompt + Create Legacy Agent
 
 **What happens:** The frontend assembles the final system prompt by combining (a) the right variant's `full_prompt_*` and (b) the Visitor Context block. Then it asks the backend to create a Single-State Agent.
+
+**What this step needs to work:**
+- Railway backend reachable + CORS configured (same as Step 4).
+- The persona's `full_prompt_*` field must not exceed PostgreSQL's text-column constraints — our `TEXT` columns have no limit, but at ~22k characters the LLM may struggle to follow all instructions reliably.
+- `OPENAI_API_KEY` set on Railway (the agent's first call will use it).
 
 **Frontend files:**
 - [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L98) — [`buildLegacySystemPrompt()`](Website-template/js/legacy-chat.js#L98) composes the full prompt
@@ -891,9 +1312,16 @@ Default = Variant 1 (Analysis).
   - **What was changed:** No change to the factory's logic; it now also sets `agent.userId` from the DTO (added in Step 4).
   - **How it works now:** The Legacy agent inherits the multi-user infrastructure built for the Biographer. Same SQL queries (`WHERE user_id = ?`) work for both types of agents.
 
-**Where the data goes:**
-- Supabase PROMISE-tables: new agent + state + utterances rows
-- Returned to frontend: agent UUID
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source | Why |
+|---|---|---|---|
+| `agent` *(Hibernate)* | one new row | Backend factory | New single-state agent for this visitor + variant |
+| `state` | one new row | Backend factory | The single state with the assembled persona prompt |
+| `prompt` | one new row | Backend factory | The full system prompt text (15k–22k chars) |
+| `utterances` | one empty container | Backend factory | Will fill with messages as the chat progresses |
+
+No `user_agents` / `legacy_*` writes here — those happen earlier or per-message.
 
 ---
 
@@ -920,8 +1348,16 @@ Default = Variant 1 (Analysis).
   - **How it works now:** GPT-4o obediently outputs the literal string `__WAIT__`. The backend stores this as a normal assistant message and returns it to the frontend. The frontend detects the `__WAIT__` token, **filters it out** of the chat display, and instead shows a hint like "Type to start the conversation". The agent stays in a valid PROMISE state — `currentState` is still active, `utterances` still has a (filtered) starter — ready to respond when the visitor finally writes.
   - **Why this is elegant:** No new state types, no new methods, no PROMISE modifications. Three different behaviours from one framework, all controlled by which prompt is loaded from `legacy_data` in Supabase.
 
-**Where the data goes:**
-- The greeting (real or `__WAIT__`) is added to `utterances` in Supabase
+**What this step needs to work:**
+- The agent from Step 12 must exist (its UUID is in the URL of the POST).
+- The variant prompt must contain explicit `__WAIT__` instructions for Variants 1/3 — otherwise GPT-4o invents a normal greeting and visitors in Passive mode see the persona "barging in".
+
+**Where the data goes — Supabase fields written in this step:**
+
+| Table | Column | Source | Notes |
+|---|---|---|---|
+| `utterance` *(Hibernate)* | `content` | GPT-4o's response (real greeting or literal `__WAIT__`) | Always stored, even for `__WAIT__` — frontend hides it from the UI |
+| `utterance` | `role` | `'assistant'` | This is the persona's first utterance |
 - The frontend displays the real greeting in the chat or shows a hint instead
 
 ---
@@ -956,11 +1392,31 @@ Default = Variant 1 (Analysis).
 
 - **TTS Controller (new file):** [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) — PROMISE has no audio output. Oblivio added this as a server-side bridge so the ElevenLabs API key stays on Railway (never exposed to the browser). Plus the new DTO [`TTSRequest.java`](src/main/java/ch/zhaw/statefulconversation/controllers/views/TTSRequest.java).
 
-**Where the data goes:**
-- **Supabase PROMISE-tables (Hibernate):** Each message is stored as a row in `utterance`
-- **Supabase Oblivio-tables (frontend):** Each message is *also* written to `legacy_messages` with: `access_code`, `visitor_id` (mode-scoped: `<uuid>__active` etc.), `visitor_name`, `user_id`, `role` (`user`/`legacy`), `content`, `created_at`
-- **OpenAI API:** the GPT-4o call (text → text)
-- **ElevenLabs API:** optional text-to-speech call (text → MP3)
+**What this step needs to work:**
+- Agent exists (Step 12) + starter resolved (Step 13).
+- Table `legacy_messages` must exist with the columns shown below — without it, the chat works once but cannot rehydrate on refresh (history is lost).
+- `OPENAI_API_KEY` (text turn) and optionally `ELEVENLABS_API_KEY` (voice turn) on Railway.
+- The RLS policy on `legacy_messages` must allow anonymous inserts when the parent `access_code` is `is_active = true` — see the Schema section's `active_code_messages` policy. Without it, every `saveMessage()` call fails silently and the chat history is lost.
+
+**Where the data goes — Supabase fields written per visitor message:**
+
+| Table | Column | Source on the website | Why this column |
+|---|---|---|---|
+| `utterance` *(Hibernate)* | `content`, `role`, `state_name`, `utterances_id` | Same as in Step 5a, but for the Legacy single state | Canonical state-machine record — used to reconstruct the agent on the next request |
+| `legacy_messages` | `access_code` | URL parameter `?code=VDSRMACZ` | Foreign key to the persona |
+| `legacy_messages` | `visitor_id` | `getScopedVisitorId(mode)` → e.g. `'7a2c...__active'` | Mode-scoped so the same visitor can have 3 independent conversations with the same persona |
+| `legacy_messages` | `visitor_name` | `localStorage('oblivio_visitor_<accessCode>').name` (from Step 10) | Lets the persona owner see who chatted |
+| `legacy_messages` | `user_id` | The persona-owner's UUID (the one stored on `legacy_access_codes.user_id`) | Lets the owner query their personas' chat history |
+| `legacy_messages` | `role` | `'user'` (visitor) or `'legacy'` (persona) | Distinguishes the two parties; note: NOT `'assistant'` because this isn't the canonical PROMISE record |
+| `legacy_messages` | `content` | The visitor's typed text OR the persona's GPT-4o response | The actual message |
+| `legacy_messages` | `created_at` | `new Date().toISOString()` | Chronological ordering on rehydrate |
+
+Plus: every message triggers **one GPT-4o call** (text response), optionally **one ElevenLabs call** (MP3 playback).
+
+**To add a new per-message column** (e.g. "user gave a thumbs up"):
+1. `ALTER TABLE legacy_messages ADD COLUMN feedback TEXT;` in Supabase.
+2. Add a thumbs-up button to the chat UI in `legacy.html`.
+3. On click, call `supabaseClient.from('legacy_messages').update({ feedback: 'positive' }).eq('id', messageId)` — the `id` must be returned from the original insert (use `.insert(row).select().single()`).
 
 The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PROMISE tables are the canonical state-machine record (used to reconstruct the agent on the next request), while `legacy_messages` is a denormalised read-friendly history for the frontend and analytics.
 
@@ -983,10 +1439,19 @@ The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PR
   - **What was changed:** No backend code. The frontend's [`getScopedVisitorId(mode)`](Website-template/js/legacy-chat.js) appends `__active`, `__passive`, or `__analysis` to the base visitor UUID. Every read and write to `legacy_messages` uses the scoped ID.
   - **How it works now:** Three independent conversation histories per visitor + persona combination. The visitor can freely jump between them; messages don't bleed across modes. Variant switch creates a new PROMISE agent on the backend with the new prompt, but only the conversation history matching the new scope is loaded back.
 
-**Where the data goes:**
-- Supabase `legacy_messages` filter changes (`WHERE visitor_id = '<uuid>__<newmode>'`)
-- A new agent UUID is created in Supabase PROMISE-tables
-- Old agent stays untouched (the visitor can return)
+**What this step needs to work:**
+- The persona's `legacy_data` must contain the prompt for the target variant (Step 7).
+- No new Supabase schema needed — the mode suffix on `visitor_id` is purely a naming convention.
+
+**Where the data goes — Supabase reads and writes change scope:**
+
+| Operation | Effect |
+|---|---|
+| Read on `legacy_messages` | Filter becomes `WHERE access_code = ? AND visitor_id = '<uuid>__<newmode>'` — only that variant's history is shown |
+| Write on `agent`, `state`, `prompt`, `utterances` (Hibernate) | New rows for the new agent (the old agent stays — visitor can switch back) |
+| Write on `legacy_messages` | New rows from now on carry the new `visitor_id` suffix |
+
+Old agent stays untouched (the visitor can return at any time). If you want to **clean up old agents**, run `DELETE FROM agent WHERE user_id IS NULL AND created_at < NOW() - INTERVAL '30 days'` — but only after backing up `legacy_messages`, which holds the human-readable record.
 
 ---
 
@@ -1003,9 +1468,29 @@ The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PR
 
 **PROMISE adaptations:** none — final-state handling is stock PROMISE.
 
-**Where the data goes:**
-- Everything stays in Supabase. On return, the frontend reads `legacy_messages` filtered by `access_code` and `visitor_id` (mode-scoped) and rebuilds the chat history exactly.
-- Different devices show **different histories** because `visitor_id` is per-browser via `localStorage`.
+**What this step needs to work:**
+- Nothing extra — closing the tab requires no explicit "save" because every message was written immediately in Step 14.
+- On return, the rehydrate query needs the SAME `visitor_id` (from `localStorage`) to find the previous history. Clearing browser storage = starting a fresh conversation.
+
+**Where the data goes — nothing new is written when the visitor leaves:**
+
+| Source | Persists where |
+|---|---|
+| Every message that was sent | Already in `utterance` (PROMISE) + `legacy_messages` (Oblivio) |
+| The current `currentState` of the agent | `agent.current_state_id` |
+| Visitor identity (name, relation, gender) | `localStorage` on this device only |
+
+On rehydrate, the frontend reads:
+
+```javascript
+supabaseClient.from('legacy_messages')
+  .select('role, content, created_at')
+  .eq('access_code', accessCode)
+  .eq('visitor_id', getScopedVisitorId(mode))
+  .order('created_at', { ascending: true });
+```
+
+Different devices show **different histories** because `visitor_id` is per-browser via `localStorage`. If you want cross-device history, you would have to introduce visitor login (Supabase Auth for visitors too) and key history off the user UUID instead of the localStorage UUID.
 
 ---
 
