@@ -849,6 +849,20 @@ No Oblivio-specific table is touched yet — that starts in Step 3 (consent) and
 - Supabase environment variables on Railway: `DB_URL`, `DB_USER`, `DB_PASS` pointing at the Supabase Postgres connection. Plus `OPENAI_API_KEY` for the LLM calls that fire inside the agent. Without these the backend starts but `repository.save(agent)` fails on the first call.
 - Table `user_agents` must exist in Supabase (frontend writes to it).
 
+**What PROMISE does in this step (concretely):**
+
+This is the step where the PROMISE framework does the most work. Everything below runs inside [`AgentMetaUtility.createBiographerAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64):
+
+1. **Builds 21 `State` objects in reverse** — Final → Block 10 Confirm → Block 10 Conv → Block 9 Confirm → … → Block 1 Conv. Reverse order is required because PROMISE's `Transition` constructor takes its `subsequentState` as an argument, so the target must exist before the source.
+2. **Loads all 70 prompts** via `buildBlockPrompts(language, nickname)` — a `String[10][7]` array of system / starter / summarise / guard / extract / etc. text for every block. Each prompt is wrapped in a `Prompt` entity that JPA will later persist as a row in the `prompt` table.
+3. **Wires every `Transition`** — Conv → Confirm gets `TransferUtterancesAction` (copies the chat into the Confirm state) and a `StaticDecision` Guard ("have all questions been asked?"). Confirm → next-block-Conv gets `StaticExtractionAction` (writes the block summary to `Storage`) plus its own Guard ("did the user confirm?").
+4. **Creates one shared `Storage` object** — the persistent key-value store where `block1`, `block2`, …, `block10` JSON summaries will live. All 20 states share the same `Storage` so any block can read what earlier blocks produced.
+5. **Sets `agent.userId` from the DTO** — Oblivio's only intrusion into PROMISE's domain model (Adaptation 3). This is what later lets the journey dashboard filter "show me only my agents".
+6. **Calls `agent.start()`** — pushes the agent into `Block 1 Conv` and generates its opening message via `LMOpenAI.complete()` using Block 1's starter prompt. The opening message is stored as the first row in `utterance`.
+7. **Returns** an `AgentInfoView` containing the new UUID. PROMISE's role is complete; from here on the agent lives in Supabase and is reloaded on every `/respond` call.
+
+Without PROMISE, you would have to hand-write the equivalent of these 21 states plus the transition logic plus a JPA persistence layer — roughly the 2000+ LOC that PROMISE provides for free.
+
 **Frontend files in detail:**
 
 | File | What it specifically does | Why it's designed this way |
@@ -941,6 +955,24 @@ No Oblivio-specific table is touched yet — that starts in Step 3 (consent) and
 - Network connectivity to Railway. If Railway is cold-starting, the first message may take 5–10 seconds; the frontend has no spinner timeout intentionally, because cancelling mid-cold-start corrupts the conversation history.
 - Optional: `chat_messages` and `biographer_conversations` tables in Supabase. If they don't exist, the conversation **still works** (PROMISE's own `utterance` table is the source of truth), but a refresh loses the chat history because the frontend uses `chat_messages` to repopulate the UI.
 
+**What PROMISE does on every `/respond` call (concretely):**
+
+This is the core PROMISE loop, identical for Biographer and Legacy Chat. One HTTP request triggers this whole chain:
+
+1. **`AgentController.respond()`** loads the agent from Supabase via `AgentRepository.findById(agentId)` — Hibernate hydrates the agent, its `currentState`, that state's `utterances`, all transitions, decisions, actions, and the storage, into Java objects.
+2. **`Agent.respond(userSays)`** delegates to `currentState.respond(userSays)`. Wrapped in a try/catch for `TransitionException` (see step 6 below).
+3. **`State.respond()`** does the heavy lifting in strict order:
+   a. **`acknowledge(userSays)`** — appends the user message to `utterances` AND iterates over the state's transitions. For each transition, `Transition.decide()` runs every `Decision` object on it (AND-combined). For Oblivio that's a single `StaticDecision` per transition with a prompt like "Have all 11 questions been answered yes/no?" — evaluated by `LMOpenAI.decide()` (one extra GPT-4o call).
+   b. **`compactIfNeeded()`** *(Oblivio addition)* — if >20 user messages, summarises older ones and replaces them.
+   c. **`composeTotalPrompt()`** — builds the final system prompt by combining the state's static prompt with any storage variables (e.g. `{{nickname}}`).
+   d. **`LMOpenAI.complete()`** — sends `system prompt + utterances` to GPT-4o, gets the assistant text back.
+   e. **`utterances.appendAssistantSays()`** — stores the assistant message as a new row.
+4. **If a transition's `decide()` returned `true`**, `Transition.action()` runs every `Action` object on it sequentially (e.g. `TransferUtterancesAction`, `StaticExtractionAction`), then `TransitionException` is thrown carrying the target state. `Agent.respond()` catches it, sets `currentState = exception.getSubsequentState()`, and **recursively calls `respond()` again** so cascading transitions (Confirm → next Conv) happen in one HTTP call.
+5. **`AgentController.save(agent)`** — Hibernate cascades the changes: new `utterance` rows are INSERTed, `agent.current_state_id` is UPDATEd, `storage_entry` rows are INSERTed if any action extracted data. One transaction; if anything fails the whole turn rolls back.
+6. **Returns** the assistant text wrapped in a `ResponseView` along with `agent.isActive()` (which is `false` only when in the Final state).
+
+The key insight: **PROMISE handles the entire state machine for you.** Oblivio only injects the prompts and reads back the storage at the end; it never has to write the "which state am I in / when do I transition" logic itself.
+
 **Frontend files in detail:**
 
 | File | What it specifically does | Why it's designed this way |
@@ -1022,6 +1054,18 @@ When the Guard returns `true`, the transition fires:
 
 **PROMISE adaptations:** none — this transition is built with stock PROMISE classes; only the prompts are Oblivio-specific.
 
+**What PROMISE does in this transition (concretely):**
+
+The transition happens *inside* the same `/respond` call as the last Conv message — the user never sees a separate HTTP round-trip:
+
+1. After `acknowledge()` in Step 5a, `Transition.decide()` runs the `StaticDecision` Guard: *"Have all 11 questions been answered? Reply 'yes' or 'no'."* GPT-4o evaluates the conversation and returns a boolean.
+2. If `true`, `Transition.action()` runs each `Action` in order:
+   - **`TransferUtterancesAction`** — copies every `Utterance` row from the Conv state's `utterances` into a fresh `utterances` container linked to the Confirm state. Two distinct `Utterances` rows now exist for that block (so the Conv history stays intact, and the Confirm state has its own independent copy).
+3. `TransitionException(targetState)` is thrown. `Agent.respond()` catches it, sets `currentState = Confirm`, and calls `respond()` again recursively.
+4. The Confirm state's `start()` is implicit: because the recursive `respond()` now runs inside the Confirm state, the next `composeTotalPrompt()` uses Confirm's prompt ("Summarise what you heard…") and produces the summary as the assistant message returned to the browser.
+
+The user sent **one** message and got **one** response back — but internally the agent silently moved from Conv to Confirm.
+
 **Where the data goes:** A copy of `utterances` is created and linked to the Confirm state in Supabase.
 
 #### 5c. Confirmation Phase
@@ -1031,6 +1075,18 @@ When the Guard returns `true`, the transition fires:
 **Backend / Railway:**
 - Same `State.respond()` flow as above, but now in the Confirm state with its own prompts
 - [`model/commons/actions/StaticExtractionAction.java`](src/main/java/ch/zhaw/statefulconversation/model/commons/actions/StaticExtractionAction.java) — when the user confirms, this action runs `LMOpenAI.extract()` which returns structured JSON and stores it in the agent's `Storage` under the key `block1` / `block2` / ... / `block10`
+
+**What PROMISE does in this step (concretely):**
+
+The Confirm state runs the same `State.respond()` cycle as Conv, but with a different prompt and a different exit Action:
+
+1. User replies (e.g. *"yes, that's right"* or *"no, you missed the part about my brother"*).
+2. `acknowledge()` evaluates Confirm's transition Guard — a `StaticDecision` with prompt *"Did the user confirm? yes/no"*. If `no`, the agent stays in Confirm and asks follow-up questions.
+3. If `yes`, `Transition.action()` runs:
+   - **`StaticExtractionAction`** — sends Confirm's conversation history to `LMOpenAI.extract()` with a schema like `{ key_themes: [...], emotional_tone: '...', notable_quotes: [...], … }`. The structured JSON is written to the agent's shared `Storage` as a new `StorageEntry` with key `block1` / `block2` / … / `block10`.
+4. `TransitionException` is thrown carrying the next block's Conv state (or the Final state after block 10). The agent recursively enters the next state and starts its opening prompt.
+
+After 10 successful Confirm→next transitions, `Storage` contains 10 `StorageEntry` rows — the raw material the frontend will fetch in Step 6 and persist as `user_legacies.legacy_data`.
 
 **Where the data goes:**
 - Supabase `storage_entry` table (PROMISE-managed) — the new JSON block summary
@@ -1058,6 +1114,14 @@ After Block 10's confirmation, the next transition leads to the Final state.
 
 **PROMISE adaptations:**
 - None at this point — but the new endpoint `GET /{agentId}/storage` is in the original PROMISE controller and is used by Oblivio to retrieve block summaries.
+
+**What PROMISE does in this step (concretely):**
+
+PROMISE's role here is just to expose the storage it has been filling up since Step 5c:
+
+1. After Block 10's Confirm transition fires, `currentState = Final`. `Final.isActive()` returns `false`, signalling "this agent is done — don't send any more user messages here".
+2. The frontend calls `GET /{agentId}/storage`. The controller reads `agent.getStorage().getEntries()` and returns the list as JSON: `[{ key: "block1", value: {...} }, … { key: "block10", value: {...} }]`.
+3. PROMISE's job is now finished. The Biographer agent stays in Supabase (`agent`, `state`, `utterances`, `storage*` rows are still there) but no further LLM calls happen on it. The frontend takes over: persists the 10 summaries into `user_legacies`, generates the access code, writes to `legacy_access_codes`.
 
 **Where the data goes — Supabase fields written in this step:**
 
@@ -1289,6 +1353,19 @@ The chosen mode is later baked into the **`visitor_id`** column of `legacy_messa
 - The persona's `full_prompt_*` field must not exceed PostgreSQL's text-column constraints — our `TEXT` columns have no limit, but at ~22k characters the LLM may struggle to follow all instructions reliably.
 - `OPENAI_API_KEY` set on Railway (the agent's first call will use it).
 
+**What PROMISE does in persona creation (concretely):**
+
+This is the *Legacy* counterpart to Step 4. Where the Biographer needed a 21-state machine, a persona only needs **one** state — but it's still a real PROMISE agent with all the same persistence and message handling. Inside [`AgentMetaUtility.createSingleStateAgent()`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L20):
+
+1. **One `State` is created** — its system prompt is the persona prompt the frontend posted (e.g. the full ~18k-character `full_prompt_active`). This is the entire personality definition: identity, chapters, style, examples, self-knowledge, rules.
+2. **One `Transition` is wired** State → Final, guarded by a `StaticDecision` with the prompt *"Did the user say goodbye? yes/no"*. This is how the persona conversation ends gracefully when the visitor signals they're leaving.
+3. **An empty `Utterances` container** is attached to the state — will fill as the conversation progresses.
+4. **`agent.userId`** is set from the DTO (the persona owner's UUID), so `legacy_messages` rows can be joined back to the right owner for analytics.
+5. **`agent.start()` is NOT called here** — the frontend explicitly calls `POST /{agentId}/start` in Step 13 so it can decide on the spot whether to display the greeting or filter `__WAIT__`.
+6. **Returns** the new agent's UUID.
+
+Crucially, **the Legacy agent reuses the exact same PROMISE machinery as the Biographer**. The same `AgentController.respond()`, the same `State.respond()` cycle, the same `Utterances.compactIfNeeded()`, the same Hibernate persistence. The only difference is the topology: one state instead of 21, one transition instead of 30+. This is what makes the three variants (Active / Passive / Analysis) cheap to implement — they're literally the same agent type with three different prompts.
+
 **Frontend files:**
 - [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L98) — [`buildLegacySystemPrompt()`](Website-template/js/legacy-chat.js#L98) composes the full prompt
 - [`Website-template/js/legacy-chat.js`](Website-template/js/legacy-chat.js#L29) — [`buildVisitorContext()`](Website-template/js/legacy-chat.js#L29) generates the visitor block in 7 languages
@@ -1352,6 +1429,18 @@ No `user_agents` / `legacy_*` writes here — those happen earlier or per-messag
 - The agent from Step 12 must exist (its UUID is in the URL of the POST).
 - The variant prompt must contain explicit `__WAIT__` instructions for Variants 1/3 — otherwise GPT-4o invents a normal greeting and visitors in Passive mode see the persona "barging in".
 
+**What PROMISE does in this step (concretely):**
+
+1. `AgentController` receives `POST /{agentId}/start`, loads the agent from Supabase.
+2. `Agent.start()` delegates to `currentState.start()`. There's only one state, so this is the persona state created in Step 12.
+3. **`State.start()`** sends the state's *starter prompt* (different from the system prompt) plus the empty `utterances` to `LMOpenAI.complete()`. The starter prompt is what differentiates the variants:
+   - **Active variant** — *"Greet the visitor in your own voice."* → GPT-4o produces a real greeting like *"Hey Maria, schön dich zu sehen!"*
+   - **Passive / Analysis variants** — *"Respond with EXACTLY the eight characters `__WAIT__` and nothing else."* → GPT-4o returns the literal string `__WAIT__`.
+4. Either response is stored as the first `utterance` row (role = assistant) and returned to the browser.
+5. `repository.save(agent)` persists the new utterance.
+
+PROMISE doesn't know anything about variants — it just sends whatever starter prompt was configured. The `__WAIT__` trick lives entirely in the Oblivio prompts plus the frontend filter; **zero backend code** was needed to implement "the persona waits silently."
+
 **Where the data goes — Supabase fields written in this step:**
 
 | Table | Column | Source | Notes |
@@ -1398,6 +1487,19 @@ No `user_agents` / `legacy_*` writes here — those happen earlier or per-messag
 - `OPENAI_API_KEY` (text turn) and optionally `ELEVENLABS_API_KEY` (voice turn) on Railway.
 - The RLS policy on `legacy_messages` must allow anonymous inserts when the parent `access_code` is `is_active = true` — see the Schema section's `active_code_messages` policy. Without it, every `saveMessage()` call fails silently and the chat history is lost.
 
+**What PROMISE does in the persona conversation (concretely):**
+
+This is the exact same `State.respond()` cycle as Step 5a — but with two important differences because the agent only has one state:
+
+1. **No state transitions during the chat** (unless the visitor says goodbye). The agent stays in its single persona state, so `currentState` never changes between turns. Hibernate doesn't have to UPDATE `agent.current_state_id` on every save.
+2. **Utterances accumulate without limit** in that one state. This is exactly where **`compactIfNeeded()` actually pays off** — unlike the Biographer where each block reset the history, here a 100-message chat would otherwise resend the entire 100-message history on every turn. With compaction, anything older than 10 messages gets summarised after message 21 → token usage stays roughly flat.
+3. **The Goodbye guard** is checked every turn via `Transition.decide()` with the `StaticDecision` *"Did the user say goodbye? yes/no"*. If `true`, `TransitionException` fires and the agent moves to Final → `isActive()` becomes `false` → the frontend shows "this conversation has ended".
+4. **All other PROMISE plumbing is identical** to Step 5a: load agent → `State.respond()` → append user → compact → compose prompt → `LMOpenAI.complete()` → append assistant → save → return.
+
+What Oblivio adds on top of PROMISE here:
+- The parallel write to `legacy_messages` (a denormalised, frontend-friendly history — PROMISE only writes to `utterance`).
+- The optional `POST /{agentId}/tts` call to [`TTSController`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java), which is **not** a PROMISE concept at all — it's a thin proxy to ElevenLabs that keeps the API key on the server side.
+
 **Where the data goes — Supabase fields written per visitor message:**
 
 | Table | Column | Source on the website | Why this column |
@@ -1443,6 +1545,16 @@ The two parallel writes (PROMISE tables + `legacy_messages`) are intentional: PR
 - The persona's `legacy_data` must contain the prompt for the target variant (Step 7).
 - No new Supabase schema needed — the mode suffix on `visitor_id` is purely a naming convention.
 
+**What PROMISE does in a variant switch (concretely):**
+
+A variant switch is just **a fresh `POST /agent/singlestate` call** with a different prompt. From PROMISE's point of view there's no concept of "switching variants":
+
+1. The old agent stays in Supabase exactly as it was — its state, utterances, and storage are untouched. The visitor could in principle return to it, but Oblivio's frontend doesn't expose that.
+2. PROMISE creates a brand new `Agent` (`createSingleStateAgent()` again, same as Step 12) with the new variant's persona prompt as the system prompt.
+3. The new agent's `utterances` start empty. Whatever conversation history the visitor had in the previous variant is **not** carried over inside PROMISE; instead, the frontend rehydrates the new agent visually by reading `legacy_messages` rows with the new mode-scoped `visitor_id`.
+
+The variant switch is therefore a pure Oblivio concept layered on top of PROMISE: two unrelated PROMISE agents with two different prompts, and a frontend convention (`__active` / `__passive` / `__analysis` suffix) that keeps their histories separate in the denormalised table.
+
 **Where the data goes — Supabase reads and writes change scope:**
 
 | Operation | Effect |
@@ -1471,6 +1583,16 @@ Old agent stays untouched (the visitor can return at any time). If you want to *
 **What this step needs to work:**
 - Nothing extra — closing the tab requires no explicit "save" because every message was written immediately in Step 14.
 - On return, the rehydrate query needs the SAME `visitor_id` (from `localStorage`) to find the previous history. Clearing browser storage = starting a fresh conversation.
+
+**What PROMISE does when the session ends (concretely):**
+
+Almost nothing — and that's the point. PROMISE was designed to be stateless on the request level:
+
+1. **If the visitor just closes the tab**, no signal reaches PROMISE at all. The agent stays in Supabase exactly as it was after the last `repository.save(agent)`. When the visitor returns days later, `AgentController.respond()` loads the same agent on the next request and the conversation continues seamlessly.
+2. **If the Goodbye Guard fired** (the visitor said "tschüss"), `TransitionException` moved the agent to `Final`. The `StaticExtractionAction` on that transition can optionally extract a chat summary to the agent's `Storage`. From then on `agent.isActive()` returns `false` and the frontend shows the chat as ended.
+3. **On the next page load**, the frontend doesn't ask PROMISE for history — it reads `legacy_messages` from Supabase directly (cheaper and faster than calling `GET /{agentId}/conversation`). PROMISE only re-enters the picture when the visitor sends a new message.
+
+This is why Railway containers can be cold-started or replaced mid-conversation without breaking anything: **the agent's entire state lives in Supabase, not in JVM memory.** Every request is a fresh load → modify → save cycle.
 
 **Where the data goes — nothing new is written when the visitor leaves:**
 
