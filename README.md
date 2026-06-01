@@ -72,6 +72,7 @@ The remainder of this README is one large guided tour: the complete **end-to-end
 
 **Setup**
 - [Supabase Schema — Tables and Columns You Must Create](#supabase-schema--tables-and-columns-you-must-create) — full CREATE TABLE script for all 9 Oblivio tables + RLS policies + verification table
+- [Security & Access Control — How Users Are Isolated](#security--access-control--how-users-are-isolated) — the 4-layer model (JWT → mapping → RLS → UUID), visitor model, and what the Railway backend does *not* enforce
 
 **End-to-End Process**
 - [End-to-End Process — Overview](#end-to-end-process)
@@ -774,6 +775,158 @@ After running the SQL above, open the website locally and check the Supabase **T
 | Send a message to the persona | `legacy_messages` grows |
 
 If a row does not appear, the browser console will show a Supabase error like `relation "user_profiles" does not exist` (you forgot the CREATE) or `new row violates row-level security policy` (RLS is on but no policy matches — usually because the user is not logged in or the `user_id` value doesn't match `auth.uid()`).
+
+---
+
+## Security & Access Control — How Users Are Isolated
+
+A natural question: *with one Railway backend serving all users, how is it guaranteed that User A can never see, modify, or chat with User B's Biographer?* The answer is **defense in depth across four layers**, none of which trusts the layer above blindly. This section explains the model end-to-end — both for the logged-in Persona Owner and for the anonymous Visitor.
+
+### Persona Owner side — the 4-layer model
+
+```
+┌────────────────────────────────────────────────────────────┐
+│  Layer 1 — Supabase Auth (JWT)                             │
+│  Login returns a cryptographically signed token            │
+│  → auth.uid() inside Postgres is non-spoofable             │
+└────────────────────────────────────────────────────────────┘
+                          │
+┌────────────────────────────────────────────────────────────┐
+│  Layer 2 — user_agents mapping table                       │
+│  One row per (user_id, language, agent_id)                 │
+│  → Frontend looks up "which agent is mine?"                │
+└────────────────────────────────────────────────────────────┘
+                          │
+┌────────────────────────────────────────────────────────────┐
+│  Layer 3 — Row Level Security (RLS)                        │
+│  USING (auth.uid() = user_id) on every owner table         │
+│  → Even a malicious client cannot read other users' rows   │
+└────────────────────────────────────────────────────────────┘
+                          │
+┌────────────────────────────────────────────────────────────┐
+│  Layer 4 — UUIDv4 unguessability                           │
+│  agent_id is 128-bit random → 2^128 search space           │
+│  → Without knowing the UUID you cannot address the agent   │
+└────────────────────────────────────────────────────────────┘
+```
+
+#### Layer 1 — Supabase Auth (JWT)
+
+After login, `supabase.auth.signInWithPassword({ email, password })` returns a JWT signed with Supabase's private key. The Supabase JS client stores it in the browser and attaches it as `Authorization: Bearer <token>` to every subsequent request. Postgres then exposes `auth.uid()` — the user's UUID, extracted from the verified JWT.
+
+A client cannot tamper with this: changing the `sub` claim invalidates the signature, and Supabase rejects the request before any SQL runs.
+
+→ **Result:** Every Supabase request arrives with a verified, non-spoofable user identity.
+
+#### Layer 2 — `user_agents` as the mapping table
+
+Each Biographer is linked to exactly one Supabase user via the `user_agents` table:
+
+```javascript
+const { data } = await supabaseClient
+    .from('user_agents')
+    .select('agent_id')
+    .eq('user_id', currentUser.id)     // currentUser.id comes from the verified JWT
+    .eq('language', language)
+    .single();
+```
+
+The frontend looks up "which agent belongs to *me*" — never "which agent belongs to anyone".
+
+#### Layer 3 — Row Level Security is the actual gatekeeper
+
+This is the load-bearing layer. The policy on `user_agents` is:
+
+```sql
+CREATE POLICY "own_rows" ON user_agents
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+```
+
+`USING` filters rows **before they leave Postgres**. Even if the client maliciously runs `SELECT * FROM user_agents` (with no WHERE clause), they only see their own rows. `WITH CHECK` does the same for INSERT/UPDATE — you can't insert a row pretending to be someone else, because the row would fail the predicate at write time.
+
+This means: **a user cannot find another user's `agent_id` from Supabase, no matter what query they craft.** The same policy is replicated on every other owner table (`user_profiles`, `user_consents`, `questionnaire_answers`, `chat_messages`, `biographer_conversations`, `user_legacies`).
+
+#### Layer 4 — The UUID itself is the final hurdle
+
+The PROMISE agent's identifier is a [UUIDv4](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) — 128 bits of cryptographic randomness. Guessing one is computationally infeasible (2^128 possibilities). Combined with Layer 3 preventing leakage, the UUID acts as a **per-user secret** that effectively gates access to:
+
+```
+POST https://promise-production.up.railway.app/{agentId}/respond
+                                                ^^^^^^^^^
+                                       must know the UUID to call this
+```
+
+### Visitor side — different model, same idea
+
+Visitors don't log in. They authenticate by knowing an **8-character access code** (e.g. `VDSRMACZ`). The 4 layers map differently:
+
+| Layer | Persona Owner | Visitor |
+|---|---|---|
+| 1. Identity | JWT (`auth.uid()`) | No identity — fully anonymous |
+| 2. Lookup key | `user_agents.user_id` | `legacy_access_codes.access_code` |
+| 3. RLS policy | `auth.uid() = user_id` | `is_active = true` (public read) |
+| 4. Secrecy | UUIDv4 (128 bits) | 8-char code (~3 × 10¹² combinations) |
+
+The relevant RLS policies for visitors:
+
+```sql
+-- Anyone (including unauthenticated visitors) can read an ACTIVE access code
+CREATE POLICY "public_read_active" ON legacy_access_codes FOR SELECT USING (is_active = true);
+
+-- Anyone can read/write messages, but only if the parent code is active
+CREATE POLICY "active_code_messages" ON legacy_messages FOR ALL
+    USING ( EXISTS (SELECT 1 FROM legacy_access_codes c
+                    WHERE c.access_code = legacy_messages.access_code AND c.is_active = true) );
+```
+
+→ The owner can **deactivate a code at any time** by setting `is_active = false`. After that, the persona effectively becomes unreachable for visitors, even ones who already had the code — because both reading the code's `legacy_data` and writing new messages depend on that flag.
+
+Multiple visitors can use the same access code, but they're **isolated from each other** by the mode-scoped `visitor_id`:
+
+```javascript
+// In legacy.html, every message read/write uses a scoped ID:
+getScopedVisitorId(mode) {
+    return visitorId + '__' + mode;   // e.g. '7a2c…__active'
+}
+```
+
+`visitorId` itself lives in `localStorage`, generated as a UUIDv4 on first visit. The `__active` / `__passive` / `__analysis` suffix keeps each variant's history separate. **Two visitors talking to the same persona never see each other's messages** because their `visitor_id` values are different UUIDs.
+
+### Honest limitations — what is *not* enforced
+
+The current production setup has one deliberate gap worth being explicit about:
+
+> **The Railway backend does not currently verify the Supabase JWT.** Endpoints like `POST /{agentId}/respond` accept any request that knows the agent's UUID. The four-layer model relies on the UUID being unguessable and Layer 3 (RLS) preventing it from leaking.
+
+This is **defense in depth via UUID secrecy** rather than per-request authorization. It works because:
+
+1. Layer 3 (RLS) ensures no user can read another user's `agent_id` from Supabase.
+2. Layer 4 (UUIDv4 = 128 bits) makes guessing one infeasible.
+3. The backend writes agent activity only into the agent's own `utterance` rows — so even if an attacker somehow learned a UUID, they could only *converse with* the persona; they could not extract another user's separate Supabase data, since that lives in tables protected by RLS.
+
+**What would harden this further:**
+
+- Have the frontend send the Supabase JWT in `Authorization: Bearer <token>` to Railway.
+- Add a Spring filter that verifies the JWT (against Supabase's JWKS endpoint) and extracts `sub`.
+- Before each `agent.respond()`, check `agent.getUserId().equals(jwt.sub())` — return `403` otherwise.
+
+The infrastructure for this is already in place (Adaptation 3 added the `userId` field on every `Agent`), so adding the check is a localized change in `AgentController` + a new Spring `OncePerRequestFilter`. It is not currently active because the threat model — adversaries actively probing for unknown UUIDs — is mitigated by Layers 3 + 4 to a degree acceptable for a research thesis deployment.
+
+### Quick reference — what protects what
+
+| What | Protected by |
+|---|---|
+| User A can't list User B's agents | RLS on `user_agents` (Layer 3) |
+| User A can't read User B's chat history | RLS on `chat_messages`, `user_legacies` (Layer 3) |
+| User A can't guess User B's agent UUID | UUIDv4 unguessability (Layer 4) |
+| User A can't pretend to be User B when writing | RLS `WITH CHECK (auth.uid() = user_id)` (Layer 3) |
+| User A can't bypass the JWT and forge `auth.uid()` | JWT signature (Layer 1) |
+| Anonymous visitor can't read deactivated personas | RLS `is_active = true` on `legacy_access_codes` |
+| Visitor A can't see Visitor B's messages on same persona | Different `visitor_id` UUIDs in `localStorage` |
+| Persona Owner can shut down their persona at any time | `UPDATE legacy_access_codes SET is_active = false` |
+| What is NOT currently enforced | Railway endpoint-level JWT verification |
 
 ---
 
