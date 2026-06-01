@@ -63,6 +63,53 @@ The remainder of this README is one large guided tour: the complete **end-to-end
 
 ---
 
+## Table of Contents
+
+**Foundations**
+- [What is Oblivio?](#what-is-oblivio)
+- [Deep Dive: Inside the PROMISE Framework](#deep-dive-inside-the-promise-framework) — the 5 core primitives (Prompt, State, Transition, Decision, Action), Agent, Utterances, LMOpenAI, request lifecycle, persistence
+- [Deep Dive: The 20-State (+1 End State) Biographer Architecture](#deep-dive-the-20-state-1-end-state-biographer-architecture) — state-machine layout, why 2 states per block, prompt components, backwards construction, token economics
+
+**Setup**
+- [Supabase Schema — Tables and Columns You Must Create](#supabase-schema--tables-and-columns-you-must-create) — full CREATE TABLE script for all 9 Oblivio tables + RLS policies + verification table
+
+**End-to-End Process**
+- [End-to-End Process — Overview](#end-to-end-process)
+
+*Perspective 1 — The Persona Owner*
+- [Step 1 — Sign Up / Log In](#step-1--sign-up--log-in)
+- [Step 2 — Choose Language](#step-2--choose-language)
+- [Step 3 — Block 0: Pre-Survey + GDPR Consent](#step-3--block-0-pre-survey--gdpr-consent)
+- [Step 4 — Biographer Agent is Created](#step-4--biographer-agent-is-created)
+- [Step 5 — The 10 Blocks (Conversation + Confirmation)](#step-5--the-10-blocks-conversation--confirmation)
+  - [5a. Conversation Phase](#5a-conversation-phase)
+  - [5b. Transition: Conversation → Confirmation](#5b-transition-conversation--confirmation)
+  - [5c. Confirmation Phase](#5c-confirmation-phase)
+- [Step 6 — All Blocks Complete: Final State + Access Code Generation](#step-6--all-blocks-complete-final-state--access-code-generation)
+- [Step 7 — Persona Prompts Are Created (Manual Step)](#step-7--persona-prompts-are-created-manual-step)
+- [Step 8 — Optional: Voice and Avatar Assignment](#step-8--optional-voice-and-avatar-assignment)
+
+*Perspective 2 — The Visitor*
+- [Step 9 — Open Legacy Chat with Access Code](#step-9--open-legacy-chat-with-access-code)
+- [Step 10 — Enter Visitor Info (Name, Relation, Gender)](#step-10--enter-visitor-info-name-relation-gender)
+- [Step 11 — Choose Conversation Variant](#step-11--choose-conversation-variant)
+- [Step 12 — Build the System Prompt + Create Legacy Agent](#step-12--build-the-system-prompt--create-legacy-agent)
+- [Step 13 — Starter Message](#step-13--starter-message)
+- [Step 14 — The Conversation Loop](#step-14--the-conversation-loop)
+- [Step 15 — Variant Switching (Optional, Anytime)](#step-15--variant-switching-optional-anytime)
+- [Step 16 — Session Ends](#step-16--session-ends)
+
+**PROMISE Adaptations** (what was changed in the upstream framework)
+- [PROMISE Adaptations — Overview](#promise-adaptations-what-was-changed-and-why) — 15 detailed adaptations
+- [Summary Table: All PROMISE Adaptations](#summary-table-all-promise-adaptations)
+- [Appendix: PROMISE Adaptations at a Glance](#appendix-promise-adaptations-at-a-glance) — compact one-page reference grouped by concern
+
+**Closing**
+- [Recap: What PROMISE Provided vs What Oblivio Added](#recap-what-promise-provided-vs-what-oblivio-added)
+- [Author](#author)
+
+---
+
 ## Deep Dive: Inside the PROMISE Framework
 
 Before we look at the 20-state Biographer or the Oblivio additions, this section explains **how PROMISE itself works internally** — what each class does, how they interact, and what happens technically during a conversation. Useful as a mental model before reading the rest.
@@ -1852,6 +1899,71 @@ The smaller final image starts faster, uses less memory, and has fewer attack ve
 **Lines of code modified:** ~10 (one-line additions in `State.respond()`, `Agent.java`, `AgentMetaController.java`)
 **New Java files:** 11
 **Configuration / infrastructure files added:** 7
+
+---
+
+## Appendix: PROMISE Adaptations at a Glance
+
+A compact reference grouped by concern. Each row links to the file that was added or modified. The 15 adaptations from the previous section are the same items — this view organises them by *what they enable* rather than by chronological order.
+
+### Database layer (Adaptations 1–2)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 1 | MySQL driver → PostgreSQL | [`pom.xml`](pom.xml) | Supabase only offers PostgreSQL |
+| 2 | `VARCHAR(10000)` → `TEXT` | [`Prompt.java`](src/main/java/ch/zhaw/statefulconversation/model/Prompt.java), [`State.java`](src/main/java/ch/zhaw/statefulconversation/model/State.java), [`Utterance.java`](src/main/java/ch/zhaw/statefulconversation/model/Utterance.java) | Persona prompts reach 15k–22k characters |
+
+### Multi-user support (Adaptation 3)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 3 | `userId` field on Agent | [`Agent.java`](src/main/java/ch/zhaw/statefulconversation/model/Agent.java) | PROMISE knew no users; Oblivio needs "show me only my agents" |
+
+### Context Compaction (Adaptations 4–6)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 4 | New `compactIfNeeded()` method (~60 lines) | [`Utterances.java:118`](src/main/java/ch/zhaw/statefulconversation/model/Utterances.java#L118) | Tokens stay flat even on 100-message chats |
+| 5 | Single-line trigger in `respond()` | [`State.java:171`](src/main/java/ch/zhaw/statefulconversation/model/State.java#L171) | Activates compaction for every agent type |
+| 6 | `summariseOffline()` (plain text, not JSON) | [`LMOpenAI.java`](src/main/java/ch/zhaw/statefulconversation/spi/LMOpenAI.java) | JSON injected into history would confuse GPT-4o |
+
+### Biographer factory (Adaptations 7–8)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 7 | `createBiographerAgent()` + `buildBlockPrompts()` (~450 LOC) | [`AgentMetaUtility.java:64`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaUtility.java#L64) | Builds the 21-state machine + 70 prompts on the fly |
+| 8 | `POST /agent/biographer` + enum + DTO | [`AgentMetaController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaController.java), [`AgentMetaType.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentMetaType.java), [`BiographerAgentCreateDTO.java`](src/main/java/ch/zhaw/statefulconversation/controllers/dto/BiographerAgentCreateDTO.java) | Dedicated endpoint for Biographer agent creation |
+
+### Cross-origin + new controllers (Adaptations 9–12)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 9 | CORS configuration | [`WebConfig.java`](src/main/java/ch/zhaw/statefulconversation/config/WebConfig.java) | Frontend on Hostpoint must reach backend on Railway |
+| 10 | `TTSController` (ElevenLabs bridge) | [`TTSController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/TTSController.java) | Keeps the API key server-side, out of the browser |
+| 11 | Multi-user endpoints (`/user/{id}/agents` etc.) | [`UserLogController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/UserLogController.java) | Lets the journey dashboard list a user's own agents |
+| 12 | Live log streaming via SSE | [`logging/`](src/main/java/ch/zhaw/statefulconversation/logging/) (4 new classes) | In-browser debugging without the Railway CLI |
+
+### Deployment (Adaptations 13–15)
+
+| # | What | File | Why |
+|---|---|---|---|
+| 13 | `application-prod.properties`, `openai-prod.properties` | [`src/main/resources/`](src/main/resources/) | Credentials via env vars instead of hardcoded |
+| 14 | `Dockerfile` + `railway.json` | [`Dockerfile`](Dockerfile), [`railway.json`](railway.json) | Auto-deploy to Railway, health-check, multi-stage build |
+| 15 | SSE appender in Logback | [`logback-spring.xml`](src/main/resources/logback-spring.xml) | Hooks logs into the `/logs/stream` endpoint |
+
+### What was NOT changed
+
+Equally important: **PROMISE's state-machine engine itself is unchanged.** Multi-state support, Transitions, Decisions, Actions, Storage, Hibernate mapping — all stock PROMISE. Oblivio only builds *one concrete topology* (the 20-state Biographer) and *one Single-State agent for personas* on top of it, plus the cross-cutting concerns above.
+
+Concretely unchanged files include:
+
+- [`AgentController.java`](src/main/java/ch/zhaw/statefulconversation/controllers/AgentController.java) (all `/respond`, `/start`, `/state` endpoints)
+- [`Transition.java`](src/main/java/ch/zhaw/statefulconversation/model/Transition.java), [`Decision.java`](src/main/java/ch/zhaw/statefulconversation/model/Decision.java), [`Action.java`](src/main/java/ch/zhaw/statefulconversation/model/Action.java), [`Storage.java`](src/main/java/ch/zhaw/statefulconversation/model/Storage.java), [`Final.java`](src/main/java/ch/zhaw/statefulconversation/model/Final.java)
+- All [`model/commons/`](src/main/java/ch/zhaw/statefulconversation/model/commons/) actions and decisions
+- All repositories ([`AgentRepository`](src/main/java/ch/zhaw/statefulconversation/repositories/AgentRepository.java), [`StateRepository`](src/main/java/ch/zhaw/statefulconversation/repositories/StateRepository.java), …)
+- [`StatefulconversationApplication.java`](src/main/java/ch/zhaw/statefulconversation/StatefulconversationApplication.java) (Spring Boot entry point)
+
+**Summary in one line:** 15 focused adaptations — 3 in the database layer, 1 for multi-user, 3 for context compaction, 2 for the Biographer factory, 4 for deployment / cross-origin / debugging, 2 for production properties — the state-machine core stays untouched.
 
 ---
 
